@@ -12,7 +12,7 @@
 #include <arm_math.h> //ARM DSP extensions.  for speed!
 #include <AudioStream_F32.h>
 
-class AudioEffectGain_F32 : public AudioStream_F32 //AudioStream_F32 is in AudioFloatProcessing.h
+class AudioEffectGain_F32 : public AudioStream_F32
 {
   public:
     //constructor
