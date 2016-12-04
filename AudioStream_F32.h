@@ -60,6 +60,11 @@ class AudioConnection_F32
   AudioStream_F32::initialize_f32_memory(data, num); \
 })
 
+
+#define AudioMemoryUsage_F32() (AudioStream_F32::f32_memory_used)
+#define AudioMemoryUsageMax_F32() (AudioStream_F32::f32_memory_used_max)
+#define AudioMemoryUsageMaxReset_F32() (AudioStream_F32::f32_memory_used_max = AudioStream_F32::f32_memory_used)
+
 class AudioStream_F32 : public AudioStream {
   public:
     AudioStream_F32(unsigned char n_input_f32, audio_block_f32_t **iqueue) : AudioStream(1, inputQueueArray_i16), 
