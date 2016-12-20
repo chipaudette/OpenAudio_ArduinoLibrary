@@ -65,6 +65,9 @@ class AudioEffectMine_F32 : public AudioStream_F32
 
       // //clean up...if you allocated any memory in the lines above
       //Audiostream_F32::release(audio_pow_block);
+      
+      // return your processed audio by putting it back into audio_block->data
+      
     } //end of applyMyAlgorithms
     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
