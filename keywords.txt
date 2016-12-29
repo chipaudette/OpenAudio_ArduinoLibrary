@@ -2,14 +2,18 @@
 OpenAudio_ArduinoLibrary	KEYWORD1
 
 #data type / class / static function names
+float32_t		KEYWORD1
 audio_block_f32_t	KEYWORD1
 AudioStream_F32		KEYWORD1
 AudioConnection_F32	KEYWORD1
 AudioConvert_I16toF32	KEYWORD1
 AudioConvert_F32toI16	KEYWORD1
 AudioEffectGain_F32	KEYWORD1
+AudioEffectCompressor_F32	KEYWORD1
 AudioMemory_F32		KEYWORD1
 AudioMemoryUsage_F32	KEYWORD1
 AudioMemoryUsageMax_F32	KEYWORD1
 AudioMemoryUsageMaxReset_F32	KEYWORD1
 
+AudioControlSGTL5000_Extended	KEYWORD1
+micBiasEnable		KEYWORD2
