@@ -10,6 +10,9 @@
    MIT License.  use at your own risk.
 */
 
+#ifndef _AudioEffectCompressor
+#define _AudioEffectCompressor
+
 #include <arm_math.h> //ARM DSP extensions.  https://www.keil.com/pack/doc/CMSIS/DSP/html/index.html
 #include <AudioStream_F32.h>
 
@@ -162,4 +165,4 @@ class AudioEffectCompressor_F32 : public AudioStream_F32
     
 };
 
-
+#endif
