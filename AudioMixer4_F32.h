@@ -1,22 +1,31 @@
+/*
+ * AudioMixer4
+ * 
+ * Created: Patrick Radius, December 2016
+ * Purpose: Mix up to 4 audio channels with individual gain controls.
+ * Assumes floating-point data.
+ *          
+ * This processes a single stream fo audio data (ie, it is mono)       
+ *          
+ * MIT License.  use at your own risk.
+*/
+
 #ifndef AUDIOMIXER4F32_H
 #define AUDIOMIXER4F32_H
 
 #include <arm_math.h> 
 #include <AudioStream_F32.h>
 
-
 class AudioMixer4_F32 : public AudioStream_F32 {
 public:
     AudioMixer4_F32() : AudioStream_F32(4, inputQueueArray) {
-      for (int i=0; i<4; i++) multiplier[i] = 0.5;
+      for (int i=0; i<4; i++) multiplier[i] = 1.0;
     }
 
     virtual void update(void);
 
     void gain(unsigned int channel, float gain) {
-      if (channel >= 4) return;
-      if (gain > 127.0f) gain = 127.0f;
-      else if (gain < 0.0f) gain = 0.0f;
+      if (channel >= 4 || channel < 0) return;
       multiplier[channel] = gain;
     }
 
