@@ -1,3 +1,15 @@
+/*
+ * AudioEffectsGain
+ * 
+ * Created: Patrick Radius, December 2016
+ * Purpose: Multiply two channels of audio data. Can be used for example as 'vca' or amplitude modulation.
+ * Assumes floating-point data.
+ *          
+ * This processes a single stream fo audio data (ie, it is mono)       
+ *          
+ * MIT License.  use at your own risk.
+*/
+
 #include <arm_math.h>
 #include <AudioStream_F32.h>
 
