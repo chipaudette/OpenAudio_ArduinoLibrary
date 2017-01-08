@@ -16,6 +16,7 @@ AudioMemoryUsageMax_F32	KEYWORD1
 AudioMemoryUsageMaxReset_F32	KEYWORD1
 AudioMixer4_F32		KEYWORD1
 AudioMultiply_F32	KEYWORD1
+AudioSynthWaveform_F32	KEYWORD1
 
 AudioControlSGTL5000_Extended	KEYWORD1
 micBiasEnable		KEYWORD2
