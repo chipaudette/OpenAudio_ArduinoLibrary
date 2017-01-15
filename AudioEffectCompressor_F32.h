@@ -37,7 +37,7 @@ class AudioEffectCompressor_F32 : public AudioStream_F32
 
       //apply a high-pass filter to get rid of the DC offset
       if (use_HP_prefilter) arm_biquad_cascade_df1_f32(&hp_filt_struct, audio_block->data, audio_block->data, audio_block->length);
-
+      
       //apply the pre-gain...a negative gain value will disable
       if (pre_gain > 0.0f) arm_scale_f32(audio_block->data, pre_gain, audio_block->data, audio_block->length); //use ARM DSP for speed!
 
@@ -52,29 +52,32 @@ class AudioEffectCompressor_F32 : public AudioStream_F32
       //apply the desired gain...store the processed audio back into audio_block
       arm_mult_f32(audio_block->data, gain_block->data, audio_block->data, audio_block->length);
 
-      ///transmit the block and release memory
+      //transmit the block and release memory
       AudioStream_F32::transmit(audio_block);
       AudioStream_F32::release(audio_block);
       AudioStream_F32::release(gain_block);
       AudioStream_F32::release(audio_level_dB_block);
     }
 
+    // Here's the method that estimates the level of the audio (in dB)
+    // It squares the signal and low-pass filters to get a time-averaged
+    // signal power.  It then 
     void calcAudioLevel_dB(audio_block_f32_t *wav_block, audio_block_f32_t *level_dB_block) { 
-      //calculate the instantaneous signal power (square the signal)
+    	
+      // calculate the instantaneous signal power (square the signal)
       audio_block_f32_t *wav_pow_block = AudioStream_F32::allocate_f32();
       arm_mult_f32(wav_block->data, wav_block->data, wav_pow_block->data, wav_block->length);
 
-      //apply a smoothing filter to wav_pow_block and convert to dB
-      float c1 = level_lp_const;
-      float c2 = 1.0f - c1;
+      // low-pass filter and convert to dB
+      float c1 = level_lp_const, c2 = 1.0f - c1; //prepare constants
       for (int i = 0; i < wav_pow_block->length; i++) {
-        //compute target gain (well, we're actualy calculating gain^2) assuming we want to copress
+        // first-order low-pass filter to get a running estimate of the average power
         wav_pow_block->data[i] = c1*prev_level_lp_pow + c2*wav_pow_block->data[i];
+        
+        // save the state of the first-order low-pass filter
+        prev_level_lp_pow = wav_pow_block->data[i]; 
 
-        //save state for next time (and for next data block)
-        prev_level_lp_pow = wav_pow_block->data[i];
-
-        //convert to dB (but not yet multiplied by 10.0
+        //now convert the signal power to dB (but not yet multiplied by 10.0)
         level_dB_block->data[i] = log10f(wav_pow_block->data[i]);
       }
 
@@ -89,9 +92,11 @@ class AudioEffectCompressor_F32 : public AudioStream_F32
       return; //output is passed through level_dB_block
     }
 
+    //This method computes the desired gain from the compressor, given an estimate
+    //of the signal level (in dB)
     void calcGain(audio_block_f32_t *audio_level_dB_block, audio_block_f32_t *gain_block) { 
     
-      //first, calculate the instantaneous target gain
+      //first, calculate the instantaneous target gain based on the compression ratio
       audio_block_f32_t *inst_targ_gain_dB_block = AudioStream_F32::allocate_f32(); 
       calcInstantaneousTargetGain(audio_level_dB_block, inst_targ_gain_dB_block);
     
@@ -99,9 +104,9 @@ class AudioEffectCompressor_F32 : public AudioStream_F32
       audio_block_f32_t *gain_dB_block = AudioStream_F32::allocate_f32(); 
       calcSmoothedGain_dB(inst_targ_gain_dB_block,gain_dB_block);
 
-      //finally, convert from dB to linear gain: gain = 10^(gain_dB/20)
+      //finally, convert from dB to linear gain: gain = 10^(gain_dB/20);  (ie this takes care of the sqrt, too!)
       arm_scale_f32(gain_dB_block->data, 1.0f/20.0f, gain_dB_block->data, gain_dB_block->length);  //divide by 20
-      for (int i = 0; i < gain_dB_block->length; i++) gain_block->data[i] = powf(10.0f,gain_dB_block->data[i]); //10^(x)
+      for (int i = 0; i < gain_dB_block->length; i++) gain_block->data[i] = powf(10.0f,gain_dB_block->data[i]); //do the 10^(x)
 
       //release memory and return
       AudioStream_F32::release(gain_dB_block);
@@ -109,6 +114,8 @@ class AudioEffectCompressor_F32 : public AudioStream_F32
       return;  //output is passed through gain_block
     }
       
+    //Compute the instantaneous desired gain, including the compression ratio and
+    //threshold for where the comrpession kicks in
     void calcInstantaneousTargetGain(audio_block_f32_t *audio_level_dB_block, audio_block_f32_t *inst_targ_gain_dB_block) {
       
       // how much are we above the compression threshold?
@@ -140,6 +147,8 @@ class AudioEffectCompressor_F32 : public AudioStream_F32
       return;  //output is passed through inst_targ_gain_dB_block
     }
 
+    //this method applies the "attack" and "release" constants to smooth the
+    //target gain level through time.
     void calcSmoothedGain_dB(audio_block_f32_t *inst_targ_gain_dB_block, audio_block_f32_t *gain_dB_block) {
       float32_t gain_dB;
       float32_t one_minus_attack_const = 1.0f - attack_const;
