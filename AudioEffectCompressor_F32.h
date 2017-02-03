@@ -221,6 +221,13 @@ class AudioEffectCompressor_F32 : public AudioStream_F32
     float32_t getCurrentLevel_dBFS(void) { return 10.0* log10f(prev_level_lp_pow); }
     float32_t getCurrentGain_dB(void) { return prev_gain_dB; }
 
+    void setHPFilterCoeff_N2IIR_Matlab(float32_t b[], float32_t a[]){
+      //https://www.keil.com/pack/doc/CMSIS/DSP/html/group__BiquadCascadeDF1.html#ga8e73b69a788e681a61bccc8959d823c5
+      //Use matlab to compute the coeff for HP at 20Hz: [b,a]=butter(2,20/(44100/2),'high'); %assumes fs_Hz = 44100
+      hp_coeff[0] = b[0];   hp_coeff[1] = b[1];  hp_coeff[2] = b[2]; //here are the matlab "b" coefficients
+      hp_coeff[3] = -a[1];  hp_coeff[4] = -a[2];  //the DSP needs the "a" terms to have opposite sign vs Matlab    	
+    }
+    
   private:
     //state-related variables
     audio_block_f32_t *inputQueueArray_f32[1]; //memory pointer for the input to this module
@@ -237,9 +244,11 @@ class AudioEffectCompressor_F32 : public AudioStream_F32
       //Use matlab to compute the coeff for HP at 20Hz: [b,a]=butter(2,20/(44100/2),'high'); %assumes fs_Hz = 44100
       float32_t b[] = {9.979871156751189e-01,    -1.995974231350238e+00, 9.979871156751189e-01};  //from Matlab
       float32_t a[] = { 1.000000000000000e+00,    -1.995970179642828e+00,    9.959782830576472e-01};  //from Matlab
-      hp_coeff[0] = b[0];   hp_coeff[1] = b[1];  hp_coeff[2] = b[2]; //here are the matlab "b" coefficients
-      hp_coeff[3] = -a[1];  hp_coeff[4] = -a[2];  //the DSP needs the "a" terms to have opposite sign vs Matlab
+      setHPFilterCoeff_N2IIR_Matlab(b, a);
+      //hp_coeff[0] = b[0];   hp_coeff[1] = b[1];  hp_coeff[2] = b[2]; //here are the matlab "b" coefficients
+      //hp_coeff[3] = -a[1];  hp_coeff[4] = -a[2];  //the DSP needs the "a" terms to have opposite sign vs Matlab
     }
+
 
     //private parameters related to gain calculation
     float32_t attack_const, release_const, level_lp_const; //used in calcGain().  set by setAttack_sec() and setRelease_sec();
