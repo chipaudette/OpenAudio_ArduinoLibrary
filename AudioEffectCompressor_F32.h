@@ -16,47 +16,6 @@
 #include <arm_math.h> //ARM DSP extensions.  https://www.keil.com/pack/doc/CMSIS/DSP/html/index.html
 #include <AudioStream_F32.h>
 
-
-// //// Accelerate the powf(10.0,x) function???
-//#define POW10_FUNC(x) powf(10.0f,x)   //standard, but slower
-#define POW10_FUNC(x) expf(2.302585092994f*x)  //faster:  exp(log(10.0f)*x)
-
-// //// Accelerate the log10f(x)  function?
-//#define LOG10_FUNC(x) log10f(x)   //standard, but slower
-#define LOG10_FUNC(x) log2f_approx(x)*0.3010299956639812f; //faster:  log2(x)/log2(10)
-
-//https://community.arm.com/tools/f/discussions/4292/cmsis-dsp-new-functionality-proposal/22621#22621
-/* ----------------------------------------------------------------------
-** Fast approximation to the log2() function.  It uses a two step
-** process.  First, it decomposes the floating-point number into
-** a fractional component F and an exponent E.  The fraction component
-** is used in a polynomial approximation and then the exponent added
-** to the result.  A 3rd order polynomial is used and the result
-** when computing db20() is accurate to 7.984884e-003 dB.
-** ------------------------------------------------------------------- */
-float log2f_approx_coeff[4] = {1.23149591368684f, -4.11852516267426f, 6.02197014179219f, -3.13396450166353f};
-float log2f_approx(float X) {
-  float *C = &log2f_approx_coeff[0];
-  float Y;
-  float F;
-  int E;
-
-  // This is the approximation to log2()
-  F = frexpf(fabsf(X), &E);
-  //  Y = C[0]*F*F*F + C[1]*F*F + C[2]*F + C[3] + E;
-  Y = *C++;
-  Y *= F;
-  Y += (*C++);
-  Y *= F;
-  Y += (*C++);
-  Y *= F;
-  Y += (*C++);
-  Y += E;
-
-  return(Y);
-}
-
-
 class AudioEffectCompressor_F32 : public AudioStream_F32
 {
   public:
@@ -119,7 +78,7 @@ class AudioEffectCompressor_F32 : public AudioStream_F32
         prev_level_lp_pow = wav_pow_block->data[i]; 
 
         //now convert the signal power to dB (but not yet multiplied by 10.0)
-        level_dB_block->data[i] = LOG10_FUNC(wav_pow_block->data[i]);
+        level_dB_block->data[i] = log10f_approx(wav_pow_block->data[i]);
       }
 
       //limit the amount that the state of the smoothing filter can go toward negative infinity
@@ -147,7 +106,7 @@ class AudioEffectCompressor_F32 : public AudioStream_F32
 
       //finally, convert from dB to linear gain: gain = 10^(gain_dB/20);  (ie this takes care of the sqrt, too!)
       arm_scale_f32(gain_dB_block->data, 1.0f/20.0f, gain_dB_block->data, gain_dB_block->length);  //divide by 20 
-      for (int i = 0; i < gain_dB_block->length; i++) gain_block->data[i] = POW10_FUNC(gain_dB_block->data[i]); //do the 10^(x)
+      for (int i = 0; i < gain_dB_block->length; i++) gain_block->data[i] = pow10f(gain_dB_block->data[i]); //do the 10^(x)
       
 
       //release memory and return
@@ -254,13 +213,13 @@ class AudioEffectCompressor_F32 : public AudioStream_F32
     void enableHPFilter(boolean flag) { use_HP_prefilter = flag; };
 
     //methods to return information about this module
-    float32_t getPreGain_dB(void) { return 20.0 * log10f(pre_gain);  }
+    float32_t getPreGain_dB(void) { return 20.0 * log10f_approx(pre_gain);  }
     float32_t getAttack_sec(void) {  return attack_sec; }
     float32_t getRelease_sec(void) {  return release_sec; }
     float32_t getLevelTimeConst_sec(void) { return level_lp_sec; }
     float32_t getThresh_dBFS(void) { return thresh_dBFS; }
     float32_t getCompressionRatio(void) { return comp_ratio; }
-    float32_t getCurrentLevel_dBFS(void) { return 10.0* log10f(prev_level_lp_pow); }
+    float32_t getCurrentLevel_dBFS(void) { return 10.0* log10f_approx(prev_level_lp_pow); }
     float32_t getCurrentGain_dB(void) { return prev_gain_dB; }
 
     void setHPFilterCoeff_N2IIR_Matlab(float32_t b[], float32_t a[]){
@@ -297,7 +256,7 @@ class AudioEffectCompressor_F32 : public AudioStream_F32
     float32_t comp_ratio_const, thresh_pow_FS_wCR;  //used in calcGain();  set in updateThresholdAndCompRatioConstants()
     void updateThresholdAndCompRatioConstants(void) {
       comp_ratio_const = 1.0f-(1.0f / comp_ratio);
-      thresh_pow_FS_wCR = powf(thresh_pow_FS, comp_ratio_const);  //powf() is much faster than pow()      
+      thresh_pow_FS_wCR = powf(thresh_pow_FS, comp_ratio_const);    
     }
 
     //settings
@@ -311,6 +270,55 @@ class AudioEffectCompressor_F32 : public AudioStream_F32
     float32_t comp_ratio = 1.0;  //compression ratio
     float32_t pre_gain = -1.0;  //gain to apply before the compression.  negative value disables
     boolean use_HP_prefilter;
+    
+    
+    // Accelerate the powf(10.0,x) function
+    static float32_t pow10f(float x) {
+      //return powf(10.0f,x)   //standard, but slower
+      return expf(2.302585092994f*x);  //faster:  exp(log(10.0f)*x)
+    }
+
+    // Accelerate the log10f(x)  function?
+    static float32_t log10f_approx(float x) {
+      //return log10f(x);   //standard, but slower
+      return log2f_approx(x)*0.3010299956639812f; //faster:  log2(x)/log2(10)
+    }
+    
+    /* ----------------------------------------------------------------------
+    ** Fast approximation to the log2() function.  It uses a two step
+    ** process.  First, it decomposes the floating-point number into
+    ** a fractional component F and an exponent E.  The fraction component
+    ** is used in a polynomial approximation and then the exponent added
+    ** to the result.  A 3rd order polynomial is used and the result
+    ** when computing db20() is accurate to 7.984884e-003 dB.
+    ** ------------------------------------------------------------------- */
+    //https://community.arm.com/tools/f/discussions/4292/cmsis-dsp-new-functionality-proposal/22621#22621
+    //float log2f_approx_coeff[4] = {1.23149591368684f, -4.11852516267426f, 6.02197014179219f, -3.13396450166353f};
+    static float log2f_approx(float X) {
+      //float *C = &log2f_approx_coeff[0];
+      float Y;
+      float F;
+      int E;
+    
+      // This is the approximation to log2()
+      F = frexpf(fabsf(X), &E);
+      //  Y = C[0]*F*F*F + C[1]*F*F + C[2]*F + C[3] + E;
+      //Y = *C++;
+      Y = 1.23149591368684f;
+      Y *= F;
+      //Y += (*C++);
+      Y += -4.11852516267426f;
+      Y *= F;
+      //Y += (*C++);
+      Y += 6.02197014179219f;
+      Y *= F;
+      //Y += (*C++);
+      Y += -3.13396450166353f;
+      Y += E;
+    
+      return(Y);
+    }
+    
     
 };
 
