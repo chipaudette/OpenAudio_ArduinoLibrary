@@ -16,6 +16,47 @@
 #include <arm_math.h> //ARM DSP extensions.  https://www.keil.com/pack/doc/CMSIS/DSP/html/index.html
 #include <AudioStream_F32.h>
 
+
+// //// Accelerate the powf(10.0,x) function???
+//#define POW10_FUNC(x) powf(10.0f,x)   //standard, but slower
+#define POW10_FUNC(x) expf(2.302585092994f*x)  //faster:  exp(log(10.0f)*x)
+
+// //// Accelerate the log10f(x)  function?
+//#define LOG10_FUNC(x) log10f(x)   //standard, but slower
+#define LOG10_FUNC(x) log2f_approx(x)*0.3010299956639812f; //faster:  log2(x)/log2(10)
+
+//https://community.arm.com/tools/f/discussions/4292/cmsis-dsp-new-functionality-proposal/22621#22621
+/* ----------------------------------------------------------------------
+** Fast approximation to the log2() function.  It uses a two step
+** process.  First, it decomposes the floating-point number into
+** a fractional component F and an exponent E.  The fraction component
+** is used in a polynomial approximation and then the exponent added
+** to the result.  A 3rd order polynomial is used and the result
+** when computing db20() is accurate to 7.984884e-003 dB.
+** ------------------------------------------------------------------- */
+float log2f_approx_coeff[4] = {1.23149591368684f, -4.11852516267426f, 6.02197014179219f, -3.13396450166353f};
+float log2f_approx(float X) {
+  float *C = &log2f_approx_coeff[0];
+  float Y;
+  float F;
+  int E;
+
+  // This is the approximation to log2()
+  F = frexpf(fabsf(X), &E);
+  //  Y = C[0]*F*F*F + C[1]*F*F + C[2]*F + C[3] + E;
+  Y = *C++;
+  Y *= F;
+  Y += (*C++);
+  Y *= F;
+  Y += (*C++);
+  Y *= F;
+  Y += (*C++);
+  Y += E;
+
+  return(Y);
+}
+
+
 class AudioEffectCompressor_F32 : public AudioStream_F32
 {
   public:
@@ -78,7 +119,7 @@ class AudioEffectCompressor_F32 : public AudioStream_F32
         prev_level_lp_pow = wav_pow_block->data[i]; 
 
         //now convert the signal power to dB (but not yet multiplied by 10.0)
-        level_dB_block->data[i] = log10f(wav_pow_block->data[i]);
+        level_dB_block->data[i] = LOG10_FUNC(wav_pow_block->data[i]);
       }
 
       //limit the amount that the state of the smoothing filter can go toward negative infinity
@@ -105,8 +146,9 @@ class AudioEffectCompressor_F32 : public AudioStream_F32
       calcSmoothedGain_dB(inst_targ_gain_dB_block,gain_dB_block);
 
       //finally, convert from dB to linear gain: gain = 10^(gain_dB/20);  (ie this takes care of the sqrt, too!)
-      arm_scale_f32(gain_dB_block->data, 1.0f/20.0f, gain_dB_block->data, gain_dB_block->length);  //divide by 20
-      for (int i = 0; i < gain_dB_block->length; i++) gain_block->data[i] = powf(10.0f,gain_dB_block->data[i]); //do the 10^(x)
+      arm_scale_f32(gain_dB_block->data, 1.0f/20.0f, gain_dB_block->data, gain_dB_block->length);  //divide by 20 
+      for (int i = 0; i < gain_dB_block->length; i++) gain_block->data[i] = POW10_FUNC(gain_dB_block->data[i]); //do the 10^(x)
+      
 
       //release memory and return
       AudioStream_F32::release(gain_dB_block);
