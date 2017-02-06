@@ -26,8 +26,12 @@ typedef struct audio_block_f32_struct {
   unsigned char ref_count;
   unsigned char memory_pool_index;
   unsigned char reserved1;
-  unsigned char reserved2;  
-  float data[AUDIO_BLOCK_SAMPLES]; // AUDIO_BLOCK_SAMPLES is 128, from AudioStream.h
+  unsigned char reserved2;
+  #if AUDIO_BLOCK_SAMPLES < 128
+  	float32_t data[128];  //limit array size to be no smaller than 128. unstable otherwise?
+  #else
+  	float32_t data[AUDIO_BLOCK_SAMPLES]; // AUDIO_BLOCK_SAMPLES is 128, from AudioStream.h
+  #endif
   const int length = AUDIO_BLOCK_SAMPLES; // AUDIO_BLOCK_SAMPLES is 128, from AudioStream.h
   const float fs_Hz = AUDIO_SAMPLE_RATE; // AUDIO_SAMPLE_RATE is 44117.64706 from AudioStream.h
 } audio_block_f32_t;
@@ -56,8 +60,8 @@ class AudioConnection_F32
 };
 
 #define AudioMemory_F32(num) ({ \
-  static audio_block_f32_t data[num]; \
-  AudioStream_F32::initialize_f32_memory(data, num); \
+  static audio_block_f32_t data_f32[num]; \
+  AudioStream_F32::initialize_f32_memory(data_f32, num); \
 })
 
 

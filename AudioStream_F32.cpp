@@ -1,5 +1,5 @@
 
-#include <AudioStream_F32.h>
+#include "AudioStream_F32.h"
 
 audio_block_f32_t * AudioStream_F32::f32_memory_pool;
 uint32_t AudioStream_F32::f32_memory_pool_available_mask[6];
@@ -97,14 +97,20 @@ void AudioStream_F32::release(audio_block_f32_t *block)
 // and then release it once after all transmit calls.
 void AudioStream_F32::transmit(audio_block_f32_t *block, unsigned char index)
 {
+  //Serial.print("AudioStream_F32: transmit().  start...index = ");Serial.println(index);
   for (AudioConnection_F32 *c = destination_list_f32; c != NULL; c = c->next_dest) {
+  	  //Serial.print("  : loop1, c->src_index = ");Serial.println(c->src_index);
     if (c->src_index == index) {
+    	//Serial.println("  : if1");
       if (c->dst.inputQueue_f32[c->dest_index] == NULL) {
+      	  //Serial.println("  : if2");
         c->dst.inputQueue_f32[c->dest_index] = block;
         block->ref_count++;
+          //Serial.print("  : block->ref_count = "); Serial.println(block->ref_count);
       }
     }
-  }      
+  } 
+  //Serial.println("AudioStream_F32: transmit(). finished.");
 }
 
 // Receive block from an input.  The block's data
