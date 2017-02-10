@@ -6,19 +6,6 @@ float32_t		KEYWORD1
 audio_block_f32_t	KEYWORD1
 AudioStream_F32		KEYWORD1
 AudioConnection_F32	KEYWORD1
-AudioConvert_I16toF32	KEYWORD1
-AudioConvert_F32toI16	KEYWORD1
-AudioEffectGain_F32	KEYWORD1
-AudioEffectFIR_F32	KEYWORD1
-AudioEffectIIR_F32	KEYWORD1
-AudioEffectCompressor_F32	KEYWORD1
-AudioMemory_F32		KEYWORD1
-AudioMemoryUsage_F32	KEYWORD1
-AudioMemoryUsageMax_F32	KEYWORD1
-AudioMemoryUsageMaxReset_F32	KEYWORD1
-AudioMixer4_F32		KEYWORD1
-AudioMultiply_F32	KEYWORD1
-AudioSynthWaveform_F32	KEYWORD1
 
 AudioControlTLV320AIC3206	KEYWORD1
 inputSelect		KEYWORD2
@@ -28,3 +15,20 @@ micGain			KEYWORD2
 
 AudioControlSGTL5000_Extended	KEYWORD1
 micBiasEnable		KEYWORD2
+
+AudioConvert_I16toF32	KEYWORD1
+AudioConvert_F32toI16	KEYWORD1
+
+AudioEffectGain_F32	KEYWORD1
+setGain_dB		KEYWORD2
+
+AudioFilterFIR_F32	KEYWORD1
+AudioEffectIIR_F32	KEYWORD1
+AudioEffectCompressor_F32	KEYWORD1
+AudioMemory_F32		KEYWORD1
+AudioMemoryUsage_F32	KEYWORD1
+AudioMemoryUsageMax_F32	KEYWORD1
+AudioMemoryUsageMaxReset_F32	KEYWORD1
+AudioMixer4_F32		KEYWORD1
+AudioMultiply_F32	KEYWORD1
+AudioSynthWaveform_F32	KEYWORD1
