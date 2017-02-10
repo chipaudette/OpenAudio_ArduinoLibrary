@@ -70,7 +70,7 @@ class AudioFilterIIR_F32 : public AudioStream_F32
 
 void AudioFilterIIR_F32::update(void)
 {
-  audio_block_f32_t *block, *b_new;
+  audio_block_f32_t *block;
 
   block = AudioStream_F32::receiveWritable_f32();
   if (!block) return;
