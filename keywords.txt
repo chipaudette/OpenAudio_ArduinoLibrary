@@ -20,5 +20,11 @@ AudioMixer4_F32		KEYWORD1
 AudioMultiply_F32	KEYWORD1
 AudioSynthWaveform_F32	KEYWORD1
 
+AudioControlTLV320AIC3206	KEYWORD1
+inputSelect		KEYWORD2
+setMicBias		KEYWORD2
+volume			KEYWORD2
+micGain			KEYWORD2
+
 AudioControlSGTL5000_Extended	KEYWORD1
 micBiasEnable		KEYWORD2
