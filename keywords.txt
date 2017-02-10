@@ -9,6 +9,8 @@ AudioConnection_F32	KEYWORD1
 AudioConvert_I16toF32	KEYWORD1
 AudioConvert_F32toI16	KEYWORD1
 AudioEffectGain_F32	KEYWORD1
+AudioEffectFIR_F32	KEYWORD1
+AudioEffectIIR_F32	KEYWORD1
 AudioEffectCompressor_F32	KEYWORD1
 AudioMemory_F32		KEYWORD1
 AudioMemoryUsage_F32	KEYWORD1
