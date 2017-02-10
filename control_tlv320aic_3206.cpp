@@ -140,7 +140,7 @@ bool AudioControlTLV320AIC3206::enable(void)
 	delay(5);
 
   aic_reset(); delay(100);
-	aic_init(); delay(100);
+  aic_init(); delay(100);
   aic_initADC(); delay(100);
   aic_initDAC(); delay(100);
 
@@ -156,6 +156,7 @@ bool AudioControlTLV320AIC3206::disable(void) {
   return true;
 }
 
+//dummy function to keep compatible with Teensy Audio Library
 bool AudioControlTLV320AIC3206::inputLevel(float volume) {
   return false;
 }
@@ -269,7 +270,7 @@ void AudioControlTLV320AIC3206::aic_initADC() {
 }
 
 // set MICPGA volume, 0-47.5dB in 0.5dB setps
-bool AudioControlTLV320AIC3206::micGain(float volume) {
+bool AudioControlTLV320AIC3206::setInputGain_dB(float volume) {
   if (volume < 0.0) {
     volume = 0.0; // 0.0 dB
     Serial.println("WARNING: Attempting to set MIC volume outside range");
@@ -298,8 +299,18 @@ bool AudioControlTLV320AIC3206::micGain(float volume) {
 #define TYMPAN_DAC_VOLUME_LEFT_REG 0x0041 // page 0 reg 65
 #define TYMPAN_DAC_VOLUME_RIGHT_REG 0x0042 // page 0 reg 66
 
-// -63.6 to +24 dB in 0.5dB steps.  uses signed 8-bit
+
+//volume control, similar to Teensy Audio Board
+// value between 0.0 and 1.0.  Set to span -58 to +15 dB
 bool AudioControlTLV320AIC3206::volume(float volume) {
+	volume = max(0.0, min(1.0, volume));
+	float vol_dB = -58.f + (15.0 - (-58.0f)) * volume;
+	volume_dB(vol_dB);
+	return true;
+}
+
+// -63.6 to +24 dB in 0.5dB steps.  uses signed 8-bit
+bool AudioControlTLV320AIC3206::volume_dB(float volume) {
 
   // Constrain to limits
   if (volume > 24.0) {
