@@ -26,10 +26,18 @@ setGain_dB		KEYWORD2
 AudioFilterFIR_F32	KEYWORD1
 AudioEffectIIR_F32	KEYWORD1
 AudioEffectCompressor_F32	KEYWORD1
+AudioInputI2S_F32	KEYWORD1
 AudioMemory_F32		KEYWORD1
 AudioMemoryUsage_F32	KEYWORD1
 AudioMemoryUsageMax_F32	KEYWORD1
 AudioMemoryUsageMaxReset_F32	KEYWORD1
 AudioMixer4_F32		KEYWORD1
 AudioMultiply_F32	KEYWORD1
+AudioOutputI2S_F32	KEYWORD1
 AudioSynthWaveform_F32	KEYWORD1
+
+AudioSynthWaveformSine_F32	KEYWORD1
+frequency		KEYWORD2
+phase			KEYWORD2
+amplitude		KEYWORD2
+
