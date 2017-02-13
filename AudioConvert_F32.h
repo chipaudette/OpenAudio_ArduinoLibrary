@@ -7,6 +7,7 @@
 
 class AudioConvert_I16toF32 : public AudioStream_F32 //receive Int and transmits Float
 {
+  //GUI: inputs:1, outputs:1  //this line used for automatic generation of GUI node
   public:
     AudioConvert_I16toF32(void) : AudioStream_F32(1, inputQueueArray_f32) { };
     void update(void) {
@@ -44,6 +45,7 @@ class AudioConvert_I16toF32 : public AudioStream_F32 //receive Int and transmits
 
 class AudioConvert_F32toI16 : public AudioStream_F32 //receive Float and transmits Int
 {
+  //GUI: inputs:1, outputs:1  //this line used for automatic generation of GUI node
   public:
     AudioConvert_F32toI16(void) : AudioStream_F32(1, inputQueueArray_Float) {};
     void update(void) {

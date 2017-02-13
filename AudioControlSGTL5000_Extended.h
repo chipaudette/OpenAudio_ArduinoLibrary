@@ -13,6 +13,7 @@
 
 class AudioControlSGTL5000_Extended : public AudioControlSGTL5000
 {
+  //GUI: inputs:0, outputs:0  //this line used for automatic generation of GUI node
   public:
     AudioControlSGTL5000_Extended(void) {};
     bool micBiasEnable(void) {

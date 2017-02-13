@@ -16,6 +16,7 @@
 
 class AudioSynthWaveform_F32 : public AudioStream_F32
 {
+  //GUI: inputs:0, outputs:1  //this line used for automatic generation of GUI node
   public:
     enum OscillatorMode {
         OSCILLATOR_MODE_SINE = 0,

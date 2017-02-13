@@ -17,6 +17,7 @@
 #include <AudioStream_F32.h>
 
 class AudioMixer4_F32 : public AudioStream_F32 {
+//GUI: inputs:4, outputs:1  //this line used for automatic generation of GUI node
 public:
     AudioMixer4_F32() : AudioStream_F32(4, inputQueueArray) {
       for (int i=0; i<4; i++) multiplier[i] = 1.0;

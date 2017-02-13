@@ -16,6 +16,8 @@
 class AudioControlTLV320AIC3206: public AudioControl
 {
 public:
+	//GUI: inputs:0, outputs:0  //this line used for automatic generation of GUI node
+	AudioControlTLV320AIC3206(void) {};
 	bool enable(void);
 	bool disable(void);
 	bool volume(float n);

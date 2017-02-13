@@ -20,6 +20,7 @@
 
 class AudioSynthWaveformSine_F32 : public AudioStream_F32
 {
+//GUI: inputs:0, outputs:1 //this line used for automatic generation of GUI node
 public:
 	AudioSynthWaveformSine_F32() : AudioStream_F32(0, NULL), magnitude(16384) {}
 	void frequency(float freq) {

@@ -34,6 +34,7 @@
 
 class AudioInputI2S_F32 : public AudioStream_F32
 {
+//GUI: inputs:0, outputs:2  //this line used for automatic generation of GUI nodes
 public:
 	AudioInputI2S_F32(void) : AudioStream_F32(0, NULL) { begin(); }
 	virtual void update(void);
@@ -49,14 +50,5 @@ private:
 	static uint16_t block_offset;
 };
 
-/*
-class AudioInputI2Sslave : public AudioInputI2S
-{
-public:
-	AudioInputI2Sslave(void) : AudioInputI2S(0) { begin(); }
-	void begin(void);
-	friend void dma_ch1_isr(void);
-};
-*/
 
 #endif
