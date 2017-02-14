@@ -1,0 +1,57 @@
+<script type="text/x-red" data-template-name="AudioControlTLV320AIC3206">
+	<div class="form-row">
+		<label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+		<input type="text" id="node-input-name" placeholder="Name">
+	</div>
+</script>
+
+<script type="text/x-red" data-help-name="AudioControlTLV320AIC3206">
+	<h3>Summary</h3>
+	<div class=tooltipinfo>
+	<p>Control the TLV320AIC3206 chip that is at the heart of the Tympan audio interface.
+		The TLV320AIC3206 is used in slave mode, where Teensy controls
+		all clocks and I2S timing in order to get the audio data to and from the chip.
+	</p>
+	<p align=center><img src="img/TympanAudioInterface-Features.jpg"></p>
+	</div>
+	<h3>Audio Connections</h3>
+	<p>This object has no audio inputs or outputs.  Separate i2s objects
+		are used to send and receive audio data.  I2S master mode objects
+		must be used, because this object configures the TLV320AIC3206 in slave
+		mode, where it depends on Teensy to provide all I2S clocks.
+		This object controls
+		how the TLV320AIC3206 will use those I2S audio streams.</p>
+
+	<h3>Functions</h3>
+	<p>These are the most commonly used TLV320AIC3206 functions.</p>
+	<p class=func><span class=keyword>enable</span>();</p>
+	<p class=desc>Start the TLV320AIC3206 with default configuration settings.
+	This function should be called first.
+	</p>
+	<p class=func><span class=keyword>volume_dB</span>(float value_dB);</p>
+	<p class=desc>Set DAC output volume level.  Range is -63.6dB to +24dB, in
+	  0.5dB steps.  Decimal values that are not increments of 0.5 will be rounded
+		to the nearest step.
+	</p>
+	<p class=func><span class=keyword>inputSelect</span>(int value);</p>
+	<p class=desc>Select which input to use:</p>
+	<p class=desc>TYMPAN_INPUT_JACK_AS_MIC - Use Mic Jack, turn MIC BIAS on @2.5V</p>
+	<p class=desc>TYMPAN_INPUT_JACK_AS_LINEIN - Use Mic Jack as Line In - MIC BIAS off</p>
+	<p class=desc>TYMPAN_INPUT_ON_BOARD_MIC - use on-board microphones, BIAS off</p>
+	<p class=desc>TYMPAN_INPUT_LINE_IN - use the IN1 solder pads on the TYMPAN</p>
+	<p class=func><span class=keyword>setInputGain_dB</span>(float value_dB);</p>
+	<p class=desc>When using the microphone input, set the amplifier gain.
+		Range is 0dB to 47.5dB in 0.5dB steps.  Decimal values that are not
+		increments of 0.5 will be rounded to the nearest step.
+	</p>
+
+
+	<h3>Examples</h3>
+	<p>This example demonstrates the basic features of this module:
+	</p>
+	<p class=exam>File &gt; Examples &gt; OpenAudio_ArduinoLibrary &gt; Tympan_TLV320AIC3206
+	</p>
+	<h3>Notes</h3>
+	<p>TODO: Add more examples, following example above.
+	</p>
+</script>
