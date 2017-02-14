@@ -1,7 +1,7 @@
 function [nodes] = generateNodes(origNode_fname,newNode_pname,outfname)
 
 if nargin < 3
-    %outfname = 'NewOutputs\new_nodes.txt'; 
+    %outfname = 'NewOutputs\new_nodes.txt';
     outfname = [];
     if nargin < 2
         %source location for header files for all of the new nodes
@@ -12,14 +12,14 @@ if nargin < 3
         end
     end
 end
-    
+
 
 addpath('functions\');
 
 %% read existing node file and get the nodes
 orig_nodes = parseNodeFile(origNode_fname);
 
-% keep just a subsete of the nodes
+% keep just a subset of the nodes
 % nodes_keep = {'AudioInputI2S','AudioInputUSB',...
 %     'AudioOutputI2S','AudioOutputUSB',...
 %     'AudioPlaySdWav',...
@@ -28,16 +28,18 @@ orig_nodes = parseNodeFile(origNode_fname);
 %     'AudioSynthNoiseWhite','AudioSynthNoisePink',...
 %     'AudioAnalyzePeak','AudioAnalyzeRMS',...
 %     'AudioControlSGTL5000'};
-% 
+%
 % nodes_keep = {'AudioInputUSB',...
 %     'AudioOutputUSB',...
 %     'AudioPlaySdWav',...
 %     'AudioPlayQueue','AudioRecordQueue',...
 %     'AudioAnalyzePeak','AudioAnalyzeRMS'};
 
-nodes_keep = {'AudioInputUSB',...
+nodes_keep = {
+    'AudioControlSGTL5000',...
+    'AudioInputUSB',...
     'AudioOutputUSB',...
-};
+    };
 
 %adjust node shortnames
 for Inode=1:length(orig_nodes)
@@ -49,13 +51,21 @@ for Inode=1:length(orig_nodes)
     end
     orig_nodes(Inode)=node;
 end
-        
+
+%adjust node icons
+for Inode=1:length(orig_nodes)
+    node = orig_nodes(Inode);
+    if strcmpi(node.type,'AudioControlSGTL5000')
+        node.icon = 'debug.png';
+    end
+    orig_nodes(Inode)=node;
+end
 
 %keep just these
 nodes=[];
 for Ikeep=1:length(nodes_keep)
     for Iorig=1:length(orig_nodes)
-        node = orig_nodes(Iorig);
+            node = orig_nodes(Iorig);
         if strcmpi(node.type,nodes_keep{Ikeep})
             if isempty(nodes)
                 nodes = node;
@@ -96,33 +106,44 @@ for Inode = 1:size(new_node_data,1)
         nodes(end+1) = node;
     end
 end
+clear new_node_data
 
-%% sort the nodes
+%remove some undesired nodes
+remove_names = {'AudioControlSGTL5000_Extended'};
+Ikeep = ones(size(nodes));
+for Irem=1:length(remove_names)
+    for Inode = 1:length(Ikeep)
+        if strcmpi(nodes(Inode).type,remove_names{Irem})
+            Ikeep(Inode)=0;
+        end
+    end
+end
+Ikeep = find(Ikeep);
+nodes = nodes(Ikeep);
 
-%put tlv before sgtl
-all_names = {nodes(:).shortName};
-I = find(strcmpi(all_names,'tlv320aic3206'));tlv_node = nodes(I);
-J = find(strcmpi(all_names,'sgtl5000ext')); sgtl_node = nodes(J);
-nodes(min([I(1) J(1)])) = tlv_node;  %this comes first
-nodes(max([I(1) J(1)])) = sgtl_node;  %this comes second
+%% put some of the nodes into a particular desired order
+first_second = {};
+first_second(end+1,:) ={'tlv320aic3206' 'sgtl5000'};
+first_second(end+1,:) ={'inputI2S' 'usbAudioIn'};
+first_second(end+1,:) ={'outputI2S' 'usbAudioOut'};
+first_second(end+1,:) ={'i2sAudioIn' 'usbAudioIn'};
+first_second(end+1,:) ={'i2sAudioOut' 'usbAudioOut'};
 
-% put i2s before USB
-all_names = {nodes(:).shortName};
-I = find(strcmpi(all_names,'inputI2S'));first_node = nodes(I);
-J = find(strcmpi(all_names,'usbAudioIn')); second_node = nodes(J);
-nodes(min([I(1) J(1)])) = first_node;  %this comes first
-nodes(max([I(1) J(1)])) = second_node;  %this comes second
-   
-all_names = {nodes(:).shortName};
-I = find(strcmpi(all_names,'outputI2S'));first_node = nodes(I);
-J = find(strcmpi(all_names,'usbAudioOut')); second_node = nodes(J);
-nodes(min([I(1) J(1)])) = first_node;  %this comes first
-nodes(max([I(1) J(1)])) = second_node;  %this comes second
+for Iswap = 1:length(first_second);
+    all_names = {nodes(:).shortName};
+    I = find(strcmpi(all_names,first_second{Iswap,1}));
+    J = find(strcmpi(all_names,first_second{Iswap,2}));
+    if ~isempty(I) & ~isempty(J)
+        first_node = nodes(I); second_node = nodes(J);
+        nodes(min([I(1) J(1)])) = first_node;  %this comes first
+        nodes(max([I(1) J(1)])) = second_node;  %this comes second
+    end
+end
 
 %% write new nodes
 if ~isempty(outfname)
     writeNodeText(nodes,outfname)
 end
 
-        
+
 

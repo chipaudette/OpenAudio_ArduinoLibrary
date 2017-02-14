@@ -1,4 +1,4 @@
-function all_docs = parseDocsFile(fname,outpname);
+function all_docs = parseAudioObjectHTML(fname,outpname);
 
 if nargin < 2
     outpname = 'NodeDocs\';
@@ -50,7 +50,7 @@ for Idoc = 1:length(row_inds)-1
     name_str = name_str((I(1)+1):(I(2)-1));
     
     %write doc
-    outfname = [outpname name_str '.txt'];
+    outfname = [outpname name_str '.html'];
     writeText(outfname,node_doc);
     
     %add to data structure

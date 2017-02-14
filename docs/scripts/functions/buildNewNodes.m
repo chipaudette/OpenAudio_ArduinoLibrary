@@ -256,6 +256,12 @@ for Iname=1:length(class_names)
     if strcmpi(name,'sgtl5000_extended')
         name = 'sgtl5000ext';
     end
+    if strcmpi(name,'inputI2S')
+        name = 'i2sAudioIn';
+    end
+    if strcmpi(name,'outputI2S')
+        name = 'i2sAudioOut';
+    end
     
     %strop off leading space or underscore
     while( (name(1) == ' ') | (name(1) == '_')); name=name(2:end);  end
