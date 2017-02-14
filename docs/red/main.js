@@ -60,6 +60,7 @@ var RED = (function() {
 			nns.sort(function(a,b){ return (a.x + a.y/250) - (b.x + b.y/250); });
 			//console.log(JSON.stringify(nns));
 
+			//add the include files first
 			var cpp = "#include <OpenAudio_ArduinoLibrary.h>\n#include <Audio.h>\n"
 				+ "#include <Wire.h>\n"
 				+ "#include <SPI.h>\n#include <SD.h>\n#include <SerialFlash.h>\n\n"
@@ -121,6 +122,33 @@ var RED = (function() {
 				}
 			}
 			cpp += "// GUItool: end automatically generated code\n";
+			
+			// generate setup()
+			cpp += "\n";
+			cpp += "\n";
+			cpp += "//The setup function is called once when the system starts up\n";
+			cpp += "void setup(void) {\n";
+			cpp += "\t" + "//Start the USB serial link (to enable debugging)\n";
+			cpp += "\t" + "Serial.begin(115200); delay(500);\n";
+			cpp += "\t" + "Serial.println(\"Program Starting...\");\n";
+			cpp += "\t" + "\n"
+			cpp += "\t" + "//Allocate dynamically shuffled memory for the audio subsystem\n";
+			cpp += "\t" + "AudioMemory(10);  AudioMemory_F32(10)\n";
+			cpp += "\t" + "\n";
+			cpp += "\t" + "//Put your own setup code here\n";
+			cpp += "\t" + "\n";
+			cpp += "\t" + "Serial.println(\"Setup Complete.\t);";
+			cpp += "};";
+			
+			 // generate loop()
+			cpp += "\n";
+			cpp += "\n";
+			cpp += "//After setup(), the loop function loops forever.\n";
+			cpp += "//Note that the audio modules are called in the background,\n";
+			cpp += "//they do not need to be serviced by the loop() function."
+			cpp += "void loop(void) {\n";
+			cpp += "\n";
+			cpp += "};";
 			//console.log(cpp);
 
 			RED.view.state(RED.state.EXPORT);
@@ -133,7 +161,7 @@ var RED = (function() {
 					return false;
 				});
 				}).focus();
-			$( "#dialog" ).dialog("option","title","Export to Arduino").dialog( "open" );
+			$( "#dialog" ).dialog("option","title","Export to Arduino").dialog("option","width",600).dialog( "open" );
 			});
 			//RED.view.dirty(false);
 		} else {
