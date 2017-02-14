@@ -137,7 +137,7 @@ var RED = (function() {
 			cpp += "\t" + "\n";
 			cpp += "\t" + "//Put your own setup code here\n";
 			cpp += "\t" + "\n";
-			cpp += "\t" + "Serial.println(\"Setup Complete.\t);";
+			cpp += "\t" + "Serial.println(\"Setup Complete.\t);\n";
 			cpp += "};";
 			
 			 // generate loop()
