@@ -362,7 +362,7 @@ RED.nodes = (function() {
 		var words = [];
 
 		const NODE_COMMENT	= "//";
-		const NODE_AC		= "AudioConnection";
+		const NODE_AC		= "AudioConnection_F32";
 
 		var parseLine = function(line) {
 

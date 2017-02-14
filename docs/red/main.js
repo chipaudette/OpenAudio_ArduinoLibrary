@@ -60,7 +60,8 @@ var RED = (function() {
 			nns.sort(function(a,b){ return (a.x + a.y/250) - (b.x + b.y/250); });
 			//console.log(JSON.stringify(nns));
 
-			var cpp = "#include <Audio.h>\n#include <Wire.h>\n"
+			var cpp = "#include <OpenAudio_ArduinoLibrary.h>\n#include <Audio.h>\n"
+				+ "#include <Wire.h>\n"
 				+ "#include <SPI.h>\n#include <SD.h>\n#include <SerialFlash.h>\n\n"
 				+ "// GUItool: begin automatically generated code\n";
 			// generate code for all audio processing nodes
@@ -89,7 +90,7 @@ var RED = (function() {
 							if (wire) {
 								var parts = wire.split(":");
 								if (parts.length == 2) {
-									cpp += "AudioConnection          patchCord" + cordcount + "(";
+									cpp += "AudioConnection_F32         patchCord" + cordcount + "(";
 									var src = RED.nodes.node(n.id);
 									var dst = RED.nodes.node(parts[0]);
 									var src_name = make_name(src);
