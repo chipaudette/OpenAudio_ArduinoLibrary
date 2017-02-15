@@ -10,6 +10,8 @@
 #include <AudioMixer4_F32.h>
 #include <AudioMultiply_F32.h>
 #include "input_i2s_f32.h"
+#include "play_queue_f32.h"
+#include "record_queue_f32.h"
 #include <synth_waveform_F32.h>
 #include "synth_sine_f32.h"
 #include "output_i2s_f32.h"

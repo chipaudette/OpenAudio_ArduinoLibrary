@@ -34,10 +34,13 @@ AudioMemoryUsageMaxReset_F32	KEYWORD1
 AudioMixer4_F32		KEYWORD1
 AudioMultiply_F32	KEYWORD1
 AudioOutputI2S_F32	KEYWORD1
+AudioPlayQueue_F32	KEYWORD1
+AudioRecordQueue_F32	KEYWORD1
 AudioSynthWaveform_F32	KEYWORD1
 
 AudioSynthWaveformSine_F32	KEYWORD1
 frequency		KEYWORD2
 phase			KEYWORD2
 amplitude		KEYWORD2
+
 
