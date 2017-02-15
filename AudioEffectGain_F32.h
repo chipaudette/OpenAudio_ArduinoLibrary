@@ -9,6 +9,9 @@
  * MIT License.  use at your own risk.
 */
 
+#ifndef _AudioEffectGain_h
+#define _AudioEffectGain_h
+
 #include <arm_math.h> //ARM DSP extensions.  for speed!
 #include <AudioStream_F32.h>
 
@@ -51,3 +54,4 @@ class AudioEffectGain_F32 : public AudioStream_F32
     float gain = 1.0; //default value
 };
 
+#endif

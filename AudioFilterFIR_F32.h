@@ -6,8 +6,8 @@
  * 
  */
 
-#ifndef _filter_fir_f32
-#define _filter_fir_f32
+#ifndef _filter_fir_f32_h
+#define _filter_fir_f32_h
 
 #include "Arduino.h"
 #include "AudioStream_F32.h"

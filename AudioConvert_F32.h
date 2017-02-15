@@ -1,6 +1,6 @@
 
-#ifndef _AudioConvert_I16toF32
-#define _AudioConvert_I16toF32
+#ifndef _AudioConvert_I16toF32_h
+#define _AudioConvert_I16toF32_h
 
 
 #include <AudioStream_F32.h>
