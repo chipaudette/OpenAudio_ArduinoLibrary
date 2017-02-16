@@ -2,7 +2,6 @@
 #ifndef _AudioConvert_I16toF32_h
 #define _AudioConvert_I16toF32_h
 
-
 #include <AudioStream_F32.h>
 
 class AudioConvert_I16toF32 : public AudioStream_F32 //receive Int and transmits Float
@@ -10,16 +9,19 @@ class AudioConvert_I16toF32 : public AudioStream_F32 //receive Int and transmits
   //GUI: inputs:1, outputs:1  //this line used for automatic generation of GUI node
   public:
     AudioConvert_I16toF32(void) : AudioStream_F32(1, inputQueueArray_f32) { };
-    void update(void) {
+    void update(void) {	
       //get the Int16 block
       audio_block_t *int_block;
       int_block = AudioStream::receiveReadOnly(); //int16 data block
-      if (!int_block) return;
+      if (int_block==NULL) return;
 
       //allocate a float block
       audio_block_f32_t *float_block;
       float_block = AudioStream_F32::allocate_f32(); 
-      if (float_block == NULL) return;
+      if (float_block == NULL) {
+      	  AudioStream::release(int_block);
+      	  return;
+      }
       
       //convert to float
       convertAudio_I16toF32(int_block, float_block, AUDIO_BLOCK_SAMPLES);
@@ -57,7 +59,10 @@ class AudioConvert_F32toI16 : public AudioStream_F32 //receive Float and transmi
       //allocate a Int16 block
       audio_block_t *int_block;
       int_block = AudioStream::allocate(); 
-      if (int_block == NULL) return;
+      if (int_block == NULL) {
+      	  AudioStream_F32::release(float_block);
+      	  return;
+      }
       
       //convert back to int16
       convertAudio_F32toI16(float_block, int_block, AUDIO_BLOCK_SAMPLES);
