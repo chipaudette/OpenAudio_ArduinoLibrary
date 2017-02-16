@@ -36,7 +36,10 @@ AudioMultiply_F32	KEYWORD1
 AudioOutputI2S_F32	KEYWORD1
 AudioPlayQueue_F32	KEYWORD1
 AudioRecordQueue_F32	KEYWORD1
+AudioSynthNoiseWhite_F32	KEYWORD1
+AudioSynthNoisePink_F32	KEYWORD1
 AudioSynthWaveform_F32	KEYWORD1
+
 
 AudioSynthWaveformSine_F32	KEYWORD1
 frequency		KEYWORD2
