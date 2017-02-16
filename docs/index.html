@@ -358,8 +358,12 @@ span.mainfunction {color: #993300; font-weight: bolder}
 		{"type":"AudioControlSGTL5000","data":{"defaults":{"name":{"value":"new"}},"shortName":"sgtl5000","inputs":"0","outputs":"0","category":"control-function","color":"#E6E0F8","icon":"debug.png"}},
 		{"type":"AudioInputUSB","data":{"defaults":{"name":{"value":"new"}},"shortName":"usbAudioIn","inputs":"0","outputs":"2","category":"input-function","color":"#E6E0F8","icon":"arrow-in.png"}},
 		{"type":"AudioOutputUSB","data":{"defaults":{"name":{"value":"new"}},"shortName":"usbAudioOut","inputs":"2","outputs":"0","category":"output-function","color":"#E6E0F8","icon":"arrow-in.png"}},
+		{"type":"AudioPlayQueue_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"playQueue","inputs":"0","outputs":"1","category":"play-function","color":"#E6E0F8","icon":"arrow-in.png"}},
+		{"type":"AudioRecordQueue_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"recordQueue","inputs":"1","outputs":"0","category":"record-function","color":"#E6E0F8","icon":"arrow-in.png"}},
+		{"type":"AudioSynthNoisePink_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"noisePink","inputs":"0","outputs":"1","category":"synth-function","color":"#E6E0F8","icon":"arrow-in.png"}},
 		{"type":"AudioSynthWaveformSine_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"sine","inputs":"0","outputs":"1","category":"synth-function","color":"#E6E0F8","icon":"arrow-in.png"}},
-		{"type":"AudioSynthWaveform_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"waveform","inputs":"0","outputs":"1","category":"synth-function","color":"#E6E0F8","icon":"arrow-in.png"}}
+		{"type":"AudioSynthWaveform_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"waveform","inputs":"0","outputs":"1","category":"synth-function","color":"#E6E0F8","icon":"arrow-in.png"}},
+		{"type":"AudioSynthNoiseWhite_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"noiseWhite","inputs":"0","outputs":"1","category":"synth-function","color":"#E6E0F8","icon":"arrow-in.png"}}
 	]}
 </script>
 
@@ -1126,6 +1130,153 @@ value  frequency
 	</div>
 </script>
 
+<script type="text/x-red" data-help-name="AudioPlayQueue_F32">
+	<h3>Summary</h3>
+	<div class=tooltipinfo>
+	<p>Play audio data provided by the Arduino sketch.  This object provides
+		functions to allow the sketch code to push data into the audio system.</p>
+	</div>
+	<h3>Audio Connections</h3>
+	<table class=doc align=center cellpadding=3>
+		<tr class=top><th>Port</th><th>Purpose</th></tr>
+		<tr class=odd><td align=center>Out 0</td><td>Sound Output</td></tr>
+	</table>
+	<h3>Functions</h3>
+	<p class=func><span class=keyword>play</span>(int16);</p>
+	<p class=desc>not yet implemented
+	</p>
+	<p class=func><span class=keyword>play</span>(int16[], length);</p>
+	<p class=desc>not yet implemented
+	</p>
+	<p class=func><span class=keyword>getBuffer</span>();</p>
+	<p class=desc>Returns a pointer to an array of 128 int16.  This buffer
+		is within the audio library memory pool, providing the most efficient
+		way to input data to the audio system.  The buffer is likely to be
+		populated by previously used data, so the entire 128 words should be
+		written before calling playBuffer().  Only a single buffer should be
+		requested at a time.  This function may return NULL if no memory is
+		available.
+	</p>
+	<p class=func><span class=keyword>playBuffer</span>();</p>
+	<p class=desc>Transmit the buffer previously obtained from getBuffer().
+	</p>
+	<h3>Examples</h3>
+		<p><a href="http://community.arm.com/groups/embedded/blog/2014/05/23/led-video-panel-at-maker-faire-2014" target="_blank">4320 LED Video+Sound Project</a>
+		</p>
+	<!--
+<p class=exam>File &gt; Examples &gt; Audio &gt;
+	</p>
+-->
+	<h3>Notes</h3>
+	<p>TODO: many caveats....</p>
+	<p>
+	</p>
+</script>
+<script type="text/x-red" data-template-name="AudioPlayQueue_F32">
+	<div class="form-row">
+		<label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+		<input type="text" id="node-input-name" placeholder="Name">
+	</div>
+</script>
+
+<script type="text/x-red" data-help-name="AudioRecordQueue_F32">
+	<h3>Summary</h3>
+	<div class=tooltipinfo>
+	<p>Record audio data by sending to the Arduino sketch.  This object allows
+		sketch code to receive audio packets.</p>
+	</div>
+	<h3>Audio Connections</h3>
+	<table class=doc align=center cellpadding=3>
+		<tr class=top><th>Port</th><th>Purpose</th></tr>
+		<tr class=odd><td align=center>In 0</td><td>Sound To Access</td></tr>
+	</table>
+	<h3>Functions</h3>
+	<p class=func><span class=keyword>begin</span>();</p>
+	<p class=desc>Begin capturing incoming audio to the queue.  After calling
+		begin, readBuffer() and freeBuffer(), or clear() must be used frequently
+		to prevent the queue from filling up.
+	</p>
+	<p class=func><span class=keyword>available</span>();</p>
+	<p class=desc>Returns the number of audio packets available to read.
+	</p>
+	<p class=func><span class=keyword>readBuffer</span>();</p>
+	<p class=desc>Read a single audio packet.  A pointer to a 128 sample
+		array of 16 bit integers is returned.  NULL is returned if no packets
+		are available.
+	</p>
+	<p class=func><span class=keyword>freeBuffer</span>();</p>
+	<p class=desc>Release the memory from the previously read packet returned
+		from readBuffer().  Only a single packet at a time may be read, and
+		each packet must be freed with this function, to return the memory to
+		the audio library.
+	</p>
+	<p class=func><span class=keyword>clear</span>();</p>
+	<p class=desc>Discard all audio held in the queue.
+	</p>
+	<p class=func><span class=keyword>end</span>();</p>
+	<p class=desc>Stop capturing incoming audio into the queue.  Data already
+		captured remains in the queue and may be read with readBuffer().
+	</p>
+	<h3>Examples</h3>
+	<p class=exam>File &gt; Examples &gt; Audio &gt; Recorder
+	</p>
+	<h3>Notes</h3>
+	<p>
+		Up to 52 packets may be queued by this object, which allows approximately
+		150 ms of audio to be held in the queue, to allow time for the Arduino
+		sketch to write data to media or do other high-latency tasks.
+
+The actual packets are taken
+		from the pool created by AudioMemory().
+	</p>
+</script>
+<script type="text/x-red" data-template-name="AudioRecordQueue_F32">
+	<div class="form-row">
+		<label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+		<input type="text" id="node-input-name" placeholder="Name">
+	</div>
+</script>
+
+<script type="text/x-red" data-help-name="AudioSynthNoisePink_F32">
+	<h3>Summary</h3>
+	<div class=tooltipinfo>
+	<p>Create pink noise, using Stefan Stenzel's "New Shade Of Pink" algorithm.
+		</p>
+	<!--
+<p align=center><img src="img/whitenoise.png"></p>
+-->
+	</div>
+	<h3>Audio Connections</h3>
+	<table class=doc align=center cellpadding=3>
+		<tr class=top><th>Port</th><th>Purpose</th></tr>
+		<tr class=odd><td align=center>Out 0</td><td>Pink Noise</td></tr>
+	</table>
+	<h3>Functions</h3>
+	<p class=func><span class=keyword>amplitude</span>(level);</p>
+	<p class=desc>Set the output peak level, from 0 (off) to 1.0.
+		The default is off.  Noise is generated only after setting
+		to a non-zero level.
+	</p>
+	<h3>Examples</h3>
+	<p class=exam>File &gt; Examples &gt; Audio &gt; MemoryAndCpuUsage
+	</p>
+	<h3>Notes</h3>
+	<p>Setting the amplitude to zero causes this object to stop using
+		CPU time.  CPU usage is approx 3% on Teensy 3.1.
+	</p>
+	<p>Stefan Stenzel's
+		<a href="http://stenzel.waldorfmusic.de/post/pink/" target="_blank">New Shade Of Pink</a>
+		algorithm.  Stefan's terms of use are "Use for any purpose. If used
+		in a commercial product, you should give me one."
+	</p>
+</script>
+<script type="text/x-red" data-template-name="AudioSynthNoisePink_F32">
+	<div class="form-row">
+		<label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+		<input type="text" id="node-input-name" placeholder="Name">
+	</div>
+</script>
+
 <script type="text/x-red" data-help-name="AudioSynthWaveformSine_F32">
 	<h3>Summary</h3>
 	<div class=tooltipinfo>
@@ -1234,6 +1385,39 @@ value  frequency
 	</p>
 </script>
 <script type="text/x-red" data-template-name="AudioSynthWaveform_F32">
+	<div class="form-row">
+		<label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+		<input type="text" id="node-input-name" placeholder="Name">
+	</div>
+</script>
+
+<script type="text/x-red" data-help-name="AudioSynthNoiseWhite_F32">
+	<h3>Summary</h3>
+	<div class=tooltipinfo>
+	<p>Create white noise.
+		</p>
+	<p align=center><img src="img/whitenoise.png"></p>
+	</div>
+	<h3>Audio Connections</h3>
+	<table class=doc align=center cellpadding=3>
+		<tr class=top><th>Port</th><th>Purpose</th></tr>
+		<tr class=odd><td align=center>Out 0</td><td>White Noise</td></tr>
+	</table>
+	<h3>Functions</h3>
+	<p class=func><span class=keyword>amplitude</span>(level);</p>
+	<p class=desc>Set the output peak level, from 0 (off) to 1.0.
+		The default is off.  Noise is generated only after setting
+		to a non-zero level.
+	</p>
+	<h3>Examples</h3>
+	<p class=exam>File &gt; Examples &gt; Audio &gt;
+	</p>
+	<h3>Notes</h3>
+	<p>Setting the amplitude to zero causes this object to stop using
+		CPU time to generate random numbers.
+	</p>
+</script>
+<script type="text/x-red" data-template-name="AudioSynthNoiseWhite_F32">
 	<div class="form-row">
 		<label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
 		<input type="text" id="node-input-name" placeholder="Name">

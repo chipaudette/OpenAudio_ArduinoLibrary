@@ -12,5 +12,9 @@
 		{"type":"AudioControlSGTL5000","data":{"defaults":{"name":{"value":"new"}},"shortName":"sgtl5000","inputs":"0","outputs":"0","category":"control-function","color":"#E6E0F8","icon":"debug.png"}},
 		{"type":"AudioInputUSB","data":{"defaults":{"name":{"value":"new"}},"shortName":"usbAudioIn","inputs":"0","outputs":"2","category":"input-function","color":"#E6E0F8","icon":"arrow-in.png"}},
 		{"type":"AudioOutputUSB","data":{"defaults":{"name":{"value":"new"}},"shortName":"usbAudioOut","inputs":"2","outputs":"0","category":"output-function","color":"#E6E0F8","icon":"arrow-in.png"}},
+		{"type":"AudioPlayQueue_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"playQueue","inputs":"0","outputs":"1","category":"play-function","color":"#E6E0F8","icon":"arrow-in.png"}},
+		{"type":"AudioRecordQueue_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"recordQueue","inputs":"1","outputs":"0","category":"record-function","color":"#E6E0F8","icon":"arrow-in.png"}},
+		{"type":"AudioSynthNoisePink_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"noisePink","inputs":"0","outputs":"1","category":"synth-function","color":"#E6E0F8","icon":"arrow-in.png"}},
 		{"type":"AudioSynthWaveformSine_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"sine","inputs":"0","outputs":"1","category":"synth-function","color":"#E6E0F8","icon":"arrow-in.png"}},
-		{"type":"AudioSynthWaveform_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"waveform","inputs":"0","outputs":"1","category":"synth-function","color":"#E6E0F8","icon":"arrow-in.png"}}
+		{"type":"AudioSynthWaveform_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"waveform","inputs":"0","outputs":"1","category":"synth-function","color":"#E6E0F8","icon":"arrow-in.png"}},
+		{"type":"AudioSynthNoiseWhite_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"noiseWhite","inputs":"0","outputs":"1","category":"synth-function","color":"#E6E0F8","icon":"arrow-in.png"}}

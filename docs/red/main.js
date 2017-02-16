@@ -135,6 +135,9 @@ var RED = (function() {
 			cpp += "\t" + "//Allocate dynamically shuffled memory for the audio subsystem\n";
 			cpp += "\t" + "AudioMemory(10);  AudioMemory_F32(10);\n";
 			cpp += "\t" + "\n";
+			
+			// Need to add "begin()" call for AudioControl objects!!!
+			
 			cpp += "\t" + "//Put your own setup code here\n";
 			cpp += "\t" + "\n";
 			cpp += "\t" + "//End of setup\n";
