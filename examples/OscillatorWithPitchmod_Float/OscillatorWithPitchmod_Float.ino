@@ -19,10 +19,10 @@
 
 #include <OpenAudio_ArduinoLibrary.h> //for AudioConvert_I16toF32, AudioConvert_F32toI16, and AudioEffectGain_F32
 
-#define DO_USB  1    //set to 1 to enable USB audio.  Be sure to go under the "Tools" menu and do "USB Type" -> "Audio"
+#define DO_USB  0    //set to 1 to enable USB audio.  Be sure to go under the "Tools" menu and do "USB Type" -> "Audio"
 
 //create audio library objects for handling the audio
-AudioControlSGTL5000_Extended    sgtl5000;     //controller for the Teensy Audio Board
+AudioControlSGTL5000    sgtl5000;     //controller for the Teensy Audio Board
 AudioOutputI2S                   i2s_out;      //Digital audio *to* the Teensy Audio Board DAC.  Expects Int16.  Stereo
 AudioConvert_F32toI16            float2Int;   //Converts Float to Int16.  See class in AudioStream_F32.h
 
