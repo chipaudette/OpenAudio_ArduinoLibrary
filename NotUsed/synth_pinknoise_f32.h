@@ -20,7 +20,9 @@ class AudioSynthNoisePink_F32 : public AudioStream_F32
 //GUI: shortName:pinknoise  //this line used for automatic generation of GUI node
 public:
 	AudioSynthNoisePink_F32() : AudioStream_F32(0, NULL) {
-		output_queue.begin();
+		noise.disconnectFromUpdateAll();
+		i16_to_f32.disconnectFromUpdateAll();
+		output_queue.disconnectFromUpdateAll();
 		
 		patchCord100 = new AudioConnection(noise, 0, i16_to_f32, 0);  //noise is an Int16 audio object.  So, convert it!
     	patchCord101 = new AudioConnection_F32(i16_to_f32, 0, output_queue, 0);
@@ -34,7 +36,7 @@ public:
     AudioConnection_F32 *patchCord101;
 	
     void update(void) {
-      output_queue.clear();
+      output_queue.begin();
     	
       //manually update audio blocks in the desired order
       noise.update();  //the output should be routed directly via the AudioConnection
@@ -48,6 +50,7 @@ public:
       //transmit the block, and release memory
       AudioStream_F32::transmit(block);
       output_queue.freeAudioBlock();
+	  output_queue.end();
     }
     void amplitude(float n) {
     	noise.amplitude(n);

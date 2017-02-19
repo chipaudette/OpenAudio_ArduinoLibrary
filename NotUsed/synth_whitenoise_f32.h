@@ -20,7 +20,9 @@ class AudioSynthNoiseWhite_F32 : public AudioStream_F32
 //GUI: shortName:whitenoise  //this line used for automatic generation of GUI node
 public:
 	AudioSynthNoiseWhite_F32() : AudioStream_F32(0, NULL) {
-		output_queue.begin();
+		noise.disconnectFromUpdateAll();
+		i16_to_f32.disconnectFromUpdateAll();
+		output_queue.disconnectFromUpdateAll();
 		
 		patchCord100 = new AudioConnection(noise, 0, i16_to_f32, 0);  //noise is an Int16 audio object.  So, convert it!
     	patchCord101 = new AudioConnection_F32(i16_to_f32, 0, output_queue, 0);
@@ -34,20 +36,23 @@ public:
     AudioConnection_F32 *patchCord101;
 	
     void update(void) {
-      output_queue.clear();
-    	
-      //manually update audio blocks in the desired order
-      noise.update();  //the output should be routed directly via the AudioConnection
-      i16_to_f32.update();  // output is routed via the AudioConnection
-      output_queue.update();
-      
-      //get the output
-      audio_block_f32_t  *block = output_queue.getAudioBlock();
-      if (block == NULL) return;
+		//Serial.println("AudioSynthNoiseWhite_F32: update().");
+		output_queue.begin();
+		//output_queue.clear();
 
-      //transmit the block, and release memory
-      AudioStream_F32::transmit(block);
-      output_queue.freeAudioBlock();
+		//manually update audio blocks in the desired order
+		noise.update();  //the output should be routed directly via the AudioConnection
+		i16_to_f32.update();  // output is routed via the AudioConnection
+		output_queue.update();
+
+		//get the output
+		audio_block_f32_t  *block = output_queue.getAudioBlock();
+		if (block == NULL) return;
+
+		//transmit the block, and release memory
+		AudioStream_F32::transmit(block);
+		output_queue.freeAudioBlock();
+		output_queue.end();
     }
     void amplitude(float n) {
     	noise.amplitude(n);
