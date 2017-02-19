@@ -20,9 +20,9 @@ class AudioSynthNoiseWhite_F32 : public AudioStream_F32
 //GUI: shortName:whitenoise  //this line used for automatic generation of GUI node
 public:
 	AudioSynthNoiseWhite_F32() : AudioStream_F32(0, NULL) {
-		noise.disconnectFromUpdateAll();
-		i16_to_f32.disconnectFromUpdateAll();
-		output_queue.disconnectFromUpdateAll();
+		noise.disconnectFromUpdateAll(); //requires modification to AudioStream.h
+		i16_to_f32.disconnectFromUpdateAll(); //requires modification to AudioStream.h
+		output_queue.disconnectFromUpdateAll(); //requires modification to AudioStream.h
 		
 		patchCord100 = new AudioConnection(noise, 0, i16_to_f32, 0);  //noise is an Int16 audio object.  So, convert it!
     	patchCord101 = new AudioConnection_F32(i16_to_f32, 0, output_queue, 0);
