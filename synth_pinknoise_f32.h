@@ -1,9 +1,8 @@
 /*
-	synth_whitenoise_F32
+	Extended to f32 data
+	Created: Chip Audette, OpenAudio, Feb 2017
 	
-	Extended by: Chip Audette, OpenAudio, Feb 2017
-	
-	License: MIT License.  Use at your own risk.
+	License: MIT License. Use at your own risk.
 */
 
 /* Audio Library for Teensy 3.X
@@ -32,32 +31,45 @@
  * THE SOFTWARE.
  */
 
-#ifndef synth_whitenoise_f32_h_
-#define synth_whitenoise_f32_h_
+#ifndef synth_pinknoise_f32_h_
+#define synth_pinknoise_f32_h_
 #include "Arduino.h"
 #include "AudioStream.h"
 #include "AudioStream_F32.h"
 #include "utility/dspinst.h"
 
-class AudioSynthNoiseWhite_F32 : public AudioStream_F32
+class AudioSynthNoisePink_F32 : public AudioStream_F32
 {
 //GUI: inputs:0, outputs:1 //this line used for automatic generation of GUI node
-//GUI: shortName:whitenoise  //this line used for automatic generation of GUI node
+//GUI: shortName:pinknoise  //this line used for automatic generation of GUI node
 public:
-	AudioSynthNoiseWhite_F32() : AudioStream_F32(0, NULL) {
-		level = 0;
-		seed = 1 + instance_count++;
-	}
+	AudioSynthNoisePink_F32() : AudioStream_F32(0, NULL) {
+		plfsr  = 0x5EED41F5 + instance_cnt++;
+		paccu  = 0;
+		pncnt  = 0;
+		pinc   = 0x0CCC;
+		pdec   = 0x0CCC;
+		
+		enabled = 1;
+	}	
 	void amplitude(float n) {
 		if (n < 0.0) n = 0.0;
 		else if (n > 1.0) n = 1.0;
 		level = (int32_t)(n * 65536.0);
 	}
 	virtual void update(void);
+	int enabled = 0;
 private:
-	int32_t  level; // 0=off, 65536=max
-	uint32_t seed;  // must start at 1
-	static uint16_t instance_count;
+	static const uint8_t pnmask[256];
+	static const int32_t pfira[64];
+	static const int32_t pfirb[64];
+	static int16_t instance_cnt;
+	int32_t plfsr;		// linear feedback shift register
+	int32_t pinc;		// increment for all noise sources (bits)
+	int32_t pdec;		// decrement for all noise sources
+	int32_t paccu;		// accumulator
+	uint8_t pncnt;		// overflowing counter as index to pnmask[]
+	int32_t level;		// 0=off, 65536=max
 };
 
 #endif
