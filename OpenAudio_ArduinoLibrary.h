@@ -7,7 +7,7 @@
 #include <AudioEffectCompressor_F32.h>
 #include <AudioFilterFIR_F32.h>
 #include <AudioFilterIIR_F32.h>
-#include <AudioMixer4_F32.h>
+#include <AudioMixer_F32.h>
 #include <AudioMultiply_F32.h>
 #include "input_i2s_f32.h"
 #include "play_queue_f32.h"
