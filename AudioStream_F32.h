@@ -10,31 +10,63 @@
  * MIT License.  use at your own risk.
 */
 
-#ifndef _OpenAudio_ArduinoLibrary
-#define _OpenAudio_ArduinoLibrary
+#ifndef _AudioStream_F32_h
+#define _AudioStream_F32_h
 
 #include <arm_math.h> //ARM DSP extensions.  for speed!
 #include <Audio.h> //Teensy Audio Library
 
+
 class AudioStream_F32;
 class AudioConnection_F32;
+class AudioSettings_F32;
+
+
+class AudioSettings_F32 {
+	public:
+		AudioSettings_F32(float fs_Hz, int block_size) :
+			sample_rate_Hz(fs_Hz), audio_block_samples(block_size) {}
+		const float sample_rate_Hz;
+		const int audio_block_samples;
+		
+		float cpu_load_percent(const int n) { //n is the number of cycles
+			#define CYCLE_COUNTER_APPROX_PERCENT(n) (((n) + (F_CPU / 32 / AUDIO_SAMPLE_RATE * AUDIO_BLOCK_SAMPLES / 100)) / (F_CPU / 16 / AUDIO_SAMPLE_RATE * AUDIO_BLOCK_SAMPLES / 100))
+			float foo1 = ((float)(F_CPU / 32))/sample_rate_Hz;
+			foo1 *= ((float)audio_block_samples);
+			foo1 /= 100.f;
+			foo1 += (float)n;
+			float foo2 = (float)(F_CPU / 16)/sample_rate_Hz;
+			foo2 *= ((float)audio_block_samples);
+			foo2 /= 100.f;
+			return  foo1 / foo2;
+			//return (((n) + (F_CPU / 32 / sample_rate_Hz * audio_block_samples / 100)) / (F_CPU / 16 / sample_rate_Hz * audio_block_samples / 100));
+		}
+
+		float processorUsage(void) { return cpu_load_percent(AudioStream::cpu_cycles_total); };
+		float processorUsageMax(void) { return cpu_load_percent(AudioStream::cpu_cycles_total_max); }
+		void processorUsageMaxReset(void) { AudioStream::cpu_cycles_total_max = AudioStream::cpu_cycles_total; }
+};
 
 //create a new structure to hold audio as floating point values.
 //modeled on the existing teensy audio block struct, which uses Int16
 //https://github.com/PaulStoffregen/cores/blob/268848cdb0121f26b7ef6b82b4fb54abbe465427/teensy3/AudioStream.h
-typedef struct audio_block_f32_struct {
-  unsigned char ref_count;
-  unsigned char memory_pool_index;
-  unsigned char reserved1;
-  unsigned char reserved2;
-  #if AUDIO_BLOCK_SAMPLES < 128
-  	float32_t data[128];  //limit array size to be no smaller than 128. unstable otherwise?
-  #else
-  	float32_t data[AUDIO_BLOCK_SAMPLES]; // AUDIO_BLOCK_SAMPLES is 128, from AudioStream.h
-  #endif
-  int length = AUDIO_BLOCK_SAMPLES; // AUDIO_BLOCK_SAMPLES is 128, from AudioStream.h
-  float fs_Hz = AUDIO_SAMPLE_RATE; // AUDIO_SAMPLE_RATE is 44117.64706 from AudioStream.h
-} audio_block_f32_t;
+class audio_block_f32_t {
+	public:
+		audio_block_f32_t(void) {};
+		audio_block_f32_t(const AudioSettings_F32 &settings) {
+			fs_Hz = settings.sample_rate_Hz;
+			length = settings.audio_block_samples;
+		};
+		
+		unsigned char ref_count;
+		unsigned char memory_pool_index;
+		unsigned char reserved1;
+		unsigned char reserved2;
+		float32_t data[AUDIO_BLOCK_SAMPLES]; // AUDIO_BLOCK_SAMPLES is 128, from AudioStream.h
+		const int full_length = AUDIO_BLOCK_SAMPLES;
+		int length = AUDIO_BLOCK_SAMPLES; // AUDIO_BLOCK_SAMPLES is 128, from AudioStream.h
+		float fs_Hz = AUDIO_SAMPLE_RATE; // AUDIO_SAMPLE_RATE is 44117.64706 from AudioStream.h
+};
 
 class AudioConnection_F32
 {
@@ -64,6 +96,11 @@ class AudioConnection_F32
   AudioStream_F32::initialize_f32_memory(data_f32, num); \
 })
 
+#define AudioMemory_F32_wSettings(num,settings) ({ \
+  static audio_block_f32_t data_f32[num]; \
+  AudioStream_F32::initialize_f32_memory(data_f32, num, settings); \
+})
+
 
 #define AudioMemoryUsage_F32() (AudioStream_F32::f32_memory_used)
 #define AudioMemoryUsageMax_F32() (AudioStream_F32::f32_memory_used_max)
@@ -80,6 +117,7 @@ class AudioStream_F32 : public AudioStream {
       }
     };
     static void initialize_f32_memory(audio_block_f32_t *data, unsigned int num);
+    static void initialize_f32_memory(audio_block_f32_t *data, unsigned int num, const AudioSettings_F32 &settings);
     //virtual void update(audio_block_f32_t *) = 0; 
     static uint8_t f32_memory_used;
     static uint8_t f32_memory_used_max;
@@ -93,6 +131,7 @@ class AudioStream_F32 : public AudioStream {
     audio_block_f32_t * receiveReadOnly_f32(unsigned int index = 0);
     audio_block_f32_t * receiveWritable_f32(unsigned int index = 0);  
     friend class AudioConnection_F32;
+	
   private:
     AudioConnection_F32 *destination_list_f32;
     audio_block_f32_t **inputQueue_f32;
