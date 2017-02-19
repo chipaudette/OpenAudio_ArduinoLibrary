@@ -85,7 +85,7 @@ void AudioFilterFIR_F32::update(void)
 		if (block->length != configured_block_size) {
 			//doesn't match.  re-initialize
 			Serial.println("AudioFilterFIR_F32: block size doesn't match.  Re-initializing FIR.");
-			begin(coeff_p, n_coeffs, block->length);
+			begin(coeff_p, n_coeffs, block->length);  //initialize with same coefficients, just a new block length
 		}
 		//apply the FIR
 		arm_fir_f32(&fir_inst, (float32_t *)block->data, (float32_t *)b_new->data, block->length);
