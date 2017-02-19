@@ -24,7 +24,7 @@ class AudioConvert_I16toF32 : public AudioStream_F32 //receive Int and transmits
       }
       
       //convert to float
-      convertAudio_I16toF32(int_block, float_block, AUDIO_BLOCK_SAMPLES);
+      convertAudio_I16toF32(int_block, float_block, float_block->length);
 
       //transmit the audio and return it to the system
       AudioStream_F32::transmit(float_block,0);
@@ -65,7 +65,7 @@ class AudioConvert_F32toI16 : public AudioStream_F32 //receive Float and transmi
       }
       
       //convert back to int16
-      convertAudio_F32toI16(float_block, int_block, AUDIO_BLOCK_SAMPLES);
+      convertAudio_F32toI16(float_block, int_block, float_block->length);
 
       //return audio to the system
       AudioStream::transmit(int_block);
