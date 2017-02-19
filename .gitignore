@@ -2,6 +2,9 @@
 # jEdit backup fies
 *.*~
 
+# Matlab backup
+*.asv
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
