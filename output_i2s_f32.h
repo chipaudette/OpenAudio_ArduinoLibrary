@@ -37,6 +37,7 @@ class AudioOutputI2S_F32 : public AudioStream_F32
 {
 //GUI: inputs:2, outputs:0  //this line used for automatic generation of GUI node
 public:
+	AudioOutputI2S_F32(void) : AudioStream_F32(2, inputQueueArray)	{ begin();} //uses default AUDIO_SAMPLE_RATE and BLOCK_SIZE_SAMPLES from AudioStream.h
 	AudioOutputI2S_F32(const AudioSettings_F32 &settings) : AudioStream_F32(2, inputQueueArray)
 	{ 
 		sample_rate_Hz = settings.sample_rate_Hz;

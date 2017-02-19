@@ -23,7 +23,7 @@ class AudioSynthWaveformSine_F32 : public AudioStream_F32
 //GUI: inputs:0, outputs:1 //this line used for automatic generation of GUI node
 //GUI: shortName:sine  //this line used for automatic generation of GUI node
 public:
-	AudioSynthWaveformSine_F32() : AudioStream_F32(0, NULL), magnitude(16384) { }
+	AudioSynthWaveformSine_F32() : AudioStream_F32(0, NULL), magnitude(16384) { } //uses default AUDIO_SAMPLE_RATE from AudioStream.h
 	AudioSynthWaveformSine_F32(const AudioSettings_F32 &settings) : AudioStream_F32(0, NULL), magnitude(16384) {
 		setSampleRate_Hz(settings.sample_rate_Hz);
 	}
