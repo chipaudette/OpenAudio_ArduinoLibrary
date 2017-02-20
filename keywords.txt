@@ -32,6 +32,7 @@ AudioMemoryUsage_F32	KEYWORD1
 AudioMemoryUsageMax_F32	KEYWORD1
 AudioMemoryUsageMaxReset_F32	KEYWORD1
 AudioMixer4_F32		KEYWORD1
+AudioMixer8_F32		KEYWORD1
 AudioMultiply_F32	KEYWORD1
 AudioOutputI2S_F32	KEYWORD1
 AudioPlayQueue_F32	KEYWORD1
