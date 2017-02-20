@@ -109,7 +109,7 @@ end
 clear new_node_data
 
 %remove some undesired nodes
-remove_names = {'AudioControlSGTL5000_Extended'};
+remove_names = {'AudioControlSGTL5000_Extended' 'audio_block_f32_t'};
 Ikeep = ones(size(nodes));
 for Irem=1:length(remove_names)
     for Inode = 1:length(Ikeep)

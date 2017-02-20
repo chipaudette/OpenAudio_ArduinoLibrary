@@ -262,6 +262,9 @@ for Iname=1:length(class_names)
     if strcmpi(name,'outputI2S')
         name = 'i2sAudioOut';
     end
+    if strcmpi(name,'computeEnvelope')
+        name = 'envelope';
+    end
     
     %strop off leading space or underscore
     while( (name(1) == ' ') | (name(1) == '_')); name=name(2:end);  end
