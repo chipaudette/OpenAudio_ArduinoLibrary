@@ -11,7 +11,7 @@
 */
 
 #ifndef _AudioEffectEmpty_F32_h
-#define _AudioEffectEmpmty_F32_h
+#define _AudioEffectEmpty_F32_h
 
 #include <arm_math.h> //ARM DSP extensions.  for speed!
 #include <AudioStream_F32.h>
