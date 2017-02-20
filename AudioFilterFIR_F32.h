@@ -31,11 +31,17 @@ class AudioFilterFIR_F32 : public AudioStream_F32
 		void begin(const float32_t *cp, const int _n_coeffs, const int block_size) {  //or, you can provide it with the block size
 			coeff_p = cp;
 			n_coeffs = _n_coeffs;
-
+			
 			// Initialize FIR instance (ARM DSP Math Library)
 			if (coeff_p && (coeff_p != FIR_F32_PASSTHRU) && n_coeffs <= FIR_MAX_COEFFS) {
 				arm_fir_init_f32(&fir_inst, n_coeffs, (float32_t *)coeff_p,  &StateF32[0], block_size);
 				configured_block_size = block_size;
+				Serial.print("AudioFilterFIR_F32: FIR is initialized. N_FIR = "); Serial.print(n_coeffs);
+				Serial.print(", Block Size = "); Serial.println(block_size);
+			//} else {
+			//	Serial.print("AudioFilterFIR_F32: *** ERROR ***: Cound not initialize. N_FIR = "); Serial.print(n_coeffs);
+			//	Serial.print(", Block Size = "); Serial.println(block_size);
+			//	coeff_p = NULL;
 			}
 		}
 		void end(void) {  coeff_p = NULL; }
@@ -59,7 +65,7 @@ class AudioFilterFIR_F32 : public AudioStream_F32
 
 void AudioFilterFIR_F32::update(void)
 {
-  audio_block_f32_t *block, *b_new;
+  audio_block_f32_t *block, *block_new;
 
   block = AudioStream_F32::receiveReadOnly_f32();
   if (!block) return;
@@ -75,22 +81,29 @@ void AudioFilterFIR_F32::update(void)
     // Just passthrough
     AudioStream_F32::transmit(block);
     AudioStream_F32::release(block);
+	//Serial.println("AudioFilterFIR_F32: update(): PASSTHRU.");
     return;
   }
 
 	// get a block for the FIR output
-	b_new = AudioStream_F32::allocate_f32();
-	if (b_new) {
+	block_new = AudioStream_F32::allocate_f32();
+	if (block_new) {
+		
 		//check to make sure our FIR instance has the right size
 		if (block->length != configured_block_size) {
 			//doesn't match.  re-initialize
 			Serial.println("AudioFilterFIR_F32: block size doesn't match.  Re-initializing FIR.");
 			begin(coeff_p, n_coeffs, block->length);  //initialize with same coefficients, just a new block length
 		}
+		
 		//apply the FIR
-		arm_fir_f32(&fir_inst, (float32_t *)block->data, (float32_t *)b_new->data, block->length);
-		AudioStream_F32::transmit(b_new); // send the FIR output
-		AudioStream_F32::release(b_new);
+		arm_fir_f32(&fir_inst, block->data, block_new->data, block->length);
+		//Serial.print("AudioFilterFIR_F32: update(): fir_inst: ");
+		//Serial.print(fir_inst.numTaps); Serial.print(", ");
+		//Serial.print(fir_inst.pState[10]*1000.f); Serial.print(", ");
+		//Serial.print(fir_inst.pCoeffs[10]*1000.f); Serial.println();
+		AudioStream_F32::transmit(block_new); // send the FIR output
+		AudioStream_F32::release(block_new);
 	}
 	AudioStream_F32::release(block);
 }
