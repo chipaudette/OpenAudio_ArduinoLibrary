@@ -98,10 +98,9 @@ void AudioFilterFIR_F32::update(void)
 		
 		//apply the FIR
 		arm_fir_f32(&fir_inst, block->data, block_new->data, block->length);
-		//Serial.print("AudioFilterFIR_F32: update(): fir_inst: ");
-		//Serial.print(fir_inst.numTaps); Serial.print(", ");
-		//Serial.print(fir_inst.pState[10]*1000.f); Serial.print(", ");
-		//Serial.print(fir_inst.pCoeffs[10]*1000.f); Serial.println();
+		block_new->length = block->length;
+
+		//transmit the data
 		AudioStream_F32::transmit(block_new); // send the FIR output
 		AudioStream_F32::release(block_new);
 	}
