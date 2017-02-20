@@ -92,6 +92,8 @@ void AudioFilterIIR_F32::update(void)
 
   // do IIR
   arm_biquad_cascade_df1_f32(&iir_inst, block->data, block->data, block->length);
+  
+  //transmit the data
   AudioStream_F32::transmit(block); // send the IIR output
   AudioStream_F32::release(block);
 }
