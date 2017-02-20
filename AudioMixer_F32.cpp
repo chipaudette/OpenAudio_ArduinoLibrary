@@ -38,7 +38,7 @@ void AudioMixer8_F32::update(void) {
   arm_scale_f32(out->data, multiplier[0], out->data, out->length); //scale the first input channel
 
   //load and process the rest of the channels
-  for (int channel=1; channel < 4; channel++) {
+  for (int channel=1; channel < 8; channel++) {
     in = receiveReadOnly_f32(channel);
     if (!in) {
       continue;
