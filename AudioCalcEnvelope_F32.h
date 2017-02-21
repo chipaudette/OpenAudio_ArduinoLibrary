@@ -1,5 +1,5 @@
 /*
- * AudioComputeEnvelope_F32
+ * AudioCalcEnvelope_F32
  * 
  * Created: Chip Audette, Feb 2017
  * Purpose: This module extracts the envelope of the audio signal.
@@ -12,21 +12,21 @@
  * MIT License.  use at your own risk.
 */
 
-#ifndef _AudioComputeEnvelope_F32_h
-#define _AudioComputeEnvelope_F32_h
+#ifndef _AudioCalcEnvelope_F32_h
+#define _AudioCalcEnvelope_F32_h
 
 #include <arm_math.h> //ARM DSP extensions.  for speed!
 #include <AudioStream_F32.h>
 
-class AudioComputeEnvelope_F32 : public AudioStream_F32
+class AudioCalcEnvelope_F32 : public AudioStream_F32
 {
   //GUI: inputs:1, outputs:1  //this line used for automatic generation of GUI node
-  //GUI: shortName:envelope
+  //GUI: shortName:calc_envelope
   public:
     //default constructor
-    AudioComputeEnvelope_F32(void) : AudioStream_F32(1, inputQueueArray_f32),
+    AudioCalcEnvelope_F32(void) : AudioStream_F32(1, inputQueueArray_f32),
 		sample_rate_Hz(AUDIO_SAMPLE_RATE) { setDefaultValues(); };
-	AudioComputeEnvelope_F32(const AudioSettings_F32 &settings) : AudioStream_F32(1, inputQueueArray_f32),
+	AudioCalcEnvelope_F32(const AudioSettings_F32 &settings) : AudioStream_F32(1, inputQueueArray_f32),
 		sample_rate_Hz(settings.sample_rate_Hz) { setDefaultValues(); };
 
     //here's the method that does all the work
@@ -106,7 +106,7 @@ class AudioComputeEnvelope_F32 : public AudioStream_F32
 	}
 	
 	void resetStates(void) { state_ppk = 1.0; }
-	
+	float getCurrentLevel(void) { return state_ppk; } 
   private:
     audio_block_f32_t *inputQueueArray_f32[1]; //memory pointer for the input to this module
 	float32_t sample_rate_Hz;
