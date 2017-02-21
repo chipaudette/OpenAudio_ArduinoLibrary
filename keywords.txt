@@ -7,6 +7,8 @@ audio_block_f32_t	KEYWORD1
 AudioStream_F32		KEYWORD1
 AudioConnection_F32	KEYWORD1
 
+AudioCalcGainWDRC_F32	KEYWORD1
+
 AudioControlTLV320AIC3206	KEYWORD1
 inputSelect		KEYWORD2
 setMicBias		KEYWORD2
@@ -19,6 +21,8 @@ micBiasEnable		KEYWORD2
 
 AudioConvert_I16toF32	KEYWORD1
 AudioConvert_F32toI16	KEYWORD1
+
+AudioEffectCompWDRC_F32	KEYWORD1
 
 AudioEffectGain_F32	KEYWORD1
 setGain_dB		KEYWORD2

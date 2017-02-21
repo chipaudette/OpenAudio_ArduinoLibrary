@@ -3,7 +3,9 @@
 //include <AudioControlSGTL5000_Extended.h>
 #include <control_tlv320aic3206.h>
 #include "AudioCalcEnvelope_F32.h"
+#include "AudioCalcGainWDRC_F32.h"
 #include <AudioConvert_F32.h>
+#include "AudioEffectCompWDRC_F32.h"
 #include "AudioEffectEmpty_F32.h"
 #include <AudioEffectGain_F32.h>
 #include <AudioEffectCompressor_F32.h>
