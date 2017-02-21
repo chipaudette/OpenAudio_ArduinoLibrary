@@ -8,6 +8,7 @@ AudioStream_F32		KEYWORD1
 AudioConnection_F32	KEYWORD1
 
 AudioCalcGainWDRC_F32	KEYWORD1
+AudioCalcEnvelope_F32	KEYWORD1
 
 AudioControlTLV320AIC3206	KEYWORD1
 inputSelect		KEYWORD2
@@ -28,7 +29,7 @@ AudioEffectGain_F32	KEYWORD1
 setGain_dB		KEYWORD2
 
 AudioFilterFIR_F32	KEYWORD1
-AudioEffectIIR_F32	KEYWORD1
+AudioFilterIIR_F32	KEYWORD1
 AudioEffectCompressor_F32	KEYWORD1
 AudioInputI2S_F32	KEYWORD1
 AudioMemory_F32		KEYWORD1

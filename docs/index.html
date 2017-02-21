@@ -347,9 +347,11 @@ span.mainfunction {color: #993300; font-weight: bolder}
 		{"type":"AudioControlTLV320AIC3206","data":{"defaults":{"name":{"value":"new"}},"shortName":"tlv320aic3206","inputs":"0","outputs":"0","category":"control-function","color":"#E6E0F8","icon":"debug.png"}},
 		{"type":"AudioInputI2S_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"i2sAudioIn","inputs":"0","outputs":"2","category":"input-function","color":"#E6E0F8","icon":"arrow-in.png"}},
 		{"type":"AudioOutputI2S_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"i2sAudioOut","inputs":"2","outputs":"0","category":"output-function","color":"#E6E0F8","icon":"arrow-in.png"}},
-		{"type":"AudioComputeEnvelope_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"envelope","inputs":"1","outputs":"1","category":"compute-function","color":"#E6E0F8","icon":"arrow-in.png"}},
+		{"type":"AudioCalcEnvelope_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"calcEnvelope","inputs":"1","outputs":"1","category":"calc-function","color":"#E6E0F8","icon":"arrow-in.png"}},
+		{"type":"AudioCalcGainWDRC_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"calcGainWDRC","inputs":"1","outputs":"1","category":"calc-function","color":"#E6E0F8","icon":"arrow-in.png"}},
 		{"type":"AudioConvert_I16toF32","data":{"defaults":{"name":{"value":"new"}},"shortName":"I16toF32","inputs":"1","outputs":"1","category":"convert-function","color":"#E6E0F8","icon":"arrow-in.png"}},
 		{"type":"AudioConvert_F32toI16","data":{"defaults":{"name":{"value":"new"}},"shortName":"F32toI16","inputs":"1","outputs":"1","category":"convert-function","color":"#E6E0F8","icon":"arrow-in.png"}},
+		{"type":"AudioEffectCompWDRC_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"compWDRC","inputs":"1","outputs":"1","category":"effect-function","color":"#E6E0F8","icon":"arrow-in.png"}},
 		{"type":"AudioEffectCompressor_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"compressor","inputs":"1","outputs":"1","category":"effect-function","color":"#E6E0F8","icon":"arrow-in.png"}},
 		{"type":"AudioEffectEmpty_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"empty","inputs":"1","outputs":"1","category":"effect-function","color":"#E6E0F8","icon":"arrow-in.png"}},
 		{"type":"AudioEffectGain_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"gain","inputs":"1","outputs":"1","category":"effect-function","color":"#E6E0F8","icon":"arrow-in.png"}},
@@ -554,7 +556,13 @@ span.mainfunction {color: #993300; font-weight: bolder}
 	</div>
 </script>
 
-<script type="text/x-red" data-template-name="AudioComputeEnvelope_F32 ">
+<script type="text/x-red" data-template-name="AudioCalcEnvelope_F32 ">
+	<div class="form-row">
+		<label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+		<input type="text" id="node-input-name" placeholder="Name">
+	</div>
+</script>
+<script type="text/x-red" data-template-name="AudioCalcGainWDRC_F32 ">
 	<div class="form-row">
 		<label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
 		<input type="text" id="node-input-name" placeholder="Name">
@@ -567,6 +575,12 @@ span.mainfunction {color: #993300; font-weight: bolder}
 	</div>
 </script>
 <script type="text/x-red" data-template-name="AudioConvert_F32toI16 ">
+	<div class="form-row">
+		<label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+		<input type="text" id="node-input-name" placeholder="Name">
+	</div>
+</script>
+<script type="text/x-red" data-template-name="AudioEffectCompWDRC_F32 ">
 	<div class="form-row">
 		<label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
 		<input type="text" id="node-input-name" placeholder="Name">
