@@ -48,6 +48,8 @@ typedef struct {
 
 class AudioEffectCompWDRC_F32 : public AudioStream_F32
 {
+	//GUI: inputs:1, outputs:1  //this line used for automatic generation of GUI node
+	//GUI: shortName: CompWDRC
   public:
     AudioEffectCompWDRC_F32(void): AudioStream_F32(1,inputQueueArray) { //need to modify this for user to set sample rate
       setSampleRate_Hz(AUDIO_SAMPLE_RATE);
