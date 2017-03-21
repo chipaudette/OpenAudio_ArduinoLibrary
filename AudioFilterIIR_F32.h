@@ -1,8 +1,9 @@
 /*
- * AudioFilterFIR_F32
+ * AudioFilterIIR_F32
  * 
  * Created: Chip Audette (OpenAudio) Feb 2017
- *    - Building from AudioFilterFIR from Teensy Audio Library (AudioFilterFIR credited to Pete (El Supremo))
+ *
+ * License: MIT License.  Use at your own risk.
  * 
  */
 
@@ -22,6 +23,7 @@
 class AudioFilterIIR_F32 : public AudioStream_F32
 {
   //GUI: inputs:1, outputs:1  //this line used for automatic generation of GUI node
+  //GUI: shortName:IIR
   public:
     AudioFilterIIR_F32(void): AudioStream_F32(1,inputQueueArray), coeff_p(FIR_F32_PASSTHRU) {
     }
@@ -92,6 +94,8 @@ void AudioFilterIIR_F32::update(void)
 
   // do IIR
   arm_biquad_cascade_df1_f32(&iir_inst, block->data, block->data, block->length);
+  
+  //transmit the data
   AudioStream_F32::transmit(block); // send the IIR output
   AudioStream_F32::release(block);
 }

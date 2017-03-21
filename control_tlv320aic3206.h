@@ -1,9 +1,8 @@
 /* 
 	control_tlv320aic3206
 	
-	Created: BPF@creare.com  Jan-Feb 2017
-
-	Purpose: Control module for TLV320AIC3206 compatible with Teensy Audio Library
+	Created: Brendan Flynn (http://www.flexvoltbiosensor.com/) for Tympan, Jan-Feb 2017
+	Purpose: Control module for Texas Instruments TLV320AIC3206 compatible with Teensy Audio Library
  
 	License: MIT License.  Use at your own risk.
  */
@@ -40,16 +39,18 @@ private:
 
 #define TYMPAN_OUTPUT_HEADPHONE_JACK_OUT 1
 
-#define TYMPAN_INPUT_LINE_IN 				0
-#define TYMPAN_INPUT_JACK_AS_MIC 		1
-#define TYMPAN_INPUT_JACK_AS_LINEIN 2
-#define TYMPAN_INPUT_ON_BOARD_MIC 	3
+//convenience names to use with inputSelect() to set whnch analog inputs to use
+#define TYMPAN_INPUT_LINE_IN            1   //uses IN1
+#define TYMPAN_INPUT_ON_BOARD_MIC       2   //uses IN2 analog inputs
+#define TYMPAN_INPUT_JACK_AS_LINEIN     3   //uses IN3 analog inputs
+#define TYMPAN_INPUT_JACK_AS_MIC        4   //uses IN3 analog inputs *and* enables mic bias
 
-#define TYMPAN_MIC_BIAS_OFF				0
-#define TYMPAN_MIC_BIAS_1_25 			1
-#define TYMPAN_MIC_BIAS_1_7  			2
-#define TYMPAN_MIC_BIAS_2_5  			3
-#define TYMPAN_MIC_BIAS_VSUPPLY 	4
+//names to use with setMicBias() to set the amount of bias voltage to use
+#define TYMPAN_MIC_BIAS_OFF             0
+#define TYMPAN_MIC_BIAS_1_25            1
+#define TYMPAN_MIC_BIAS_1_7             2
+#define TYMPAN_MIC_BIAS_2_5             3
+#define TYMPAN_MIC_BIAS_VSUPPLY         4
 #define TYMPAN_DEFAULT_MIC_BIAS TYMPAN_MIC_BIAS_2_5
 
 #endif

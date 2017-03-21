@@ -36,6 +36,11 @@ bool AudioInputI2S_F32::update_responsibility = false;
 DMAChannel AudioInputI2S_F32::dma(false);
 
 
+float AudioInputI2S_F32::sample_rate_Hz = AUDIO_SAMPLE_RATE;
+int AudioInputI2S_F32::audio_block_samples = AUDIO_BLOCK_SAMPLES;
+
+#define I2S_BUFFER_TO_USE_BYTES (AudioOutputI2S_F32::audio_block_samples*sizeof(i2s_rx_buffer[0]))
+
 void AudioInputI2S_F32::begin(void)
 {
 	dma.begin(true); // Allocate the DMA channel first
@@ -44,6 +49,8 @@ void AudioInputI2S_F32::begin(void)
 	//block_right_1st = NULL;
 
 	// TODO: should we set & clear the I2S_RCSR_SR bit here?
+	AudioOutputI2S_F32::sample_rate_Hz = sample_rate_Hz;
+	AudioOutputI2S_F32::audio_block_samples = audio_block_samples;
 	AudioOutputI2S_F32::config_i2s();
 
 	CORE_PIN13_CONFIG = PORT_PCR_MUX(4); // pin 13, PTC5, I2S0_RXD0
@@ -55,9 +62,12 @@ void AudioInputI2S_F32::begin(void)
 	dma.TCD->SLAST = 0;
 	dma.TCD->DADDR = i2s_rx_buffer;
 	dma.TCD->DOFF = 2;
-	dma.TCD->CITER_ELINKNO = sizeof(i2s_rx_buffer) / 2;
-	dma.TCD->DLASTSGA = -sizeof(i2s_rx_buffer);
-	dma.TCD->BITER_ELINKNO = sizeof(i2s_rx_buffer) / 2;
+	//dma.TCD->CITER_ELINKNO = sizeof(i2s_tx_buffer) / 2;	//original
+	dma.TCD->CITER_ELINKNO = I2S_BUFFER_TO_USE_BYTES / 2;
+	//dma.TCD->DLASTSGA = -sizeof(i2s_rx_buffer); //original
+	dma.TCD->DLASTSGA = -I2S_BUFFER_TO_USE_BYTES;
+	//dma.TCD->BITER_ELINKNO = sizeof(i2s_rx_buffer) / 2;	//original
+	dma.TCD->BITER_ELINKNO = I2S_BUFFER_TO_USE_BYTES / 2;
 	dma.TCD->CSR = DMA_TCD_CSR_INTHALF | DMA_TCD_CSR_INTMAJOR;
 #endif
 	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_I2S0_RX);
@@ -67,7 +77,9 @@ void AudioInputI2S_F32::begin(void)
 	I2S0_RCSR |= I2S_RCSR_RE | I2S_RCSR_BCE | I2S_RCSR_FRDE | I2S_RCSR_FR;
 	I2S0_TCSR |= I2S_TCSR_TE | I2S_TCSR_BCE; // TX clock enable, because sync'd to TX
 	dma.attachInterrupt(isr);
-}
+	
+	
+};
 
 void AudioInputI2S_F32::isr(void)
 {
@@ -82,26 +94,33 @@ void AudioInputI2S_F32::isr(void)
 #endif
 	dma.clearInterrupt();
 
-	if (daddr < (uint32_t)i2s_rx_buffer + sizeof(i2s_rx_buffer) / 2) {
+	//if (daddr < (uint32_t)i2s_rx_buffer + sizeof(i2s_rx_buffer) / 2) {
+	if (daddr < (uint32_t)i2s_rx_buffer + I2S_BUFFER_TO_USE_BYTES / 2) {		
+		
 		// DMA is receiving to the first half of the buffer
 		// need to remove data from the second half
-		src = (int16_t *)&i2s_rx_buffer[AUDIO_BLOCK_SAMPLES/2];
-		end = (int16_t *)&i2s_rx_buffer[AUDIO_BLOCK_SAMPLES];
+		//src = (int16_t *)&i2s_rx_buffer[AUDIO_BLOCK_SAMPLES/2];	//original
+		//end = (int16_t *)&i2s_rx_buffer[AUDIO_BLOCK_SAMPLES];	//original
+		src = (int16_t *)&i2s_rx_buffer[audio_block_samples/2];
+		end = (int16_t *)&i2s_rx_buffer[audio_block_samples];		
 		if (AudioInputI2S_F32::update_responsibility) AudioStream_F32::update_all();
 	} else {
 		// DMA is receiving to the second half of the buffer
 		// need to remove data from the first half
 		src = (int16_t *)&i2s_rx_buffer[0];
-		end = (int16_t *)&i2s_rx_buffer[AUDIO_BLOCK_SAMPLES/2];
+		//end = (int16_t *)&i2s_rx_buffer[AUDIO_BLOCK_SAMPLES/2];	//original
+		end = (int16_t *)&i2s_rx_buffer[audio_block_samples/2];
 	}
 	left = AudioInputI2S_F32::block_left;
 	right = AudioInputI2S_F32::block_right;
 	if (left != NULL && right != NULL) {
 		offset = AudioInputI2S_F32::block_offset;
-		if (offset <= AUDIO_BLOCK_SAMPLES/2) {
+		//if (offset <= AUDIO_BLOCK_SAMPLES/2) {	//original
+		if (offset <= ((uint32_t) audio_block_samples/2)) {
 			dest_left = &(left->data[offset]);
 			dest_right = &(right->data[offset]);
-			AudioInputI2S_F32::block_offset = offset + AUDIO_BLOCK_SAMPLES/2;
+			//AudioInputI2S_F32::block_offset = offset + AUDIO_BLOCK_SAMPLES/2;	//original
+			AudioInputI2S_F32::block_offset = offset + audio_block_samples/2;
 			do {
 				//n = *src++;
 				//*dest_left++ = (int16_t)n;
@@ -114,7 +133,10 @@ void AudioInputI2S_F32::isr(void)
 	//digitalWriteFast(3, LOW);
 }
 
-
+#define I16_TO_F32_NORM_FACTOR (3.051757812500000E-05)  //which is 1/32768 
+void AudioInputI2S_F32::convert_i16_to_f32( int16_t *p_i16, float32_t *p_f32, int len) {
+	for (int i=0; i<len; i++) { *p_f32++ = ((float32_t)(*p_i16++)) * I16_TO_F32_NORM_FACTOR; }
+}
 
 void AudioInputI2S_F32::update(void)
 {
@@ -130,7 +152,8 @@ void AudioInputI2S_F32::update(void)
 		}
 	}
 	__disable_irq();
-	if (block_offset >= AUDIO_BLOCK_SAMPLES) {
+	//if (block_offset >= AUDIO_BLOCK_SAMPLES) {  //original
+	if (block_offset >= audio_block_samples) {	
 		// the DMA filled 2 blocks, so grab them and get the
 		// 2 new blocks to the DMA, as quickly as possible
 		out_left = block_left;
@@ -153,9 +176,9 @@ void AudioInputI2S_F32::update(void)
 			}
 		}
 		if (out_left_f32 != NULL) {
-			//convert to f32
-			arm_q15_to_float((q15_t *)out_left->data, (float32_t *)out_left_f32->data, AUDIO_BLOCK_SAMPLES);
-			arm_q15_to_float((q15_t *)out_right->data, (float32_t *)out_right_f32->data, AUDIO_BLOCK_SAMPLES);
+			//convert int16 to float 32
+			convert_i16_to_f32(out_left->data, out_left_f32->data, audio_block_samples);
+			convert_i16_to_f32(out_right->data, out_right_f32->data, audio_block_samples);
 			
 			//transmit the f32 data!
 			AudioStream_F32::transmit(out_left_f32,0);

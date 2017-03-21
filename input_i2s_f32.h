@@ -36,9 +36,16 @@ class AudioInputI2S_F32 : public AudioStream_F32
 {
 //GUI: inputs:0, outputs:2  //this line used for automatic generation of GUI nodes
 public:
-	AudioInputI2S_F32(void) : AudioStream_F32(0, NULL) { begin(); }
+	AudioInputI2S_F32(void) : AudioStream_F32(0, NULL) { begin(); } //uses default AUDIO_SAMPLE_RATE and BLOCK_SIZE_SAMPLES from AudioStream.h
+	AudioInputI2S_F32(const AudioSettings_F32 &settings) : AudioStream_F32(0, NULL) { 
+		sample_rate_Hz = settings.sample_rate_Hz;
+		audio_block_samples = settings.audio_block_samples;
+		begin(); 
+	}
 	virtual void update(void);
+	static void convert_i16_to_f32( int16_t *p_i16, float32_t *p_f32, int len) ;
 	void begin(void);
+	//friend class AudioOutputI2S_F32;
 protected:	
 	AudioInputI2S_F32(int dummy): AudioStream_F32(0, NULL) {} // to be used only inside AudioInputI2Sslave !!
 	static bool update_responsibility;
@@ -47,6 +54,8 @@ protected:
 private:
 	static audio_block_t *block_left;
 	static audio_block_t *block_right;
+	static float sample_rate_Hz;
+	static int audio_block_samples;
 	static uint16_t block_offset;
 };
 

@@ -25,9 +25,29 @@ class AudioSynthWaveform_F32 : public AudioStream_F32
         OSCILLATOR_MODE_TRIANGLE
     };
 
-    AudioSynthWaveform_F32(void) : AudioStream_F32(1, inputQueueArray_f32),
+	    AudioSynthWaveform_F32(const AudioSettings_F32 &settings) : AudioStream_F32(1, inputQueueArray_f32), 
+				_PI(2*acos(0.0f)),
+                twoPI(2 * _PI),
+				sample_rate_Hz(AUDIO_SAMPLE_RATE_EXACT),
+                _OscillatorMode(OSCILLATOR_MODE_SINE),
+                _Frequency(440.0f),
+                _Phase(0.0f),
+                _PhaseIncrement(0.0f),
+                _PitchModAmt(0.0f),
+                _PortamentoIncrement(0.0f),
+                _PortamentoSamples(0),
+                _CurrentPortamentoSample(0),
+                _NotesPlaying(0)
+		{		
+			setSampleRate(settings.sample_rate_Hz);
+		}
+		
+                
+	
+    AudioSynthWaveform_F32(void) : AudioStream_F32(1, inputQueueArray_f32),  //uses default AUDIO_SAMPLE_RATE from AudioStream.h
                 _PI(2*acos(0.0f)),
                 twoPI(2 * _PI),
+				sample_rate_Hz(AUDIO_SAMPLE_RATE_EXACT),
                 _OscillatorMode(OSCILLATOR_MODE_SINE),
                 _Frequency(440.0f),
                 _Phase(0.0f),
@@ -39,7 +59,7 @@ class AudioSynthWaveform_F32 : public AudioStream_F32
                 _NotesPlaying(0) {};
 
     void frequency(float32_t freq) {
-        float32_t nyquist = AUDIO_SAMPLE_RATE_EXACT/2;
+        float32_t nyquist = sample_rate_Hz/2.f;
 
         if (freq < 0.0) freq = 0.0;
         else if (freq > nyquist) freq = nyquist;
@@ -51,7 +71,7 @@ class AudioSynthWaveform_F32 : public AudioStream_F32
           _Frequency = freq;
         }
 
-        _PhaseIncrement = _Frequency * twoPI / AUDIO_SAMPLE_RATE_EXACT;
+        _PhaseIncrement = _Frequency * twoPI / sample_rate_Hz;
     }
 
     void amplitude(float32_t n) {
@@ -80,7 +100,7 @@ class AudioSynthWaveform_F32 : public AudioStream_F32
 
     void portamentoTime(float32_t slidetime) {
       _PortamentoTime = slidetime;
-      _PortamentoSamples = floorf(slidetime * AUDIO_SAMPLE_RATE_ROUNDED);
+      _PortamentoSamples = floorf(slidetime * sample_rate_Hz);
     }
 
     
@@ -95,10 +115,17 @@ class AudioSynthWaveform_F32 : public AudioStream_F32
     }
 
     void update(void);
+	void setSampleRate(const float32_t fs_Hz)
+	{
+		_PhaseIncrement = _PhaseIncrement*sample_rate_Hz / fs_Hz;
+		_PortamentoSamples = floorf( ((float)_PortamentoSamples) * fs_Hz / sample_rate_Hz );
+		sample_rate_Hz = fs_Hz;
+	}
   private:
     inline float32_t applyMod(uint32_t sample, audio_block_f32_t *lfo);
     const float32_t _PI;
     float32_t twoPI;
+	float32_t sample_rate_Hz;
     
     OscillatorMode _OscillatorMode;
     float32_t _Frequency;

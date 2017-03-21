@@ -30,6 +30,14 @@ void AudioStream_F32::initialize_f32_memory(audio_block_f32_t *data, unsigned in
   __enable_irq();
 
 } // end initialize_memory
+void AudioStream_F32::initialize_f32_memory(audio_block_f32_t *data, unsigned int num, const AudioSettings_F32 &settings)
+{
+ initialize_f32_memory(data,num);
+ for (unsigned int i=0; i < num; i++) {
+	 data[i].fs_Hz = settings.sample_rate_Hz;
+	 data[i].length = settings.audio_block_samples;
+ }
+} // end initialize_memory
 
 // Allocate 1 audio data block.  If successful
 // the caller is the only owner of this new block
@@ -160,3 +168,4 @@ void AudioConnection_F32::connect(void) {
   dst.active = true;
   __enable_irq();
 }
+
