@@ -10,10 +10,10 @@
  */
 
 #include <Audio.h>
-#include <Wire.h>
-#include <SPI.h>
-#include <SD.h>
-#include <SerialFlash.h>
+//include <Wire.h>
+//include <SPI.h>
+//include <SD.h>
+//include <SerialFlash.h>
 #include <OpenAudio_ArduinoLibrary.h>  //AudioControlTLV320AIC3206 lives here
 
 // define audio classes and connections
