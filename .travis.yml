@@ -10,7 +10,7 @@ before_install:
   - wget https://www.pjrc.com/teensy/td_136/TeensyduinoInstall.linux64
   - sudo chmod 755 TeensyduinoInstall.linux64
   - ls
-  - sudo TeensyduinoInstall.linux64
+  - sudo ./TeensyduinoInstall.linux64
 install:
   - ln -s $PWD /usr/local/share/arduino/libraries/OpenAudio_ArduinoLibrary
   - arduino --install-library "Audio"
