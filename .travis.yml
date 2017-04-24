@@ -3,14 +3,13 @@ before_install:
   - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_1.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :1 -ac -screen 0 1280x1024x16"
   - sleep 3
   - export DISPLAY=:1.0
-  - wget http://downloads.arduino.cc/arduino-1.6.12-linux64.tar.xz
-  - tar xf arduino-1.6.12-linux64.tar.xz
-  - sudo mv arduino-1.6.12 /usr/local/share/arduino
-  - sudo ln -s /usr/local/share/arduino/arduino /usr/local/bin/arduino
-  - wget https://www.pjrc.com/teensy/td_136/TeensyduinoInstall.linux64
-  - sudo chmod 755 TeensyduinoInstall.linux64
-  - ls
-  - sudo ./TeensyduinoInstall.linux64
+  - sudo apt-get install arduino-core
+  - sudo apt-get install arduino-mk
+  - sudo apt-get install binutils-arm-none-eabi gcc-arm-none-eabi
+  - sudo mkdir /usr/local/share/arduino/hardware/teensy/
+  - pushd /usr/local/share/arduino/hardware/teensy/
+  - sudo git clone https://github.com/PaulStoffregen/cores
+  - popd
 install:
   - ln -s $PWD /usr/local/share/arduino/libraries/OpenAudio_ArduinoLibrary
   - arduino --install-library "Audio"
