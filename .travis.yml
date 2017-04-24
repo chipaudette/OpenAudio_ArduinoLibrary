@@ -14,8 +14,7 @@ install:
   - ln -s $PWD /usr/local/share/arduino/libraries/OpenAudio_ArduinoLibrary
   - arduino --install-library "Audio"
 script:
-  - arduino --verify --board arduino:avr:uno $PWD/examples/Tympan_TLV320AIC3206.ino
-
+  - arduino --verify --board teensy:avr:teensy36:usb=serialmidiaudio $PWD/examples/Tympan_TLV320AIC3206.ino
 notifications:
   email:
     on_success: change
