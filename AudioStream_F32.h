@@ -15,37 +15,15 @@
 
 #include <arm_math.h> //ARM DSP extensions.  for speed!
 #include <Audio.h> //Teensy Audio Library
+#include "AudioSettings_F32.h"
 
 
+// /////////////// class prototypes
 class AudioStream_F32;
 class AudioConnection_F32;
-class AudioSettings_F32;
 
 
-class AudioSettings_F32 {
-	public:
-		AudioSettings_F32(float fs_Hz, int block_size) :
-			sample_rate_Hz(fs_Hz), audio_block_samples(block_size) {}
-		const float sample_rate_Hz;
-		const int audio_block_samples;
-		
-		float cpu_load_percent(const int n) { //n is the number of cycles
-			#define CYCLE_COUNTER_APPROX_PERCENT(n) (((n) + (F_CPU / 32 / AUDIO_SAMPLE_RATE * AUDIO_BLOCK_SAMPLES / 100)) / (F_CPU / 16 / AUDIO_SAMPLE_RATE * AUDIO_BLOCK_SAMPLES / 100))
-			float foo1 = ((float)(F_CPU / 32))/sample_rate_Hz;
-			foo1 *= ((float)audio_block_samples);
-			foo1 /= 100.f;
-			foo1 += (float)n;
-			float foo2 = (float)(F_CPU / 16)/sample_rate_Hz;
-			foo2 *= ((float)audio_block_samples);
-			foo2 /= 100.f;
-			return  foo1 / foo2;
-			//return (((n) + (F_CPU / 32 / sample_rate_Hz * audio_block_samples / 100)) / (F_CPU / 16 / sample_rate_Hz * audio_block_samples / 100));
-		}
-
-		float processorUsage(void) { return cpu_load_percent(AudioStream::cpu_cycles_total); };
-		float processorUsageMax(void) { return cpu_load_percent(AudioStream::cpu_cycles_total_max); }
-		void processorUsageMaxReset(void) { AudioStream::cpu_cycles_total_max = AudioStream::cpu_cycles_total; }
-};
+// ///////////// class definitions
 
 //create a new structure to hold audio as floating point values.
 //modeled on the existing teensy audio block struct, which uses Int16
@@ -91,20 +69,6 @@ class AudioConnection_F32
     AudioConnection_F32 *next_dest;
 };
 
-#define AudioMemory_F32(num) ({ \
-  static audio_block_f32_t data_f32[num]; \
-  AudioStream_F32::initialize_f32_memory(data_f32, num); \
-})
-
-#define AudioMemory_F32_wSettings(num,settings) ({ \
-  static audio_block_f32_t data_f32[num]; \
-  AudioStream_F32::initialize_f32_memory(data_f32, num, settings); \
-})
-
-
-#define AudioMemoryUsage_F32() (AudioStream_F32::f32_memory_used)
-#define AudioMemoryUsageMax_F32() (AudioStream_F32::f32_memory_used_max)
-#define AudioMemoryUsageMaxReset_F32() (AudioStream_F32::f32_memory_used_max = AudioStream_F32::f32_memory_used)
 
 class AudioStream_F32 : public AudioStream {
   public:
@@ -121,12 +85,12 @@ class AudioStream_F32 : public AudioStream {
     //virtual void update(audio_block_f32_t *) = 0; 
     static uint8_t f32_memory_used;
     static uint8_t f32_memory_used_max;
+    static audio_block_f32_t * allocate_f32(void);
+    static void release(audio_block_f32_t * block);
     
   protected:
     //bool active_f32;
     unsigned char num_inputs_f32;
-    static audio_block_f32_t * allocate_f32(void);
-    static void release(audio_block_f32_t * block);
     void transmit(audio_block_f32_t *block, unsigned char index = 0);
     audio_block_f32_t * receiveReadOnly_f32(unsigned int index = 0);
     audio_block_f32_t * receiveWritable_f32(unsigned int index = 0);  
@@ -141,6 +105,21 @@ class AudioStream_F32 : public AudioStream {
     static uint32_t f32_memory_pool_available_mask[6];
 };
 
+/*
+#define AudioMemory_F32(num) ({ \
+  static audio_block_f32_t data_f32[num]; \
+  AudioStream_F32::initialize_f32_memory(data_f32, num); \
+})
+*/
+
+void AudioMemory_F32(const int num);
+void AudioMemory_F32(const int num, const AudioSettings_F32 &settings);
+#define AudioMemory_F32_wSettings(num,settings) (AudioMemory_F32(num,settings))   //for historical compatibility
+
+
+#define AudioMemoryUsage_F32() (AudioStream_F32::f32_memory_used)
+#define AudioMemoryUsageMax_F32() (AudioStream_F32::f32_memory_used_max)
+#define AudioMemoryUsageMaxReset_F32() (AudioStream_F32::f32_memory_used_max = AudioStream_F32::f32_memory_used)
 
 
 #endif

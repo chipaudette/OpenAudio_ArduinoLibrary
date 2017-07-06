@@ -20,6 +20,8 @@ class AudioRecordQueue_F32 : public AudioStream_F32
 public:
 	AudioRecordQueue_F32(void) : AudioStream_F32(1, inputQueueArray),
 		userblock(NULL), head(0), tail(0), enabled(0) { }
+	AudioRecordQueue_F32(const AudioSettings_F32 &settings) : AudioStream_F32(1, inputQueueArray),
+		userblock(NULL), head(0), tail(0), enabled(0) { }
 	void begin(void) {
 		clear();
 		enabled = 1;

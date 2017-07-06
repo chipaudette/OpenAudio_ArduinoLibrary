@@ -47,7 +47,7 @@ void AudioSynthWaveformSine_F32::update(void)
 	#endif
 					ph += inc;
 					
-					block->data[i] = block->data[i] / 32768.0f; // scale to float
+					block->data[i] = block->data[i] / 32767.0f; // scale to float
 				}
 				phase_accumulator = ph;
 				

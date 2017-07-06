@@ -7,6 +7,24 @@ uint32_t AudioStream_F32::f32_memory_pool_available_mask[6];
 uint8_t AudioStream_F32::f32_memory_used = 0;
 uint8_t AudioStream_F32::f32_memory_used_max = 0;
 
+audio_block_f32_t* allocate_f32_memory(const int num) {
+	static bool firstTime=true;
+	static audio_block_f32_t *data_f32;
+	if (firstTime == true) {
+		firstTime = false;
+		data_f32 = new audio_block_f32_t[num];
+	}
+	return data_f32;
+}
+void AudioMemory_F32(const int num) {
+	audio_block_f32_t *data_f32 = allocate_f32_memory(num);
+	if (data_f32 != NULL) AudioStream_F32::initialize_f32_memory(data_f32, num);
+}
+void AudioMemory_F32(const int num, const AudioSettings_F32 &settings) {
+	audio_block_f32_t *data_f32 = allocate_f32_memory(num);
+	if (data_f32 != NULL) AudioStream_F32::initialize_f32_memory(data_f32, num, settings);
+}
+
 // Set up the pool of audio data blocks
 // placing them all onto the free list
 void AudioStream_F32::initialize_f32_memory(audio_block_f32_t *data, unsigned int num)

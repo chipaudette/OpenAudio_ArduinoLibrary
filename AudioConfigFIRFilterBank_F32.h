@@ -12,7 +12,8 @@
 #ifndef AudioConfigFIRFilterBank_F32_h
 #define AudioConfigFIRFilterBank_F32_h
 
-#include "utility/rfft.c"
+//include <Tympan_Library.h>
+#include <OpenAudio_ArduinoLibrary.h>
 
 #define fmove(x,y,n)    memmove(x,y,(n)*sizeof(float))
 #define fcopy(x,y,n)    memcpy(x,y,(n)*sizeof(float))
@@ -22,9 +23,10 @@ class AudioConfigFIRFilterBank_F32 {
   //GUI: inputs:0, outputs:0  //this line used for automatic generation of GUI node  
   //GUI: shortName:config_FIRbank
   public:
-    AudioConfigFIRFilterBank_F32(void) {
-    }
-    AudioConfigFIRFilterBank_F32(const int n_chan, const int n_fir, const float sample_rate_Hz, float *corner_freq, float *filter_coeff) {
+    AudioConfigFIRFilterBank_F32(void) {}
+	AudioConfigFIRFilterBank_F32(const AudioSettings_F32 &settings) {}
+    AudioConfigFIRFilterBank_F32(const int n_chan, const int n_fir, const float sample_rate_Hz, float *corner_freq, float *filter_coeff)
+	{
       createFilterCoeff(n_chan, n_fir, sample_rate_Hz, corner_freq, filter_coeff);
     }
 
@@ -51,7 +53,7 @@ class AudioConfigFIRFilterBank_F32 {
         flag__free_cf = 1;
         computeLogSpacedCornerFreqs(n_chan, sample_rate_Hz, cf);
       }
-      const int window_type = 0;  //0 = Hamming
+      const int window_type = 0;  //0 = Hamming, 1=Blackmann, 2 = Hanning
       fir_filterbank(filter_coeff, cf, n_chan, n_fir, window_type, sample_rate_Hz);
       if (flag__free_cf) free(cf); 
     }
@@ -84,71 +86,7 @@ class AudioConfigFIRFilterBank_F32 {
       return n;
     }
 
-    void fir_filterbank(float *bb, float *cf, const int nc, const int nw_orig, const int wt, const float sr)
-    {
-        double   p, w, a = 0.16, sm = 0;
-        float   *ww, *bk, *xx, *yy;
-        int      j, k, kk, nt, nf, ns, *be;
-
-        int nw = nextPowerOfTwo(nw_orig);
-        Serial.print("fir_filterbank: nw_orig = "); Serial.print(nw_orig);
-        Serial.print(", nw = "); Serial.println(nw);
-    
-        nt = nw * 2;
-        nf = nw + 1;
-        ns = nf * 2;
-        be = (int *) calloc(nc + 1, sizeof(int));
-        ww = (float *) calloc(nw, sizeof(float));
-        xx = (float *) calloc(ns, sizeof(float));
-        yy = (float *) calloc(ns, sizeof(float));
-        
-        // window
-        for (j = 0; j < nw; j++) ww[j]=0.0f; //clear
-        for (j = 0; j < nw_orig; j++) {
-            p = M_PI * (2.0 * j - nw_orig) / nw_orig;
-            if (wt == 0) {
-                w = 0.54 + 0.46 * cos(p);                   // Hamming
-            } else {
-                w = (1 - a + cos(p) + a * cos(2 * p)) / 2;  // Blackman
-            }
-            sm += w;
-            ww[j] = (float) w;
-        }
-        
-        // frequency bands...add the DC-facing band and add the Nyquist-facing band
-        be[0] = 0;
-        for (k = 1; k < nc; k++) {
-            kk = round(nf * cf[k - 1] * (2 / sr));
-            be[k] = (kk > nf) ? nf : kk;
-        }
-        be[nc] = nf;
-        
-        // channel tranfer functions
-        fzero(xx, ns);
-        xx[nw_orig / 2] = 1; //make a single-sample impulse centered on our eventual window
-        cha_fft_rc(xx, nt);
-        for (k = 0; k < nc; k++) {
-            fzero(yy, ns); //zero the temporary output
-            //int nbins = (be[k + 1] - be[k]) * 2;  Serial.print("fir_filterbank: chan ");Serial.print(k); Serial.print(", nbins = ");Serial.println(nbins);
-            fcopy(yy + be[k] * 2, xx + be[k] * 2, (be[k + 1] - be[k]) * 2); //copy just our passband
-            cha_fft_cr(yy, nt); //IFFT back into the time domain
-            
-            // apply window to iFFT of bandpass
-            for (j = 0; j < nw; j++) {
-                yy[j] *= ww[j];
-            }
-            
-            bk = bb + k * nw_orig; //pointer to location in output array
-            fcopy(bk, yy, nw_orig); //copy the filter coefficients to the output array
-
-            //print out the coefficients
-            //for (int i=0; i<nw; i++) { Serial.print(yy[i]*1000.0f);Serial.print(" "); }; Serial.println();
-        }
-        free(be);
-        free(ww);
-        free(xx);
-        free(yy);
-    }
+    void fir_filterbank(float *bb, float *cf, const int nc, const int nw_orig, const int wt, const float sr);
 };
 #endif
 

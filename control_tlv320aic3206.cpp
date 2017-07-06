@@ -142,14 +142,22 @@ bool AudioControlTLV320AIC3206::enable(void)
 	Wire.begin();
 	delay(5);
 
-  aic_reset(); delay(100);
+  //hard reset the AIC
+  //Serial.println("Hardware reset of AIC...");
+  #define RESET_PIN  21
+  pinMode(RESET_PIN,OUTPUT); 
+  digitalWrite(RESET_PIN,HIGH);delay(50); //not reset
+  digitalWrite(RESET_PIN,LOW);delay(50);  //reset
+  digitalWrite(RESET_PIN,HIGH);delay(50);//not reset
+	
+  aic_reset(); delay(100);  //soft reset
   aic_init(); delay(100);
   aic_initADC(); delay(100);
   aic_initDAC(); delay(100);
 
   aic_readPage(0, 27); // check a specific register - a register read test
 
-  Serial.println("TLV320 enable done");
+  if (debugToSerial) Serial.println("TLV320 enable done");
 
   return true;
 
@@ -174,7 +182,7 @@ bool AudioControlTLV320AIC3206::inputSelect(int n) {
     // BIAS OFF
     setMicBias(TYMPAN_MIC_BIAS_OFF);
 
-    Serial.println("Set Audio Input to Line In");
+    if (debugToSerial) Serial.println("Set Audio Input to Line In");
     return true;
   } else if (n == TYMPAN_INPUT_JACK_AS_MIC) {
     // mic-jack = IN3
@@ -185,7 +193,7 @@ bool AudioControlTLV320AIC3206::inputSelect(int n) {
     // BIAS on, using default
     setMicBias(TYMPAN_DEFAULT_MIC_BIAS);
 
-    Serial.println("Set Audio Input to JACK AS MIC, BIAS SET TO DEFAULT 2.5V");
+    if (debugToSerial) Serial.println("Set Audio Input to JACK AS MIC, BIAS SET TO DEFAULT 2.5V");
     return true;
   } else if (n == TYMPAN_INPUT_JACK_AS_LINEIN) {
     // 1
@@ -197,7 +205,7 @@ bool AudioControlTLV320AIC3206::inputSelect(int n) {
     // BIAS Off
     setMicBias(TYMPAN_MIC_BIAS_OFF);
 
-    Serial.println("Set Audio Input to JACK AS LINEIN, BIAS OFF");
+    if (debugToSerial) Serial.println("Set Audio Input to JACK AS LINEIN, BIAS OFF");
     return true;
   } else if (n == TYMPAN_INPUT_ON_BOARD_MIC) {
     // on-board = IN2
@@ -207,11 +215,11 @@ bool AudioControlTLV320AIC3206::inputSelect(int n) {
     aic_writeAddress(TYMPAN_MICPGA_RIGHT_NEGATIVE_REG, TYMPAN_MIC_ROUTING_NEGATIVE_CM_TO_CM1L & TYMPAN_MIC_ROUTING_RESISTANCE_DEFAULT);
     // BIAS Off
     setMicBias(TYMPAN_MIC_BIAS_OFF);
-    Serial.println("Set Audio Input to Tympan On-Board MIC, BIAS OFF");
+    if (debugToSerial) Serial.println("Set Audio Input to Tympan On-Board MIC, BIAS OFF");
 
     return true;
   }
-  Serial.print("ERROR: Unable to Select Input - Value not supported: ");
+  Serial.print("controlTLV320AIC3206: ERROR: Unable to Select Input - Value not supported: ");
   Serial.println(n);
   return false;
 }
@@ -233,13 +241,13 @@ bool AudioControlTLV320AIC3206::setMicBias(int n) {
     aic_writeAddress(TYMPAN_MIC_BIAS_REG, TYMPAN_MIC_BIAS_POWER_OFF); // power up mic bias
     return true;
   }
-  Serial.print("ERROR: Unable to set MIC BIAS - Value not supported: ");
+  Serial.print("controlTLV320AIC3206: ERROR: Unable to set MIC BIAS - Value not supported: ");
   Serial.println(n);
   return false;
 }
 
 void AudioControlTLV320AIC3206::aic_reset() {
-  Serial.println("INFO: Reseting AIC");
+  if (debugToSerial) Serial.println("INFO: Reseting AIC");
   aic_writePage(0x00, 0x01, 0x01);
   // aic_writeAddress(0x0001, 0x01);
 
@@ -254,7 +262,7 @@ void AudioControlTLV320AIC3206::aic_reset() {
 // aic_writeAddress(TYMPAN_RIGHT_MICPGA_NEGATIVE_REG, TYMPAN_MIC_ROUTING_NEGATIVE_CM_TO_CM1L & TYMPAN_MIC_ROUTING_RESISTANCE_DEFAULT);
 
 void AudioControlTLV320AIC3206::aic_initADC() {
-  Serial.println("INFO: Initializing AIC ADC");
+  if (debugToSerial) Serial.println("INFO: Initializing AIC ADC");
   aic_writeAddress(TYMPAN_ADC_PROCESSING_BLOCK_REG, PRB_R);  // processing blocks - ADC
   aic_writePage(1, 61, 0); // 0x3D // Select ADC PTM_R4 Power Tune?
   aic_writePage(1, 71, 0b00110001); // 0x47 // Set MicPGA startup delay to 3.1ms
@@ -276,21 +284,22 @@ void AudioControlTLV320AIC3206::aic_initADC() {
 bool AudioControlTLV320AIC3206::setInputGain_dB(float volume) {
   if (volume < 0.0) {
     volume = 0.0; // 0.0 dB
-    Serial.println("WARNING: Attempting to set MIC volume outside range");
+    Serial.println("controlTLV320AIC3206: WARNING: Attempting to set MIC volume outside range");
   }
   if (volume > 47.5) {
     volume = 47.5; // 47.5 dB
-    Serial.println("WARNING: Attempting to set MIC volume outside range");
+    Serial.println("controlTLV320AIC3206: WARNING: Attempting to set MIC volume outside range");
   }
-
-  Serial.print("INFO: Setting MIC volume to ");
-  Serial.print(volume, 1);
 
   volume = volume * 2.0; // convert to value map (0.5 dB steps)
   int8_t volume_int = (int8_t) (round(volume)); // round
 
-  Serial.print(".  Converted to volume map => ");
-  Serial.println(volume_int);
+  if (debugToSerial) {
+	Serial.print("INFO: Setting MIC volume to ");
+	Serial.print(volume, 1);
+	Serial.print(".  Converted to volume map => ");
+	Serial.println(volume_int);
+  }
 
   aic_writeAddress(TYMPAN_MICPGA_LEFT_VOLUME_REG, TYMPAN_MICPGA_VOLUME_ENABLE | volume_int); // enable Left MicPGA, set gain to 0 dB
   aic_writeAddress(TYMPAN_MICPGA_RIGHT_VOLUME_REG, TYMPAN_MICPGA_VOLUME_ENABLE | volume_int); // enable Right MicPGA, set gain to 0 dB
@@ -318,21 +327,22 @@ bool AudioControlTLV320AIC3206::volume_dB(float volume) {
   // Constrain to limits
   if (volume > 24.0) {
     volume = 24.0;
-    Serial.println("WARNING: Attempting to set DAC Volume outside range");
+    Serial.println("controlTLV320AIC3206: WARNING: Attempting to set DAC Volume outside range");
   }
   if (volume < -63.5) {
     volume = -63.5;
-    Serial.println("WARNING: Attempting to set DAC Volume outside range");
+    Serial.println("controlTLV320AIC3206: WARNING: Attempting to set DAC Volume outside range");
   }
-
-  Serial.print("INFO: Setting DAC volume to ");
-  Serial.print(volume, 1);
 
   volume = volume * 2.0; // convert to value map (0.5 dB steps)
   int8_t volume_int = (int8_t) (round(volume)); // round
 
-  Serial.print(".  Converted to volume map => ");
-  Serial.println(volume_int);
+  if (debugToSerial) {
+	Serial.print("INFO: Setting DAC volume to ");
+	Serial.print(volume, 1);
+	Serial.print(".  Converted to volume map => ");
+	Serial.println(volume_int);
+  }
 
   aic_writeAddress(TYMPAN_DAC_VOLUME_RIGHT_REG, volume_int);
   aic_writeAddress(TYMPAN_DAC_VOLUME_LEFT_REG, volume_int);
@@ -340,7 +350,7 @@ bool AudioControlTLV320AIC3206::volume_dB(float volume) {
 }
 
 void AudioControlTLV320AIC3206::aic_initDAC() {
-  Serial.println("INFO: Initializing AIC DAC");
+  if (debugToSerial) Serial.println("INFO: Initializing AIC DAC");
   // PLAYBACK SETUP
 
   aic_writeAddress(TYMPAN_DAC_PROCESSING_BLOCK_REG, PRB_P); // processing blocks - DAC
@@ -363,8 +373,8 @@ void AudioControlTLV320AIC3206::aic_initDAC() {
 }
 
 void AudioControlTLV320AIC3206::aic_init() {
-  Serial.println("INFO: Initializing AIC");
-
+  if (debugToSerial) Serial.println("INFO: Initializing AIC");
+  
   // PLL
   aic_writePage(0, 4, 3); // 0x04 low PLL clock range, MCLK is PLL input, PLL_OUT is CODEC_CLKIN
   aic_writePage(0, 5, (PLL_J != 0 ? 0x91 : 0x11));
@@ -407,7 +417,7 @@ unsigned int AudioControlTLV320AIC3206::aic_readPage(uint8_t page, uint8_t reg)
     Wire.write(reg);
     unsigned int result = Wire.endTransmission();
     if (result != 0) {
-      Serial.print("ERROR: Read Page.  Page: ");Serial.print(page);
+      Serial.print("controlTLV320AIC3206: ERROR: Read Page.  Page: ");Serial.print(page);
       Serial.print(" Reg: ");Serial.print(reg);
       Serial.print(".  Received Error During Read Page: ");
       Serial.println(result);
@@ -415,7 +425,7 @@ unsigned int AudioControlTLV320AIC3206::aic_readPage(uint8_t page, uint8_t reg)
       return val;
     }
     if (Wire.requestFrom(AIC3206_I2C_ADDR, 1) < 1) {
-      Serial.print("ERROR: Read Page.  Page: ");Serial.print(page);
+      Serial.print("controlTLV320AIC3206: ERROR: Read Page.  Page: ");Serial.print(page);
       Serial.print(" Reg: ");Serial.print(reg);
       Serial.println(".  Nothing to return");
       val = 400;
@@ -423,16 +433,18 @@ unsigned int AudioControlTLV320AIC3206::aic_readPage(uint8_t page, uint8_t reg)
     }
     if (Wire.available() >= 1) {
       uint16_t val = Wire.read();
-      Serial.print("INFO: Read Page.  Page: ");Serial.print(page);
-      Serial.print(" Reg: ");Serial.print(reg);
-      Serial.print(".  Received: ");
-      Serial.println(val, HEX);
+	  if (debugToSerial) {
+		Serial.print("INFO: Read Page.  Page: ");Serial.print(page);
+		Serial.print(" Reg: ");Serial.print(reg);
+		Serial.print(".  Received: ");
+		Serial.println(val, HEX);
+	  }
       return val;
     }
   } else {
-    Serial.print("INFO: Read Page.  Page: ");Serial.print(page);
+    Serial.print("controlTLV320AIC3206: INFO: Read Page.  Page: ");Serial.print(page);
     Serial.print(" Reg: ");Serial.print(reg);
-    Serial.println(".  Failed to go to read page.  Could not go there");
+    Serial.println(".  Failed to go to read page.  Could not go there.");
     val = 500;
     return val;
   }
@@ -448,9 +460,11 @@ bool AudioControlTLV320AIC3206::aic_writeAddress(uint16_t address, uint8_t val) 
 }
 
 bool AudioControlTLV320AIC3206::aic_writePage(uint8_t page, uint8_t reg, uint8_t val) {
-  Serial.print("INFO: Write Page.  Page: ");Serial.print(page);
-  Serial.print(" Reg: ");Serial.print(reg);
-  Serial.print(" Val: ");Serial.println(val);
+  if (debugToSerial) {
+	Serial.print("INFO: Write Page.  Page: ");Serial.print(page);
+	Serial.print(" Reg: ");Serial.print(reg);
+	Serial.print(" Val: ");Serial.println(val);
+  }
   if (aic_goToPage(page)) {
     Wire.beginTransmission(AIC3206_I2C_ADDR);
     Wire.write(reg);delay(10);
@@ -458,7 +472,7 @@ bool AudioControlTLV320AIC3206::aic_writePage(uint8_t page, uint8_t reg, uint8_t
     uint8_t result = Wire.endTransmission();
     if (result == 0) return true;
     else {
-      Serial.print("ERROR: Received Error During Write Page: ");
+      Serial.print("controlTLV320AIC3206: Received Error During writePage(): Error = ");
       Serial.println(result);
     }
   }
@@ -467,11 +481,11 @@ bool AudioControlTLV320AIC3206::aic_writePage(uint8_t page, uint8_t reg, uint8_t
 
 bool AudioControlTLV320AIC3206::aic_goToPage(byte page) {
   Wire.beginTransmission(AIC3206_I2C_ADDR);
-  Wire.write(0x00); delay(10);// page register
-  Wire.write(page); delay(10);// go to page
+  Wire.write(0x00); delay(10);// page register  //was delay(10) from BPF
+  Wire.write(page); delay(10);// go to page   //was delay(10) from BPF
   byte result = Wire.endTransmission();
   if (result != 0) {
-    Serial.print("ERROR: Received Error During GoTo Page: ");
+    Serial.print("controlTLV320AIC3206: Received Error During goToPage(): Error = ");
     Serial.println(result);
     if (result == 2) {
       // failed to transmit address

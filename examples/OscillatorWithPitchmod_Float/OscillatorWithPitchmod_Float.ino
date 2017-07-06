@@ -19,15 +19,15 @@
 
 #include <OpenAudio_ArduinoLibrary.h> //for AudioConvert_I16toF32, AudioConvert_F32toI16, and AudioEffectGain_F32
 
-#define DO_USB  1    //set to 1 to enable USB audio.  Be sure to go under the "Tools" menu and do "USB Type" -> "Audio"
+#define DO_USB  0    //set to 1 to enable USB audio.  Be sure to go under the "Tools" menu and do "USB Type" -> "Audio"
 
 //create audio library objects for handling the audio
 AudioControlSGTL5000_Extended    sgtl5000;     //controller for the Teensy Audio Board
-AudioOutputI2S                   i2s_out;      //Digital audio *to* the Teensy Audio Board DAC.  Expects Int16.  Stereo
-AudioConvert_F32toI16            float2Int;   //Converts Float to Int16.  See class in AudioStream_F32.h
-
 AudioSynthWaveform_F32           osc1;         // Audio-rate oscillator.
 AudioSynthWaveform_F32           lfo1;         // Low-frequency oscillator to modulate the main oscillator with.
+AudioConvert_F32toI16            float2Int;   //Converts Float to Int16.  See class in AudioStream_F32.h
+AudioOutputI2S                   i2s_out;      //Digital audio *to* the Teensy Audio Board DAC.  Expects Int16.  Stereo
+
 
 AudioConnection_F32     patchCord1(osc1, 0, float2Int, 0);   // connect the oscillator to the float 2 int converter
 AudioConnection_F32     patchCord2(lfo1, 0, osc1, 0);         // connect the output of the lfo to the mod input of the oscillator

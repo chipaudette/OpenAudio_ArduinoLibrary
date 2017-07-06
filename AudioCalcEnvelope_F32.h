@@ -47,7 +47,7 @@ class AudioCalcEnvelope_F32 : public AudioStream_F32
 		audio_block_f32_t *out_block = AudioStream_F32::allocate_f32();
 		if (!out_block) return;
 		
-		// //////////////////////add your processing here!
+		// /////////// put the actual processing here
 		smooth_env(in_block->data, out_block->data, in_block->length);
 		out_block->length = in_block->length; out_block->fs_Hz = in_block->fs_Hz;
 		

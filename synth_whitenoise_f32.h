@@ -44,7 +44,10 @@ class AudioSynthNoiseWhite_F32 : public AudioStream_F32
 //GUI: inputs:0, outputs:1 //this line used for automatic generation of GUI node
 //GUI: shortName:whitenoise  //this line used for automatic generation of GUI node
 public:
-	AudioSynthNoiseWhite_F32() : AudioStream_F32(0, NULL) {
+	AudioSynthNoiseWhite_F32() : AudioStream_F32(0, NULL) { setDefaultValues(); }
+	AudioSynthNoiseWhite_F32(const AudioSettings_F32 &settings) : AudioStream_F32(0, NULL) { setDefaultValues(); }
+	
+	void setDefaultValues(void) {
 		level = 0;
 		seed = 1 + instance_count++;
 	}

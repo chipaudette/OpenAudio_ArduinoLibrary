@@ -24,10 +24,10 @@
 //create audio library objects for handling the audio
 AudioControlSGTL5000    sgtl5000_1;    //controller for the Teensy Audio Board
 AudioInputI2S           i2s_in;        //Digital audio *from* the Teensy Audio Board ADC.  Sends Int16.  Stereo.
-AudioOutputI2S          i2s_out;       //Digital audio *to* the Teensy Audio Board DAC.  Expects Int16.  Stereo
 AudioConvert_I16toF32   int2Float1, int2Float2;    //Converts Int16 to Float.  See class in AudioStream_F32.h
-AudioEffectMine_F32     effect1, effect2;  //This is your own algorithms
 AudioConvert_F32toI16   float2Int1, float2Int2;    //Converts Float to Int16.  See class in AudioStream_F32.h
+AudioEffectMine_F32     effect1, effect2;  //This is your own algorithms
+AudioOutputI2S          i2s_out;       //Digital audio *to* the Teensy Audio Board DAC.  Expects Int16.  Stereo
 
 //Make all of the audio connections
 AudioConnection         patchCord1(i2s_in, 0, int2Float1, 0);    //connect the Left input to the Left Int->Float converter

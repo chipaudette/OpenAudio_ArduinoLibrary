@@ -23,13 +23,13 @@
 //create audio library objects for handling the audio
 AudioControlSGTL5000_Extended    sgtl5000;    //controller for the Teensy Audio Board
 AudioInputI2S             i2s_in;             //Digital audio *from* the Teensy Audio Board ADC.  Sends Int16.  Stereo.
-AudioOutputI2S            i2s_out;            //Digital audio *to* the Teensy Audio Board DAC.  Expects Int16.  Stereo
 AudioConvert_I16toF32     int2Float1, int2Float2;    //Converts Int16 to Float.  See class in AudioStream_F32.h
-AudioConvert_F32toI16     float2Int1, float2Int2;    //Converts Float to Int16.  See class in AudioStream_F32.h
 AudioMixer4_F32           mixer; //mix floating point data      
+AudioConvert_F32toI16     float2Int1, float2Int2;    //Converts Float to Int16.  See class in AudioStream_F32.h
+AudioOutputI2S            i2s_out;            //Digital audio *to* the Teensy Audio Board DAC.  Expects Int16.  Stereo
 
 //Do you want to use the USB audio as your input, or do you want to use i2s as your input?
-#define DO_USB  1    //set to 1 to enable USB audio.  Be sure to go under the "Tools" menu and do "USB Type" -> "Audio"
+#define DO_USB  0    //set to 1 to enable USB audio.  Be sure to go under the "Tools" menu and do "USB Type" -> "Audio"
 #if DO_USB
   AudioInputUSB           usb_in;  
   AudioConnection         patchCord1(usb_in, 0, int2Float1, 0);

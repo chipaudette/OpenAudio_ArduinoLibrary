@@ -9,8 +9,8 @@
  * MIT License.  use at your own risk.
 */
 
-#ifndef _AudioEffectGain_h
-#define _AudioEffectGain_h
+#ifndef _AudioEffectGain_F32_h
+#define _AudioEffectGain_F32_h
 
 #include <arm_math.h> //ARM DSP extensions.  for speed!
 #include <AudioStream_F32.h>
@@ -21,6 +21,7 @@ class AudioEffectGain_F32 : public AudioStream_F32
   public:
     //constructor
     AudioEffectGain_F32(void) : AudioStream_F32(1, inputQueueArray_f32) {};
+	AudioEffectGain_F32(const AudioSettings_F32 &settings) : AudioStream_F32(1, inputQueueArray_f32) {};
 
     //here's the method that does all the work
     void update(void) {

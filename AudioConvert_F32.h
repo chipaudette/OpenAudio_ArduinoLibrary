@@ -9,6 +9,8 @@ class AudioConvert_I16toF32 : public AudioStream_F32 //receive Int and transmits
   //GUI: inputs:1, outputs:1  //this line used for automatic generation of GUI node
   public:
     AudioConvert_I16toF32(void) : AudioStream_F32(1, inputQueueArray_f32) { };
+	AudioConvert_I16toF32(const AudioSettings_F32 &settings) : AudioStream_F32(1, inputQueueArray_f32) { };
+	
     void update(void) {	
       //get the Int16 block
       audio_block_t *int_block;

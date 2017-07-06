@@ -24,10 +24,13 @@ class AudioMixer4_F32 : public AudioStream_F32 {
 //GUI: inputs:4, outputs:1  //this line used for automatic generation of GUI node
 //GUI: shortName:Mixer4
 public:
-    AudioMixer4_F32() : AudioStream_F32(4, inputQueueArray) {
-      for (int i=0; i<4; i++) multiplier[i] = 1.0;
-    }
-
+    AudioMixer4_F32() : AudioStream_F32(4, inputQueueArray) { setDefaultValues(); }
+	AudioMixer4_F32(const AudioSettings_F32 &settings) : AudioStream_F32(4, inputQueueArray) { setDefaultValues(); }
+	
+	void setDefaultValues(void) {
+		for (int i=0; i<4; i++) multiplier[i] = 1.0;
+	}
+	
     virtual void update(void);
 
     void gain(unsigned int channel, float gain) {
@@ -44,7 +47,10 @@ class AudioMixer8_F32 : public AudioStream_F32 {
 //GUI: inputs:8, outputs:1  //this line used for automatic generation of GUI node
 //GUI: shortName:Mixer8
 public:
-    AudioMixer8_F32() : AudioStream_F32(8, inputQueueArray) {
+    AudioMixer8_F32() : AudioStream_F32(8, inputQueueArray) { setDefaultValues();}
+    AudioMixer8_F32(const AudioSettings_F32 &settings) : AudioStream_F32(8, inputQueueArray) { setDefaultValues();}
+	
+	void setDefaultValues(void) {
       for (int i=0; i<8; i++) multiplier[i] = 1.0;
     }
 

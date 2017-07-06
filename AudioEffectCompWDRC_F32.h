@@ -12,150 +12,21 @@
 #ifndef _AudioEffectCompWDRC_F32
 #define _AudioEffectCompWDRC_F32
 
+class AudioCalcGainWDRC_F32;  //forward declared.  Actually defined in later header file, but I need this here to avoid circularity
+
 #include <Arduino.h>
 #include <AudioStream_F32.h>
 #include <arm_math.h>
 #include <AudioCalcEnvelope_F32.h>
-#include "AudioCalcGainWDRC_F32.h"  //has definition of CHA_WDRC
-#include "utility/textAndStringUtils.h"
-
-
-
-// from CHAPRO cha_ff.h
-#define DSL_MXCH 32              
-//class CHA_DSL {
-typedef struct {
-	//public:
-		//CHA_DSL(void) {};  
-		//static const int DSL_MXCH = 32;    // maximum number of channels
-		float attack;               // attack time (ms)
-		float release;              // release time (ms)
-		float maxdB;                // maximum signal (dB SPL)
-		int ear;                     // 0=left, 1=right
-		int nchannel;                // number of channels
-		float cross_freq[DSL_MXCH]; // cross frequencies (Hz)
-		float tkgain[DSL_MXCH];     // compression-start gain
-		float cr[DSL_MXCH];         // compression ratio
-		float tk[DSL_MXCH];         // compression-start kneepoint
-		float bolt[DSL_MXCH];       // broadband output limiting threshold
-} CHA_DSL;
-/* 		int parseStringIntoDSL(String &text_buffer) {
-		  int position = 0;
-		  float foo_val;
-		  const bool print_debug = false;
-		
-		  if (print_debug) Serial.println("parseTextAsDSL: values from file:");
-		
-		  position = parseNextNumberFromString(text_buffer, position, foo_val);
-		  attack = foo_val;
-		  if (print_debug) { Serial.print("  attack: "); Serial.println(attack); }
-		
-		  position = parseNextNumberFromString(text_buffer, position, foo_val);
-		  release = foo_val;
-		  if (print_debug) { Serial.print("  release: "); Serial.println(release); }
-		
-		  position = parseNextNumberFromString(text_buffer, position, foo_val);
-		  maxdB = foo_val;
-		  if (print_debug) { Serial.print("  maxdB: "); Serial.println(maxdB); }
-		
-		  position = parseNextNumberFromString(text_buffer, position, foo_val);
-		  ear = int(foo_val + 0.5); //round
-		  if (print_debug) { Serial.print("  ear: "); Serial.println(ear); }
-		
-		  position = parseNextNumberFromString(text_buffer, position, foo_val);
-		  nchannel = int(foo_val + 0.5); //round
-		  if (print_debug) { Serial.print("  nchannel: "); Serial.println(nchannel); }
-		
-		  //check to see if the number of channels is acceptable.
-		  if ((nchannel < 0) || (nchannel > DSL_MXCH)) {
-			if (print_debug) Serial.print("  : channel number is too big (or negative).  stopping."); 
-			return -1;
-		  }
-		
-		  //read the cross-over frequencies.  There should be nchan-1 of them (0 and Nyquist are assumed)
-		  if (print_debug) Serial.print("  cross_freq: ");
-		  for (int i=0; i < (nchannel-1); i++) {
-			position = parseNextNumberFromString(text_buffer, position, foo_val);
-			cross_freq[i] = foo_val;
-			if (print_debug) { Serial.print(cross_freq[i]); Serial.print(", ");}
-		  }
-		  if (print_debug) Serial.println();
-		
-		  //read the tkgain values.  There should be nchan of them
-		  if (print_debug) Serial.print("  tkgain: ");
-		  for (int i=0; i < nchannel; i++) {
-			position = parseNextNumberFromString(text_buffer, position, foo_val);
-			tkgain[i] = foo_val;
-			if (print_debug) { Serial.print(tkgain[i]); Serial.print(", ");}
-		  }
-		  if (print_debug) Serial.println();
-		
-		  //read the cr values.  There should be nchan of them
-		  if (print_debug) Serial.print("  cr: ");
-		  for (int i=0; i < nchannel; i++) {
-			position = parseNextNumberFromString(text_buffer, position, foo_val);
-			cr[i] = foo_val;
-			if (print_debug) { Serial.print(cr[i]); Serial.print(", ");}
-		  }
-		  if (print_debug) Serial.println();
-		
-		  //read the tk values.  There should be nchan of them
-		  if (print_debug) Serial.print("  tk: ");
-		  for (int i=0; i < nchannel; i++) {
-			position = parseNextNumberFromString(text_buffer, position, foo_val);
-			tk[i] = foo_val;
-			if (print_debug) { Serial.print(tk[i]); Serial.print(", ");}
-		  }
-		  if (print_debug) Serial.println();
-		
-		  //read the bolt values.  There should be nchan of them
-		  if (print_debug) Serial.print("  bolt: ");
-		  for (int i=0; i < nchannel; i++) {
-			position = parseNextNumberFromString(text_buffer, position, foo_val);
-			bolt[i] = foo_val;
-			if (print_debug) { Serial.print(bolt[i]); Serial.print(", ");}
-		  }
-		  if (print_debug) Serial.println();
-		
-		  return 0;
-		  
-		}
-		
-		void printToStream(Stream *s) {
-			s->print("CHA_DSL: attack (ms) = "); s->println(attack);
-			s->print("    : release (ms) = "); s->println(release);
-			s->print("    : maxdB (dB SPL) = "); s->println(maxdB);
-			s->print("    : ear (0 = left, 1 = right) "); s->println(ear);
-			s->print("    : nchannel = "); s->println(nchannel);
-			s->print("    : cross_freq (Hz) = ");
-			    for (int i=0; i<nchannel-1;i++) { s->print(cross_freq[i]); s->print(", ");}; s->println();
-			s->print("    : tkgain = ");
-				for (int i=0; i<nchannel;i++) { s->print(tkgain[i]); s->print(", ");}; s->println();
-			s->print("    : cr = ");
-				for (int i=0; i<nchannel;i++) { s->print(cr[i]); s->print(", ");}; s->println();
-			s->print("    : tk = ");
-				for (int i=0; i<nchannel;i++) { s->print(tk[i]); s->print(", ");}; s->println();
-			s->print("    : bolt = ");
-				for (int i=0; i<nchannel;i++) { s->print(bolt[i]); s->print(", ");}; s->println();
-		}
-} ; */
-
-typedef struct {
-    float alfa;                 // attack constant (not time)
-    float beta;                 // release constant (not time
-    float fs;                   // sampling rate (Hz)
-    float maxdB;                // maximum signal (dB SPL)
-    float tkgain;               // compression-start gain
-    float tk;                   // compression-start kneepoint
-    float cr;                   // compression ratio
-    float bolt;                 // broadband output limiting threshold
-} CHA_DVAR_t;
+#include <AudioCalcGainWDRC_F32.h>  //has definition of CHA_WDRC
+#include "BTNRH_WDRC_Types.h"
+//#include "utility/textAndStringUtils.h"
 
 
 class AudioEffectCompWDRC_F32 : public AudioStream_F32
 {
 	//GUI: inputs:1, outputs:1  //this line used for automatic generation of GUI node
-	//GUI: shortName: CompWDRC
+	//GUI: shortName: CompressWDRC
   public:
     AudioEffectCompWDRC_F32(void): AudioStream_F32(1,inputQueueArray) { //need to modify this for user to set sample rate
       setSampleRate_Hz(AUDIO_SAMPLE_RATE);
@@ -178,7 +49,7 @@ class AudioEffectCompWDRC_F32 : public AudioStream_F32
       if (!out_block) return;
       
       //do the algorithm
-      cha_agc_channel(block->data, out_block->data, block->length);
+      compress(block->data, out_block->data, block->length);
       
       // transmit the block and release memory
       AudioStream_F32::transmit(out_block); // send the FIR output
@@ -188,11 +59,11 @@ class AudioEffectCompWDRC_F32 : public AudioStream_F32
 
 
     //here is the function that does all the work
-    void cha_agc_channel(float *input, float *output, int cs) {  
-      //compress(input, output, cs, &prev_env,
-      //  CHA_DVAR.alfa, CHA_DVAR.beta, CHA_DVAR.tkgain, CHA_DVAR.tk, CHA_DVAR.cr, CHA_DVAR.bolt, CHA_DVAR.maxdB);
-      compress(input, output, cs);
-    }
+    //void cha_agc_channel(float *input, float *output, int cs) {  
+    //  //compress(input, output, cs, &prev_env,
+    //  //  CHA_DVAR.alfa, CHA_DVAR.beta, CHA_DVAR.tkgain, CHA_DVAR.tk, CHA_DVAR.cr, CHA_DVAR.bolt, CHA_DVAR.maxdB);
+    //  compress(input, output, cs);
+    //}
 
     //void compress(float *x, float *y, int n, float *prev_env,
     //    float &alfa, float &beta, float &tkgn, float &tk, float &cr, float &bolt, float &mxdB)
@@ -222,23 +93,23 @@ class AudioEffectCompWDRC_F32 : public AudioStream_F32
 
 
     void setDefaultValues(void) {
-      //set default values...taken from CHAPRO, GHA_Demo.c  from "amplify()"...ignores given sample rate
-      //assumes that the sample rate has already been set!!!!
-      CHA_WDRC gha = {1.0f, // attack time (ms)
+      //set default values...configure as limitter
+      BTNRH_WDRC::CHA_WDRC gha = {
+		5.0f, // attack time (ms)
         50.0f,     // release time (ms)
         24000.0f,  // fs, sampling rate (Hz), THIS IS IGNORED!
-        119.0f,    // maxdB, maximum signal (dB SPL)
-        0.0f,      // tkgain, compression-start gain
-        105.0f,    // tk, compression-start kneepoint
-        10.0f,     // cr, compression ratio
-        105.0f     // bolt, broadband output limiting threshold
+        115.0f,    // maxdB, maximum signal (dB SPL)...assumed SPL for full-scale input signal
+        0.0f,      // tkgain, compression-start gain (dB)
+        55.0f,    // tk, compression-start kneepoint (dB SPL)
+        1.0f,     // cr, compression ratio  (set to 1.0 to defeat)
+        100.0f     // bolt, broadband output limiting threshold (ie, the limiter. SPL. 10:1 comp ratio)
       };
       setParams_from_CHA_WDRC(&gha);
     }
 
     //set all of the parameters for the compressor using the CHA_WDRC structure
     //assumes that the sample rate has already been set!!!
-    void setParams_from_CHA_WDRC(CHA_WDRC *gha) {
+    void setParams_from_CHA_WDRC(BTNRH_WDRC::CHA_WDRC *gha) {
       //configure the envelope calculator...assumes that the sample rate has already been set!
       calcEnvelope.setAttackRelease_msec(gha->attack,gha->release); //these are in milliseconds
 
@@ -262,9 +133,25 @@ class AudioEffectCompWDRC_F32 : public AudioStream_F32
       given_sample_rate_Hz = _fs_Hz;
       calcEnvelope.setSampleRate_Hz(_fs_Hz);
     }
+	
+	void setAttackRelease_msec(const float atk_msec, const float rel_msec) {
+		calcEnvelope.setAttackRelease_msec(atk_msec, rel_msec);
+	}
+	
+	void setKneeLimiter_dBSPL(float _bolt) { calcGain.setKneeLimiter_dBSPL(_bolt); }
+	void setKneeLimiter_dBFS(float _bolt_dBFS) {  calcGain.setKneeLimiter_dBFS(_bolt_dBFS); }
+	void setGain_dB(float _gain_dB) { calcGain.setGain_dB(_gain_dB); } //gain at start of compression
+	void setKneeCompressor_dBSPL(float _tk) { calcGain.setKneeCompressor_dBSPL(_tk); }
+	void setKneeCompressor_dBFS(float _tk_dBFS) { calcGain.setKneeCompressor_dBFS(_tk_dBFS); }
+	void setCompRatio(float _cr) { calcGain.setCompRatio(_cr); }
+	void setMaxdB(float _maxdB) { calcGain.setMaxdB(_maxdB); };
 
     float getCurrentLevel_dB(void) { return AudioCalcGainWDRC_F32::db2(calcEnvelope.getCurrentLevel()); }  //this is 20*log10(abs(signal)) after the envelope smoothing
 
+    float getGain_dB(void) { return calcGain.getGain_dB(); }	//returns the linear gain of the system
+	float getCurrentGain(void) { return calcGain.getCurrentGain(); }
+	float getCurrentGain_dB(void) { return calcGain.getCurrentGain_dB(); }
+	
     AudioCalcEnvelope_F32 calcEnvelope;
     AudioCalcGainWDRC_F32 calcGain;
     

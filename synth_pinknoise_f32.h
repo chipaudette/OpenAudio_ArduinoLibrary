@@ -44,13 +44,20 @@ class AudioSynthNoisePink_F32 : public AudioStream_F32
 //GUI: shortName:pinknoise  //this line used for automatic generation of GUI node
 public:
 	AudioSynthNoisePink_F32() : AudioStream_F32(0, NULL) {
+		setDefaultValues();
+		enabled = 1;
+	}
+	AudioSynthNoisePink_F32(const AudioSettings_F32 &settings) : AudioStream_F32(0, NULL) {
+		setDefaultValues();
+		enabled = 1;
+	}
+	
+	void setDefaultValues() {
 		plfsr  = 0x5EED41F5 + instance_cnt++;
 		paccu  = 0;
 		pncnt  = 0;
 		pinc   = 0x0CCC;
 		pdec   = 0x0CCC;
-		
-		enabled = 1;
 	}	
 	void amplitude(float n) {
 		if (n < 0.0) n = 0.0;

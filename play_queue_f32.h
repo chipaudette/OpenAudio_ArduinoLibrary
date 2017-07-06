@@ -19,6 +19,8 @@ class AudioPlayQueue_F32 : public AudioStream_F32
 public:
 	AudioPlayQueue_F32(void) : AudioStream_F32(0, NULL),
 		userblock(NULL), head(0), tail(0) { }
+	AudioPlayQueue_F32(const AudioSettings_F32 &settings) : AudioStream_F32(0, NULL),
+		userblock(NULL), head(0), tail(0) { }	
 	//void play(int16_t data);
 	//void play(const int16_t *data, uint32_t len);
 	//void play(float32_t data);

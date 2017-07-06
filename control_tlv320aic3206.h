@@ -16,7 +16,8 @@ class AudioControlTLV320AIC3206: public AudioControl
 {
 public:
 	//GUI: inputs:0, outputs:0  //this line used for automatic generation of GUI node
-	AudioControlTLV320AIC3206(void) {};
+	AudioControlTLV320AIC3206(void) { debugToSerial = false; };
+	AudioControlTLV320AIC3206(bool _debugToSerial) { debugToSerial = _debugToSerial; };
 	bool enable(void);
 	bool disable(void);
 	bool volume(float n);
@@ -25,7 +26,7 @@ public:
 	bool inputSelect(int n);
 	bool setInputGain_dB(float n);
 	bool setMicBias(int n);
-
+	bool debugToSerial;
 private:
   void aic_reset(void);
   void aic_init(void);
@@ -35,6 +36,7 @@ private:
   bool aic_writePage(uint8_t page, uint8_t reg, uint8_t val);
   bool aic_writeAddress(uint16_t address, uint8_t val);
   bool aic_goToPage(uint8_t page);
+
 };
 
 #define TYMPAN_OUTPUT_HEADPHONE_JACK_OUT 1
