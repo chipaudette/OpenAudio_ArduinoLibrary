@@ -1,7 +1,6 @@
 
 #include <AudioStream_F32.h>
 #include <AudioControlSGTL5000_Extended.h>
-#include <control_tlv320aic3206.h>
 #include "AudioCalcEnvelope_F32.h"
 #include "AudioCalcGainWDRC_F32.h"
 #include "AudioConfigFIRFilterBank_F32.h"
