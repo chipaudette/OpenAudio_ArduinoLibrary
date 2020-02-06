@@ -103,18 +103,18 @@ void AudioOutputI2S_F32::begin(void)
 
 #if defined(KINETISK)
 	dma.TCD->SADDR = i2s_tx_buffer;
-	dma.TCD->SOFF = 2;
-	dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
-	dma.TCD->NBYTES_MLNO = 2;
+	dma.TCD->SOFF = 4;
+	dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(2) | DMA_TCD_ATTR_DSIZE(2);
+	dma.TCD->NBYTES_MLNO = 4;
 	//dma.TCD->SLAST = -sizeof(i2s_tx_buffer);	//original
 	dma.TCD->SLAST = -I2S_BUFFER_TO_USE_BYTES;
-	dma.TCD->DADDR = (void *)((uint32_t)&I2S0_TDR0 + 2);
+	dma.TCD->DADDR = (void *)((uint32_t)&I2S0_TDR0);
 	dma.TCD->DOFF = 0;
 	//dma.TCD->CITER_ELINKNO = sizeof(i2s_tx_buffer) / 2;	//original
-	dma.TCD->CITER_ELINKNO = I2S_BUFFER_TO_USE_BYTES / 2;
+	dma.TCD->CITER_ELINKNO = I2S_BUFFER_TO_USE_BYTES / 4;
 	dma.TCD->DLASTSGA = 0;
 	//dma.TCD->BITER_ELINKNO = sizeof(i2s_tx_buffer) / 2;	//original
-	dma.TCD->BITER_ELINKNO = I2S_BUFFER_TO_USE_BYTES / 2;
+	dma.TCD->BITER_ELINKNO = I2S_BUFFER_TO_USE_BYTES / 4;
 	dma.TCD->CSR = DMA_TCD_CSR_INTHALF | DMA_TCD_CSR_INTMAJOR;
 #endif
 	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_I2S0_TX);
