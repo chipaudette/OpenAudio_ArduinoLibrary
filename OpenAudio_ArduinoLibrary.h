@@ -16,6 +16,7 @@
 #include "AudioMixer_F32.h"
 #include "AudioMultiply_F32.h"
 #include "AudioSettings_F32.h"
+#include "analyze_fft256_f32.h"
 #include "input_i2s_f32.h"
 #include "output_i2s_f32.h"
 #include "play_queue_f32.h"
