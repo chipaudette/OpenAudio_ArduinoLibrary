@@ -80,7 +80,7 @@ audio_block_t * AudioOutputI2S_F32::block_right_2nd = NULL;
 uint16_t  AudioOutputI2S_F32::block_left_offset = 0;
 uint16_t  AudioOutputI2S_F32::block_right_offset = 0;
 bool AudioOutputI2S_F32::update_responsibility = false;
-DMAMEM static uint32_t i2s_tx_buffer[AUDIO_BLOCK_SAMPLES]; //local audio_block_samples should be no larger than global AUDIO_BLOCK_SAMPLES
+DMAMEM static uint64_t i2s_tx_buffer[AUDIO_BLOCK_SAMPLES]; //local audio_block_samples should be no larger than global AUDIO_BLOCK_SAMPLES
 DMAChannel AudioOutputI2S_F32::dma(false);
 
 float AudioOutputI2S_F32::sample_rate_Hz = AUDIO_SAMPLE_RATE;
@@ -137,7 +137,7 @@ void AudioOutputI2S_F32::begin(void)
 void AudioOutputI2S_F32::isr(void)
 {
 #if defined(KINETISK)
-	int16_t *dest;
+	int32_t *dest;
 	audio_block_t *blockL, *blockR;
 	uint32_t saddr, offsetL, offsetR;
 
@@ -148,12 +148,12 @@ void AudioOutputI2S_F32::isr(void)
 		// DMA is transmitting the first half of the buffer
 		// so we must fill the second half
 		//dest = (int16_t *)&i2s_tx_buffer[AUDIO_BLOCK_SAMPLES/2];	//original
-		dest = (int16_t *)&i2s_tx_buffer[audio_block_samples/2];
+		dest = (int32_t *)&i2s_tx_buffer[audio_block_samples/2];
 		if (AudioOutputI2S_F32::update_responsibility) AudioStream_F32::update_all();
 	} else {
 		// DMA is transmitting the second half of the buffer
 		// so we must fill the first half
-		dest = (int16_t *)i2s_tx_buffer;
+		dest = (int32_t *)i2s_tx_buffer;
 	}
 
 	blockL = AudioOutputI2S_F32::block_left_1st;
@@ -178,27 +178,27 @@ void AudioOutputI2S_F32::isr(void)
 	}
 	*/
 	
-	int16_t *d = dest;
+	int32_t *d = dest;
 	if (blockL && blockR) {
 		//memcpy_tointerleaveLR(dest, blockL->data + offsetL, blockR->data + offsetR);
 		//memcpy_tointerleaveLRwLen(dest, blockL->data + offsetL, blockR->data + offsetR, audio_block_samples/2);
 		int16_t *pL = blockL->data + offsetL;
 		int16_t *pR = blockR->data + offsetR;
-		for (int i=0; i < audio_block_samples/2; i++) {	*d++ = *pL++; *d++ = *pR++; } //interleave
+		for (int i=0; i < audio_block_samples/2; i++) {	*d++ = *pL++ << 16; *d++ = *pR++ << 16; } //interleave
 		offsetL += audio_block_samples / 2;
 		offsetR += audio_block_samples / 2;
 	} else if (blockL) {
 		//memcpy_tointerleaveLR(dest, blockL->data + offsetL, blockR->data + offsetR);
 		int16_t *pL = blockL->data + offsetL;
-		for (int i=0; i < audio_block_samples / 2 * 2; i+=2) { *(d+i) = *pL++; } //interleave
+		for (int i=0; i < audio_block_samples / 2 * 2; i+=2) { *(d+i) = *pL++ << 16; } //interleave
 		offsetL += audio_block_samples / 2;
 	} else if (blockR) {
 		int16_t *pR = blockR->data + offsetR;
-		for (int i=0; i < audio_block_samples /2 * 2; i+=2) { *(d+i) = *pR++; } //interleave
+		for (int i=0; i < audio_block_samples /2 * 2; i+=2) { *(d+i) = *pR++ << 16; } //interleave
 		offsetR += audio_block_samples / 2;
 	} else {
 		//memset(dest,0,AUDIO_BLOCK_SAMPLES * 2);
-		memset(dest,0,audio_block_samples * 2);
+		memset(dest,0,audio_block_samples * 4);
 		return;
 	}
 
