@@ -52,14 +52,14 @@ public:
 protected:
 	//AudioOutputI2S_F32(const AudioSettings &settings): AudioStream_F32(2, inputQueueArray) {} // to be used only inside AudioOutputI2Sslave !!
 	static void config_i2s(void);
-	static audio_block_t *block_left_1st;
-	static audio_block_t *block_right_1st;
+	static audio_block_f32_t *block_left_1st;
+	static audio_block_f32_t *block_right_1st;
 	static bool update_responsibility;
 	static DMAChannel dma;
 	static void isr(void);
 private:
-	static audio_block_t *block_left_2nd;
-	static audio_block_t *block_right_2nd;
+	static audio_block_f32_t *block_left_2nd;
+	static audio_block_f32_t *block_right_2nd;
 	static uint16_t block_left_offset;
 	static uint16_t block_right_offset;
 	audio_block_f32_t *inputQueueArray[2];
