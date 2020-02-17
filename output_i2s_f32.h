@@ -32,6 +32,7 @@
 #include "AudioStream.h"
 #include "DMAChannel.h"
 
+float setI2SFreq(const float freq_Hz);
 
 class AudioOutputI2S_F32 : public AudioStream_F32
 {
