@@ -73,14 +73,19 @@ float setI2SFreq(const float freq_Hz) {
   return 0.0f;
 }
 
-audio_block_t * AudioOutputI2S_F32::block_left_1st = NULL;
-audio_block_t * AudioOutputI2S_F32::block_right_1st = NULL;
-audio_block_t * AudioOutputI2S_F32::block_left_2nd = NULL;
-audio_block_t * AudioOutputI2S_F32::block_right_2nd = NULL;
+static inline int32_t f32_to_i32(float32_t f) {
+	const float32_t fullscale = 1LL << 31;
+	return max(-(fullscale - 1), min(fullscale - 1, f * fullscale));
+}
+
+audio_block_f32_t * AudioOutputI2S_F32::block_left_1st = NULL;
+audio_block_f32_t * AudioOutputI2S_F32::block_right_1st = NULL;
+audio_block_f32_t * AudioOutputI2S_F32::block_left_2nd = NULL;
+audio_block_f32_t * AudioOutputI2S_F32::block_right_2nd = NULL;
 uint16_t  AudioOutputI2S_F32::block_left_offset = 0;
 uint16_t  AudioOutputI2S_F32::block_right_offset = 0;
 bool AudioOutputI2S_F32::update_responsibility = false;
-DMAMEM static uint32_t i2s_tx_buffer[AUDIO_BLOCK_SAMPLES]; //local audio_block_samples should be no larger than global AUDIO_BLOCK_SAMPLES
+DMAMEM static uint64_t i2s_tx_buffer[AUDIO_BLOCK_SAMPLES]; //local audio_block_samples should be no larger than global AUDIO_BLOCK_SAMPLES
 DMAChannel AudioOutputI2S_F32::dma(false);
 
 float AudioOutputI2S_F32::sample_rate_Hz = AUDIO_SAMPLE_RATE;
@@ -103,18 +108,18 @@ void AudioOutputI2S_F32::begin(void)
 
 #if defined(KINETISK)
 	dma.TCD->SADDR = i2s_tx_buffer;
-	dma.TCD->SOFF = 2;
-	dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
-	dma.TCD->NBYTES_MLNO = 2;
+	dma.TCD->SOFF = 4;
+	dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(2) | DMA_TCD_ATTR_DSIZE(2);
+	dma.TCD->NBYTES_MLNO = 4;
 	//dma.TCD->SLAST = -sizeof(i2s_tx_buffer);	//original
 	dma.TCD->SLAST = -I2S_BUFFER_TO_USE_BYTES;
-	dma.TCD->DADDR = &I2S0_TDR0;
+	dma.TCD->DADDR = (void *)((uint32_t)&I2S0_TDR0);
 	dma.TCD->DOFF = 0;
 	//dma.TCD->CITER_ELINKNO = sizeof(i2s_tx_buffer) / 2;	//original
-	dma.TCD->CITER_ELINKNO = I2S_BUFFER_TO_USE_BYTES / 2;
+	dma.TCD->CITER_ELINKNO = I2S_BUFFER_TO_USE_BYTES / 4;
 	dma.TCD->DLASTSGA = 0;
 	//dma.TCD->BITER_ELINKNO = sizeof(i2s_tx_buffer) / 2;	//original
-	dma.TCD->BITER_ELINKNO = I2S_BUFFER_TO_USE_BYTES / 2;
+	dma.TCD->BITER_ELINKNO = I2S_BUFFER_TO_USE_BYTES / 4;
 	dma.TCD->CSR = DMA_TCD_CSR_INTHALF | DMA_TCD_CSR_INTMAJOR;
 #endif
 	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_I2S0_TX);
@@ -137,8 +142,8 @@ void AudioOutputI2S_F32::begin(void)
 void AudioOutputI2S_F32::isr(void)
 {
 #if defined(KINETISK)
-	int16_t *dest;
-	audio_block_t *blockL, *blockR;
+	int32_t *dest;
+	audio_block_f32_t *blockL, *blockR;
 	uint32_t saddr, offsetL, offsetR;
 
 	saddr = (uint32_t)(dma.TCD->SADDR);
@@ -148,12 +153,12 @@ void AudioOutputI2S_F32::isr(void)
 		// DMA is transmitting the first half of the buffer
 		// so we must fill the second half
 		//dest = (int16_t *)&i2s_tx_buffer[AUDIO_BLOCK_SAMPLES/2];	//original
-		dest = (int16_t *)&i2s_tx_buffer[audio_block_samples/2];
+		dest = (int32_t *)&i2s_tx_buffer[audio_block_samples/2];
 		if (AudioOutputI2S_F32::update_responsibility) AudioStream_F32::update_all();
 	} else {
 		// DMA is transmitting the second half of the buffer
 		// so we must fill the first half
-		dest = (int16_t *)i2s_tx_buffer;
+		dest = (int32_t *)i2s_tx_buffer;
 	}
 
 	blockL = AudioOutputI2S_F32::block_left_1st;
@@ -178,27 +183,27 @@ void AudioOutputI2S_F32::isr(void)
 	}
 	*/
 	
-	int16_t *d = dest;
+	int32_t *d = dest;
 	if (blockL && blockR) {
 		//memcpy_tointerleaveLR(dest, blockL->data + offsetL, blockR->data + offsetR);
 		//memcpy_tointerleaveLRwLen(dest, blockL->data + offsetL, blockR->data + offsetR, audio_block_samples/2);
-		int16_t *pL = blockL->data + offsetL;
-		int16_t *pR = blockR->data + offsetR;
-		for (int i=0; i < audio_block_samples/2; i++) {	*d++ = *pL++; *d++ = *pR++; } //interleave
+		float32_t *pL = blockL->data + offsetL;
+		float32_t *pR = blockR->data + offsetR;
+		for (int i=0; i < audio_block_samples/2; i++) {	*d++ = f32_to_i32(*pL++); *d++ = f32_to_i32(*pR++); } //interleave
 		offsetL += audio_block_samples / 2;
 		offsetR += audio_block_samples / 2;
 	} else if (blockL) {
 		//memcpy_tointerleaveLR(dest, blockL->data + offsetL, blockR->data + offsetR);
-		int16_t *pL = blockL->data + offsetL;
-		for (int i=0; i < audio_block_samples / 2 * 2; i+=2) { *(d+i) = *pL++; } //interleave
+		float32_t *pL = blockL->data + offsetL;
+		for (int i=0; i < audio_block_samples / 2 * 2; i+=2) { *(d+i) = f32_to_i32(*pL++); } //interleave
 		offsetL += audio_block_samples / 2;
 	} else if (blockR) {
-		int16_t *pR = blockR->data + offsetR;
-		for (int i=0; i < audio_block_samples /2 * 2; i+=2) { *(d+i) = *pR++; } //interleave
+		float32_t *pR = blockR->data + offsetR;
+		for (int i=0; i < audio_block_samples /2 * 2; i+=2) { *(d+i) = f32_to_i32(*pR++); } //interleave
 		offsetR += audio_block_samples / 2;
 	} else {
 		//memset(dest,0,AUDIO_BLOCK_SAMPLES * 2);
-		memset(dest,0,audio_block_samples * 2);
+		memset(dest,0,audio_block_samples * 4);
 		return;
 	}
 
@@ -207,7 +212,7 @@ void AudioOutputI2S_F32::isr(void)
 		AudioOutputI2S_F32::block_left_offset = offsetL;
 	} else {
 		AudioOutputI2S_F32::block_left_offset = 0;
-		AudioStream::release(blockL);
+		AudioStream_F32::release(blockL);
 		AudioOutputI2S_F32::block_left_1st = AudioOutputI2S_F32::block_left_2nd;
 		AudioOutputI2S_F32::block_left_2nd = NULL;
 	}
@@ -216,7 +221,7 @@ void AudioOutputI2S_F32::isr(void)
 		AudioOutputI2S_F32::block_right_offset = offsetR;
 	} else {
 		AudioOutputI2S_F32::block_right_offset = 0;
-		AudioStream::release(blockR);
+		AudioStream_F32::release(blockR);
 		AudioOutputI2S_F32::block_right_1st = AudioOutputI2S_F32::block_right_2nd;
 		AudioOutputI2S_F32::block_right_2nd = NULL;
 	}
@@ -302,7 +307,6 @@ void AudioOutputI2S_F32::update(void)
 	//audio_block_t *block = receiveReadOnly();
 	//if (block) release(block);
 
-	audio_block_t *block;
 	audio_block_f32_t *block_f32;
 	block_f32 = receiveReadOnly_f32(0); // input 0 = left channel
 	if (block_f32) {
@@ -315,52 +319,42 @@ void AudioOutputI2S_F32::update(void)
 		//Serial.print("AudioOutputI2S_F32: audio_block_samples = ");
 		//Serial.println(audio_block_samples);
 	
-		//convert F32 to Int16
-		block = AudioStream::allocate();
-		convert_f32_to_i16(block_f32->data, block->data, audio_block_samples);
-		AudioStream_F32::release(block_f32);
-		
 		//now process the data blocks
 		__disable_irq();
 		if (block_left_1st == NULL) {
-			block_left_1st = block;
+			block_left_1st = block_f32;
 			block_left_offset = 0;
 			__enable_irq();
 		} else if (block_left_2nd == NULL) {
-			block_left_2nd = block;
+			block_left_2nd = block_f32;
 			__enable_irq();
 		} else {
-			audio_block_t *tmp = block_left_1st;
+			audio_block_f32_t *tmp = block_left_1st;
 			block_left_1st = block_left_2nd;
-			block_left_2nd = block;
+			block_left_2nd = block_f32;
 			block_left_offset = 0;
 			__enable_irq();
-			AudioStream::release(tmp);
+			AudioStream_F32::release(tmp);
 		}
 	}
 	
 	block_f32 = receiveReadOnly_f32(1); // input 1 = right channel
 	if (block_f32) {
-		//convert F32 to Int16
-		block = AudioStream::allocate();
-		convert_f32_to_i16(block_f32->data, block->data, audio_block_samples);
-		AudioStream_F32::release(block_f32);
-		
 		__disable_irq();
 		if (block_right_1st == NULL) {
-			block_right_1st = block;
+			block_right_1st = block_f32;
 			block_right_offset = 0;
 			__enable_irq();
 		} else if (block_right_2nd == NULL) {
-			block_right_2nd = block;
+			block_right_2nd = block_f32;
 			__enable_irq();
 		} else {
-			audio_block_t *tmp = block_right_1st;
+			audio_block_f32_t *tmp = block_right_1st;
 			block_right_1st = block_right_2nd;
-			block_right_2nd = block;
+			block_right_2nd = block_f32;
 			block_right_offset = 0;
 			__enable_irq();
-			AudioStream::release(tmp);
+			AudioStream_F32::release(tmp);
 		}
 	}
 }
@@ -432,21 +426,21 @@ void AudioOutputI2S_F32::config_i2s(void)
 	I2S0_TMR = 0;
 	I2S0_TCR1 = I2S_TCR1_TFW(1);  // watermark at half fifo size
 	I2S0_TCR2 = I2S_TCR2_SYNC(0) | I2S_TCR2_BCP | I2S_TCR2_MSEL(1)
-		| I2S_TCR2_BCD | I2S_TCR2_DIV(3);
+		| I2S_TCR2_BCD | I2S_TCR2_DIV(1);
 	I2S0_TCR3 = I2S_TCR3_TCE;
-	I2S0_TCR4 = I2S_TCR4_FRSZ(1) | I2S_TCR4_SYWD(15) | I2S_TCR4_MF
+	I2S0_TCR4 = I2S_TCR4_FRSZ(1) | I2S_TCR4_SYWD(31) | I2S_TCR4_MF
 		| I2S_TCR4_FSE | I2S_TCR4_FSP | I2S_TCR4_FSD;
-	I2S0_TCR5 = I2S_TCR5_WNW(15) | I2S_TCR5_W0W(15) | I2S_TCR5_FBT(15);
+	I2S0_TCR5 = I2S_TCR5_WNW(31) | I2S_TCR5_W0W(31) | I2S_TCR5_FBT(31);
 
 	// configure receiver (sync'd to transmitter clocks)
 	I2S0_RMR = 0;
 	I2S0_RCR1 = I2S_RCR1_RFW(1);
 	I2S0_RCR2 = I2S_RCR2_SYNC(1) | I2S_TCR2_BCP | I2S_RCR2_MSEL(1)
-		| I2S_RCR2_BCD | I2S_RCR2_DIV(3);
+		| I2S_RCR2_BCD | I2S_RCR2_DIV(1);
 	I2S0_RCR3 = I2S_RCR3_RCE;
-	I2S0_RCR4 = I2S_RCR4_FRSZ(1) | I2S_RCR4_SYWD(15) | I2S_RCR4_MF
+	I2S0_RCR4 = I2S_RCR4_FRSZ(1) | I2S_RCR4_SYWD(31) | I2S_RCR4_MF
 		| I2S_RCR4_FSE | I2S_RCR4_FSP | I2S_RCR4_FSD;
-	I2S0_RCR5 = I2S_RCR5_WNW(15) | I2S_RCR5_W0W(15) | I2S_RCR5_FBT(15);
+	I2S0_RCR5 = I2S_RCR5_WNW(31) | I2S_RCR5_W0W(31) | I2S_RCR5_FBT(31);
 
 	// configure pin mux for 3 clock signals
 	CORE_PIN23_CONFIG = PORT_PCR_MUX(6); // pin 23, PTC2, I2S0_TX_FS (LRCLK)
