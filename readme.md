@@ -1,9 +1,11 @@
 OpenAudio Library for Teensy
 ===========================
 
-**Special Note**  17 June 2020 - This library is undergoing revision to make Teensy 4.x compatible and to add functionality.  Changes are expected throughout the rest of June.  See this readme for summaries during this period.
+**Special Note**  17 June 2020 - This library is undergoing revision to make Teensy 4.x compatible and to add functionality.  Changes are expected throughout the rest of June.  See this readme for summaries during this period.  Notes:
+
 1-synth_sine_f32.h & .cpp allowed both KINETISK and__IMXRT1062__ to support T4.x.  Tested 3.6, 4.0
 2-Hid synth_pinknoise_f32.h & .cpp with .xxx type.  Allows T4 compile until these are fixed.
+3-Fix synth_whitenoise_f32.cpp to include __IMXRT1062__ .
 
 **Purpose**: The purpose of this library is to build upon the [Teensy Audio Library](http://www.pjrc.com/teensy/td_libs_Audio.html) to enable new functionality for real-time audio processing.
 

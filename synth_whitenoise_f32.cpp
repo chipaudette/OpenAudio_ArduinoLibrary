@@ -1,6 +1,7 @@
 /*
 	Extended to F32
 	Created: Chip Audette, OpenAudio, Feb 2017
+	Extended to Teensy 4.x Bob larkn June 2020
 	
 	License: MIT License.  Use at your own risk.
 */
@@ -63,7 +64,7 @@ void AudioSynthNoiseWhite_F32::update(void)
 	
 	lo = seed;
 	do {
-#if defined(KINETISK)
+#if ( defined(KINETISK) ||  defined(__IMXRT1062__) )
 		hi = multiply_16bx16t(16807, lo); // 16807 * (lo >> 16)
 		lo = 16807 * (lo & 0xFFFF);
 		lo += (hi & 0x7FFF) << 16;
