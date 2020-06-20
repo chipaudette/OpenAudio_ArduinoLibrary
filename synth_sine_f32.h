@@ -60,7 +60,4 @@ private:
 	float sample_rate_Hz = AUDIO_SAMPLE_RATE;
 	volatile uint8_t enabled = 1;
 };
-
-
-
 #endif

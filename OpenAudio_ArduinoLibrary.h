@@ -17,11 +17,15 @@
 #include "AudioMixer_F32.h"
 #include "AudioMultiply_F32.h"
 #include "AudioSettings_F32.h"
-#include "input_i2s_f32.h"
-#include "output_i2s_f32.h"
+// #include "input_i2s_f32.h"  needs fixing, set to .xxx
+// #include "output_i2s_f32.h" needs fixing, set to .xxx
 #include "play_queue_f32.h"
 #include "record_queue_f32.h"
 #include "synth_pinknoise_f32.h"
 #include "synth_sine_f32.h"
 #include "synth_waveform_F32.h"
 #include "synth_whitenoise_f32.h"
+#include "synth_GaussianWhiteNoise_F32.h"
+#include "analyze_peak_f32.h"
+#include "analyze_rms_f32.h"
+// #include "control_tlv320aic3206.h"  collides much with Teensy Audio

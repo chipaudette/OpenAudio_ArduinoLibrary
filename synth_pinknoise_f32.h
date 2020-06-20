@@ -65,7 +65,9 @@ public:
 		level = (int32_t)(n * 65536.0);
 	}
 	virtual void update(void);
-	int enabled = 0;
+	
+	int enabled = 1;  //0;
+	
 private:
 	static const uint8_t pnmask[256];
 	static const int32_t pfira[64];
@@ -76,7 +78,7 @@ private:
 	int32_t pdec;		// decrement for all noise sources
 	int32_t paccu;		// accumulator
 	uint8_t pncnt;		// overflowing counter as index to pnmask[]
-	int32_t level;		// 0=off, 65536=max
+	int32_t level=65536;		// 0=off, 65536=max
 };
 
 #endif

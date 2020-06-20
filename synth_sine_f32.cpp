@@ -18,7 +18,6 @@ extern "C" {
   extern const int16_t AudioWaveformSine[257];
 }
 
-
 void AudioSynthWaveformSine_F32::update(void)
 {
 	audio_block_f32_t *block;
@@ -40,19 +39,16 @@ void AudioSynthWaveformSine_F32::update(void)
 					scale = (ph >> 8) & 0xFFFF;
 					val2 *= scale;
 					val1 *= 0x10000 - scale;
-	#if defined(KINETISK)
+	#if (defined(KINETISK) || defined(__IMXRT1062__) )
 					block->data[i] = (float) multiply_32x32_rshift32(val1 + val2, magnitude);
 	#elif defined(KINETISL)
 					block->data[i] = (float) ((((val1 + val2) >> 16) * magnitude) >> 16);
 	#endif
-					ph += inc;
-					
+					ph += inc;					
 					block->data[i] = block->data[i] / 32767.0f; // scale to float
 				}
 				phase_accumulator = ph;
-				
-				
-				
+		
 				AudioStream_F32::transmit(block);
 				AudioStream_F32::release(block);
 				return;

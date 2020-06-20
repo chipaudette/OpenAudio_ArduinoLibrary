@@ -1,6 +1,7 @@
 /*
 	Extended to f32 data
 	Created: Chip Audette, OpenAudio, Feb 2017
+	Included I16 to F32 conversion here. Bob Larkin June 2020
 	
 	License: MIT License. Use at your own risk.
 */
@@ -43,7 +44,6 @@
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 #include "synth_pinknoise_f32.h"
-#include "input_i2s_f32.h" //for the audio_convert_i16_to_f32 routine
 
 int16_t AudioSynthNoisePink_F32::instance_cnt = 0;
 
@@ -92,12 +92,14 @@ void AudioSynthNoisePink_F32::update(void)
 	int32_t taps;
 
 	if (!enabled) return;
-	
+
 	gain = level;
 	if (gain == 0) return;
+
 	block = AudioStream::allocate();
 	block_f32 = AudioStream_F32::allocate_f32();
 	if (!block | !block_f32) return;
+	
 	p = (uint32_t *)(block->data);
 	//end = p + AUDIO_BLOCK_SAMPLES/2;
 	end = p + (block_f32->length)/2;
@@ -153,14 +155,15 @@ void AudioSynthNoisePink_F32::update(void)
 	pdec = dec;
 	paccu = accu;
 	plfsr = lfsr;
-	
+
 	//convert int16 to f32
-	AudioInputI2S_F32::convert_i16_to_f32(block->data,block_f32->data,block_f32->length);
+    #define I16_TO_F32_NORM_FACTOR (3.051757812500000E-05)  //which is 1/32768 
+	for (int i=0; i<block_f32->length; i++)
+		 block_f32->data[i] = (float32_t)block->data[i] * I16_TO_F32_NORM_FACTOR;
 	
 	AudioStream_F32::transmit(block_f32);
 	AudioStream_F32::release(block_f32);
 	AudioStream::release(block);
-
 }
 
 

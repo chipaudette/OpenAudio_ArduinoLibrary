@@ -4,8 +4,15 @@ OpenAudio Library for Teensy
 **Special Note**  17 June 2020 - This library is undergoing revision to make Teensy 4.x compatible and to add functionality.  Changes are expected throughout the rest of June.  See this readme for summaries during this period.  Notes:
 
 1-synth_sine_f32.h & .cpp allowed both KINETISK and__IMXRT1062__ to support T4.x.  Tested 3.6, 4.0
-2-Hid synth_pinknoise_f32.h & .cpp with .xxx type.  Allows T4 compile until these are fixed.
-3-Fix synth_whitenoise_f32.cpp to include __IMXRT1062__ .
+2-Fix synth_pinknoise_f32.h & .cpp built in I16 to F32. Now T3 and T4.
+3-Fix synth_whitenoise_f32.cpp to include IMXRT1062  and built in I16 to F32. Now T3 and T4.
+4-Added Gaussian White Noise F32. This is T3 and T4.
+5-Renamed 3206 codec to .xxx to stop collisions with Teensy I16 library. Needs work.
+6-Added new examples/SignalNoise_float.ino to test white, pink, Gaussian noise and sine. Audio out.
+7-Disabled output_i2s_f32.h, .cpp by .xxxfile type. These need rework for T4. Use Convert_F32toI16.
+8-Disabled control_tlv320aic3206.h, .cpp by .xxxfile type. These collide with Teensy I16 Audio.
+9-Added new analyze_peak_f32.h and .cpp that parallel similar classes in the Teensy I16 library.
+10-Added new analyze_rms_f32.h and .cpp that parallel similar classes in the Teensy I16 library.
 
 **Purpose**: The purpose of this library is to build upon the [Teensy Audio Library](http://www.pjrc.com/teensy/td_libs_Audio.html) to enable new functionality for real-time audio processing.
 
