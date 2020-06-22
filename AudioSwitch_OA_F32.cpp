@@ -3,7 +3,7 @@
  * Created: Chip Audette, OpenAudio, April 2019
  * MIT License.  use at your own risk.
 */
-#include "AudioSwitch_F32.h"
+#include "AudioSwitch_OA_F32.h"
 
 void AudioSwitch4_OA_F32::update(void) {
   audio_block_f32_t *out=NULL;

@@ -130,18 +130,18 @@ class FFT_Overlapped_Base_OA_F32 {  //handles all the data structures for the ov
     }
 };
 
-class FFT_Overlapped_OA_F32: public FFT_Overlapped_Base_F32
+class FFT_Overlapped_OA_F32: public FFT_Overlapped_Base_OA_F32
 {
   public:
     //constructors
-    FFT_Overlapped_OA_F32(void): FFT_Overlapped_Base_F32() {};
-    FFT_Overlapped_OA_F32(const AudioSettings_F32 &settings): FFT_Overlapped_Base_F32()  { }
-    FFT_Overlapped_OA_F32(const AudioSettings_F32 &settings, const int _N_FFT): FFT_Overlapped_Base_F32()  {
+    FFT_Overlapped_OA_F32(void): FFT_Overlapped_Base_OA_F32() {};
+    FFT_Overlapped_OA_F32(const AudioSettings_F32 &settings): FFT_Overlapped_Base_OA_F32()  { }
+    FFT_Overlapped_OA_F32(const AudioSettings_F32 &settings, const int _N_FFT): FFT_Overlapped_Base_OA_F32()  {
       setup(settings,_N_FFT);
     }
 
     virtual int setup(const AudioSettings_F32 &settings, const int _N_FFT) {
-      int N_FFT = FFT_Overlapped_Base_F32::setup(settings, _N_FFT);
+      int N_FFT = FFT_Overlapped_Base_OA_F32::setup(settings, _N_FFT);
 
       //setup the FFT routines
       N_FFT = myFFT.setup(N_FFT);
@@ -157,18 +157,18 @@ class FFT_Overlapped_OA_F32: public FFT_Overlapped_Base_F32
     FFT_F32 myFFT;
 };
 
-class IFFT_Overlapped_OA_F32: public FFT_Overlapped_Base_F32
+class IFFT_Overlapped_OA_F32: public FFT_Overlapped_Base_OA_F32
 {
   public:
     //constructors
-    IFFT_Overlapped_OA_F32(void): FFT_Overlapped_Base_F32() {};
-    IFFT_Overlapped_OA_F32(const AudioSettings_F32 &settings): FFT_Overlapped_Base_F32()  { }
-    IFFT_Overlapped_OA_F32(const AudioSettings_F32 &settings, const int _N_FFT): FFT_Overlapped_Base_F32()  {
+    IFFT_Overlapped_OA_F32(void): FFT_Overlapped_Base_OA_F32() {};
+    IFFT_Overlapped_OA_F32(const AudioSettings_F32 &settings): FFT_Overlapped_Base_OA_F32()  { }
+    IFFT_Overlapped_OA_F32(const AudioSettings_F32 &settings, const int _N_FFT): FFT_Overlapped_Base_OA_F32()  {
       setup(settings,_N_FFT);
     }
 
     virtual int setup(const AudioSettings_F32 &settings, const int _N_FFT) {
-      int N_FFT = FFT_Overlapped_Base_F32::setup(settings, _N_FFT);
+      int N_FFT = FFT_Overlapped_Base_OA_F32::setup(settings, _N_FFT);
 
       //setup the FFT routines
       N_FFT = myIFFT.setup(N_FFT);
