@@ -1,7 +1,7 @@
 
-#include "FFT_Overlapped_F32.h"
+#include "FFT_Overlapped_OA_F32.h"
 
-void FFT_Overlapped_F32::execute(audio_block_f32_t *block, float *complex_2N_buffer) //results returned inc omplex_2N_buffer
+void FFT_Overlapped_OA_F32::execute(audio_block_f32_t *block, float *complex_2N_buffer) //results returned inc omplex_2N_buffer
 {
   int targ_ind;
 
@@ -33,7 +33,7 @@ void FFT_Overlapped_F32::execute(audio_block_f32_t *block, float *complex_2N_buf
   myFFT.execute(complex_2N_buffer);
 }
 
-audio_block_f32_t* IFFT_Overlapped_F32::execute(float *complex_2N_buffer) { //real results returned through audio_block_f32_t
+audio_block_f32_t* IFFT_Overlapped_OA_F32::execute(float *complex_2N_buffer) { //real results returned through audio_block_f32_t
 
   //Serial.print("Overlapped_IFFT_F32: N_BUFF_BLOCKS = "); Serial.print(N_BUFF_BLOCKS);
   //Serial.print(", audio_block_samples = "); Serial.println(audio_block_samples);

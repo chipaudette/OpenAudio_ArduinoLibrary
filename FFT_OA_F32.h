@@ -1,4 +1,3 @@
-
 /*
  * FFT_F32
  * 
@@ -14,8 +13,8 @@
  * License: MIT License
  */
 
-#ifndef _FFT_h
-#define _FFT_h
+#ifndef _FFT_OA_h
+#define _FFT_OA_h
 
 #include <Arduino.h>  //for Serial
 //include <math.h>

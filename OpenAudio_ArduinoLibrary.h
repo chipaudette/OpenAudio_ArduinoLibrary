@@ -29,5 +29,5 @@
 #include "analyze_peak_f32.h"
 #include "analyze_rms_f32.h"
 // #include "control_tlv320aic3206.h"  collides much with Teensy Audio
-#include "AudioSwitch_F32.h"
-#include "FFT_Overlapped_F32.h"
+#include "AudioSwitch_OA_F32.h"
+#include "FFT_Overlapped_OA_F32.h"
