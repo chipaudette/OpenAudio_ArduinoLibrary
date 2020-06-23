@@ -7,16 +7,17 @@ OpenAudio Library for Teensy
 2-Fix synth_pinknoise_f32.h & .cpp built in I16 to F32. Now T3 and T4.
 3-Fix synth_whitenoise_f32.cpp to include IMXRT1062  and built in I16 to F32. Now T3 and T4.
 4-Added Gaussian White Noise F32. This is T3 and T4.
-5-Renamed 3206 codec to .xxx to stop collisions with Teensy I16 library. Needs work.
-6-Added new examples/SignalNoise_float.ino to test white, pink, Gaussian noise and sine. Audio out.
-7-Disabled output_i2s_f32.h, .cpp by .xxxfile type. These need rework for T4. Use Convert_F32toI16.
-8-Disabled control_tlv320aic3206.h, .cpp by .xxxfile type. These collide with Teensy I16 Audio.
-9-Added new analyze_peak_f32.h and .cpp that parallel similar classes in the Teensy I16 library.
-10-Added new analyze_rms_f32.h and .cpp that parallel similar classes in the Teensy I16 library.
-11-Moved AudioSwitch_F32 from Tympan, added 8-channel version.
-12-Added /examples/Switches_float.ino for 4 and 8 channel switches.
-13-Moved FFT_Overlapped_F32 files from Tympan, revised for T4.0, added _OA name isolation.
-14-Moved Overlapped FFT LPF .INO from Tympan to OA.  Working T3.6 and T4.0
+5-Renamed 3206 codec to .xxx to stop collisions with Teensy I16 library. Needs work. 
+6-Added new examples/SignalNoise_float.ino to test white, pink, Gaussian noise and sine. Audio out. 
+7-Disabled output_i2s_f32.h, .cpp by .xxxfile type. These need rework for T4. Use Convert_F32toI16. 
+8-Disabled control_tlv320aic3206.h, .cpp by .xxxfile type. These collide with Teensy I16 Audio. 
+9-Added new analyze_peak_f32.h and .cpp that parallel similar classes in the Teensy I16 library. 
+10-Added new analyze_rms_f32.h and .cpp that parallel similar classes in the Teensy I16 library. 
+11-Moved AudioSwitch_F32 from Tympan, added 8-channel version. 
+12-Added /examples/Switches_float.ino for 4 and 8 channel switches. 
+13-Moved FFT_Overlapped_F32 files from Tympan, revised for T4.0, added _OA name isolation. 
+14-Moved Overlapped FFT LPF .INO from Tympan to OA.  Working T3.6 and T4.0 
+15-Moved Overlapped FFT AudioFormantShifter INO and related from Tympan to _OA Open Audio. Tested 3.6 and 4.0.
 
 **Purpose**: The purpose of this library is to build upon the [Teensy Audio Library](http://www.pjrc.com/teensy/td_libs_Audio.html) to enable new functionality for real-time audio processing.
 

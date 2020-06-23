@@ -1,16 +1,25 @@
-
+/* AudioEffectFormantShiiftFD_OA_F32.h
+ * Demonstrate formant shifting via frequency domain processin.
+ *
+ * Created: Chip Audette (OpenAudio) March 2019
+ * See FormantShifter_FD_OA.ino for notes.
+ *
+ * Adapt to OpenAudio Library  - Bob Larkin June 2020
+ * MIT License.  Use at your own risk.
+ */
 #ifndef _AudioEffectFormantShiftFD_OA_F32_h
 #define _AudioEffectFormantShiftFD_OA_F32_h
 
 #include "AudioStream_F32.h"
 #include <arm_math.h>
-#include "FFT_Overlapped_F32.h"
+#include "FFT_Overlapped_OA_F32.h"
 
 class AudioEffectFormantShiftFD_OA_F32 : public AudioStream_F32
 {
   public:
-    //constructors...a few different options.  The usual one should be: AudioEffectFormantShiftFD_OA_F32(const AudioSettings_F32 &settings, const int _N_FFT)
-    AudioEffectFormantShiftFD_OA_F32(void) : AudioStream_F32(1, inputQueueArray_f32) {};
+    // constructors...a few different options.  The usual one should be:
+    //   AudioEffectFormantShiftFD_OA_F32(const AudioSettings_F32 &settings, const int _N_FFT)
+    AudioEffectFormantShiftFD_OA_F32(void) : AudioStream_F32(1, inputQueueArray_f32) { };
     AudioEffectFormantShiftFD_OA_F32(const AudioSettings_F32 &settings) :
       AudioStream_F32(1, inputQueueArray_f32) {
       sample_rate_Hz = settings.sample_rate_Hz;
@@ -47,12 +56,12 @@ class AudioEffectFormantShiftFD_OA_F32 : public AudioStream_F32
 
       //print info about setup
       Serial.println("AudioEffectFormantShiftFD_OA_F32: FFT parameters...");
-      Serial.print("    : N_FFT = "); Serial.println(N_FFT);
-      Serial.print("    : audio_block_samples = "); Serial.println(settings.audio_block_samples);
-      Serial.print("    : FFT N_BUFF_BLOCKS = "); Serial.println(myFFT.getNBuffBlocks());
-      Serial.print("    : IFFT N_BUFF_BLOCKS = "); Serial.println(myIFFT.getNBuffBlocks());
-      Serial.print("    : FFT use window = "); Serial.println(myFFT.getFFTObject()->get_flagUseWindow());
-      Serial.print("    : IFFT use window = "); Serial.println((myIFFT.getIFFTObject())->get_flagUseWindow());
+      Serial.print("    : N_FFT = ");  Serial.println(N_FFT);
+      Serial.print("    : audio_block_samples = ");  Serial.println(settings.audio_block_samples);
+      Serial.print("    : FFT N_BUFF_BLOCKS = ");  Serial.println(myFFT.getNBuffBlocks());
+      Serial.print("    : IFFT N_BUFF_BLOCKS = ");  Serial.println(myIFFT.getNBuffBlocks());
+      Serial.print("    : FFT use window = ");  Serial.println(myFFT.getFFTObject()->get_flagUseWindow());
+      Serial.print("    : IFFT use window = ");  Serial.println((myIFFT.getIFFTObject())->get_flagUseWindow());
 
       //allocate memory to hold frequency domain data
       complex_2N_buffer = new float32_t[2 * N_FFT];
@@ -62,8 +71,6 @@ class AudioEffectFormantShiftFD_OA_F32 : public AudioStream_F32
       return N_FFT;
     }
 
-    //void setLowpassFreq_Hz(float freq_Hz) { lowpass_freq_Hz = freq_Hz;  }
-    //float getLowpassFreq_Hz(void) {   return lowpass_freq_Hz; }
     float setScaleFactor(float scale_fac) {
       if (scale_fac < 0.00001) scale_fac = 0.00001;
       return shift_scale_fac = scale_fac;
@@ -78,11 +85,10 @@ class AudioEffectFormantShiftFD_OA_F32 : public AudioStream_F32
     int enabled = 0;
     float32_t *complex_2N_buffer;
     audio_block_f32_t *inputQueueArray_f32[1];
-    FFT_Overlapped_F32 myFFT;
-    IFFT_Overlapped_F32 myIFFT;
+    FFT_Overlapped_OA_F32 myFFT;
+    IFFT_Overlapped_OA_F32 myIFFT;
     float lowpass_freq_Hz = 1000.f;
     float sample_rate_Hz = AUDIO_SAMPLE_RATE;
-
     float shift_scale_fac = 1.0; //how much to shift formants (frequency multiplier).  1.0 is no shift
 };
 
