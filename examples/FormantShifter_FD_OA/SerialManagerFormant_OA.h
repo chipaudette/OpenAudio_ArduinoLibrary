@@ -1,19 +1,19 @@
 
 
-#ifndef _SerialManager_h
-#define _SerialManager_h
+#ifndef _SerialManager_OA_h
+#define _SerialManager_OA_h
 
 #include <Tympan_Library.h>
 
 
 //now, define the Serial Manager class
-class SerialManager {
+class SerialManager_OA {
   public:
   public:
-    SerialManager(Tympan &_audioHardware)
+    SerialManager_OA(Tympan &_audioHardware)
       : audioHardware(_audioHardware)
     {  };
-    //SerialManager(void)
+    //SerialManager_OA(void)
     //{  };
           
     void respondToByte(char c);
@@ -27,9 +27,9 @@ class SerialManager {
 };
 #define thisSerial audioHardware
 
-void SerialManager::printHelp(void) {  
+void SerialManager_OA::printHelp(void) {  
   thisSerial.println();
-  thisSerial.println("SerialManager Help: Available Commands:");
+  thisSerial.println("SerialManager_OA Help: Available Commands:");
   thisSerial.println("   h: Print this help");
   thisSerial.println("   g: Print the gain settings of the device.");
   thisSerial.println("   C: Toggle printing of CPU and Memory usage");
@@ -52,7 +52,7 @@ extern void switchToMicInOnMicJack(void);
 extern void switchToLineInOnMicJack(void);
 
 //switch yard to determine the desired action
-void SerialManager::respondToByte(char c) {
+void SerialManager_OA::respondToByte(char c) {
   //float old_val = 0.0, new_val = 0.0;
   switch (c) {
     case 'h': case '?':

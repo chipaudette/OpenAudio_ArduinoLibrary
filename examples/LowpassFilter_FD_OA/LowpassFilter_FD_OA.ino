@@ -26,10 +26,9 @@
  * This example code is in the public domain (MIT License)
  */
  
-#include "SD.h"
 #include "AudioStream_F32.h"
 #include <OpenAudio_ArduinoLibrary.h>
-#include "AudioEffectLowpassFD_F32.h"  // the local file holding your custom function
+#include "AudioEffectLowpassFD_OA_F32.h"  // the local file holding your custom function
 
 //set the sample rate and block size
 const float sample_rate_Hz = 44117.f;

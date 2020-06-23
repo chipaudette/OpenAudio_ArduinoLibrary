@@ -15,6 +15,8 @@ OpenAudio Library for Teensy
 10-Added new analyze_rms_f32.h and .cpp that parallel similar classes in the Teensy I16 library.
 11-Moved AudioSwitch_F32 from Tympan, added 8-channel version.
 12-Added /examples/Switches_float.ino for 4 and 8 channel switches.
+13-Moved FFT_Overlapped_F32 files from Tympan, revised for T4.0, added _OA name isolation.
+14-Moved Overlapped FFT LPF .INO from Tympan to OA.  Working T3.6 and T4.0
 
 **Purpose**: The purpose of this library is to build upon the [Teensy Audio Library](http://www.pjrc.com/teensy/td_libs_Audio.html) to enable new functionality for real-time audio processing.
 

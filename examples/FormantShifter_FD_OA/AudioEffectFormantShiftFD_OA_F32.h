@@ -1,27 +1,27 @@
 
-#ifndef _AudioEffectFormantShiftFD_F32_h
-#define _AudioEffectFormantShiftFD_F32_h
+#ifndef _AudioEffectFormantShiftFD_OA_F32_h
+#define _AudioEffectFormantShiftFD_OA_F32_h
 
 #include "AudioStream_F32.h"
 #include <arm_math.h>
 #include "FFT_Overlapped_F32.h"
 
-class AudioEffectFormantShiftFD_F32 : public AudioStream_F32
+class AudioEffectFormantShiftFD_OA_F32 : public AudioStream_F32
 {
   public:
-    //constructors...a few different options.  The usual one should be: AudioEffectFormantShiftFD_F32(const AudioSettings_F32 &settings, const int _N_FFT)
-    AudioEffectFormantShiftFD_F32(void) : AudioStream_F32(1, inputQueueArray_f32) {};
-    AudioEffectFormantShiftFD_F32(const AudioSettings_F32 &settings) :
+    //constructors...a few different options.  The usual one should be: AudioEffectFormantShiftFD_OA_F32(const AudioSettings_F32 &settings, const int _N_FFT)
+    AudioEffectFormantShiftFD_OA_F32(void) : AudioStream_F32(1, inputQueueArray_f32) {};
+    AudioEffectFormantShiftFD_OA_F32(const AudioSettings_F32 &settings) :
       AudioStream_F32(1, inputQueueArray_f32) {
       sample_rate_Hz = settings.sample_rate_Hz;
     }
-    AudioEffectFormantShiftFD_F32(const AudioSettings_F32 &settings, const int _N_FFT) :
+    AudioEffectFormantShiftFD_OA_F32(const AudioSettings_F32 &settings, const int _N_FFT) :
       AudioStream_F32(1, inputQueueArray_f32) {
       setup(settings, _N_FFT);
     }
 
     //destructor...release all of the memory that has been allocated
-    ~AudioEffectFormantShiftFD_F32(void) {
+    ~AudioEffectFormantShiftFD_OA_F32(void) {
       if (complex_2N_buffer != NULL) delete complex_2N_buffer;
     }
 
@@ -36,17 +36,17 @@ class AudioEffectFormantShiftFD_F32 : public AudioStream_F32
       if (N_FFT < 1) return N_FFT;
 
       //decide windowing
-      Serial.println("AudioEffectFormantShiftFD_F32: setting myFFT to use hanning...");
+      Serial.println("AudioEffectFormantShiftFD_OA_F32: setting myFFT to use hanning...");
       (myFFT.getFFTObject())->useHanningWindow(); //applied prior to FFT
       #if 1
         if (myIFFT.getNBuffBlocks() > 3) {
-          Serial.println("AudioEffectFormantShiftFD_F32: setting myIFFT to use hanning...");
+          Serial.println("AudioEffectFormantShiftFD_OA_F32: setting myIFFT to use hanning...");
           (myIFFT.getIFFTObject())->useHanningWindow(); //window again after IFFT
         }
       #endif
 
       //print info about setup
-      Serial.println("AudioEffectFormantShiftFD_F32: FFT parameters...");
+      Serial.println("AudioEffectFormantShiftFD_OA_F32: FFT parameters...");
       Serial.print("    : N_FFT = "); Serial.println(N_FFT);
       Serial.print("    : audio_block_samples = "); Serial.println(settings.audio_block_samples);
       Serial.print("    : FFT N_BUFF_BLOCKS = "); Serial.println(myFFT.getNBuffBlocks());
@@ -87,7 +87,7 @@ class AudioEffectFormantShiftFD_F32 : public AudioStream_F32
 };
 
 
-void AudioEffectFormantShiftFD_F32::update(void)
+void AudioEffectFormantShiftFD_OA_F32::update(void)
 {
   //get a pointer to the latest data
   audio_block_f32_t *in_audio_block = AudioStream_F32::receiveReadOnly_f32();
