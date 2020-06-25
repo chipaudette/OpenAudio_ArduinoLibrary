@@ -18,6 +18,8 @@ OpenAudio Library for Teensy
 13-Moved FFT_Overlapped_F32 files from Tympan, revised for T4.0, added _OA name isolation. 
 14-Moved Overlapped FFT LPF .INO from Tympan to OA.  Working T3.6 and T4.0 
 15-Moved Overlapped FFT AudioFormantShifter INO and related from Tympan to _OA Open Audio. Tested 3.6 and 4.0.
+16-Moved AudioFrequencyShifter INO and related from Tympan to _OA Open Audio. Tested 3.6 and 4.0.
+17-Working on SdFatWriter and related SdFat files.  DO NOT USE.
 
 **Purpose**: The purpose of this library is to build upon the [Teensy Audio Library](http://www.pjrc.com/teensy/td_libs_Audio.html) to enable new functionality for real-time audio processing.
 
