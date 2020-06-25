@@ -31,3 +31,4 @@
 // #include "control_tlv320aic3206.h"  collides much with Teensy Audio
 #include "AudioSwitch_OA_F32.h"
 #include "FFT_Overlapped_OA_F32.h"
+#include "AudioEffectFreqShiftFD_OA_F32.h"

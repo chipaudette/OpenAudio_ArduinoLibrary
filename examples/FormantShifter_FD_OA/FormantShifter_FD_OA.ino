@@ -11,18 +11,19 @@
  *    * Take IFFT to convert back to time domain
  *    * Send samples back to the audio interface
  *
- * The amount of formant shifting is controled via the Serial link.
- *    It defaults to a modest upward shifting of the formants
+ * The amount of formant shifting is controLled via the Serial link.
+ * It defaults to a modest upward shifting of the formants
  *
  * Built for the Tympan library for Teensy 3.6-based hardware
  *
  * Adapt to OpenAudio Library  - Bob Larkin June 2020
  * This example supports only audio Line In, left channel, of SGTL5000
- * Codec (Teensy Audio Adaptor) and Line Out on left channel. Simplified
- * control by using only serial commands.  This is an interesting block,
- * but it doesn't produce the most pleasant result. Have fun and see what you
- * can do with the algorithm in the update() function in
- * AudioEffectFormantShiftFD_OA_F32.h.
+ * Codec (Teensy Audio Adaptor) and Line Out on left and right channel.
+ * Simplified control by using only serial commands.
+ * 
+ * This is an interesting block. Try it!  Ask the internet about 
+ * formant shifting, and check out Chip's implementation in update()
+ * of AudioEffectFormantShiftFD_OA_F32.h
  * 
  * This is tested to run on Teensy 3.6 and Teensy 4.0 using the PJRC
  * Teensy Audio Adaptor.
@@ -47,20 +48,23 @@ AudioEffectGain_F32           gain1; //Applies digital gain to audio data.
 AudioConvert_F32toI16         cnvrt2;
 AudioOutputI2S                i2sOut;
 AudioControlSGTL5000          codec;
+
+AudioAnalyzePeak_F32  peak1;
 //Make all of the audio connections
 AudioConnection       patchCord1(i2sIn,        0, cnvrt1, 0); // connect to Left codec, 16-bit
 AudioConnection_F32   patchCord2(cnvrt1,       0, formantShift, 0);
 AudioConnection_F32   patchCord3(formantShift, 0, gain1, 0); //connect to gain
 AudioConnection_F32   patchCord4(gain1,        0, cnvrt2, 0); //connect to the left output
 AudioConnection       patchCord6(cnvrt2,       0, i2sOut, 0);
-
+AudioConnection       patchCord7(cnvrt2,       0, i2sOut, 1);
+AudioConnection_F32  connx(gain1, 0, peak1, 0);
 //control display and serial interaction
 bool enable_printCPUandMemory = false;
 void togglePrintMemoryAndCPU(void) { enable_printCPUandMemory = !enable_printCPUandMemory; };
 SerialManagerFormant_OA SerMgr;
 
 //inputs and levels
-float input_gain_dB = 20.0f; //gain on the microphone
+float input_gain_dB = 0.0f; //gain on the microphone
 float formant_shift_gain_correction_dB = 0.0;  //will be used to adjust for gain in formant shifter
 float vol_knob_gain_dB = 0.0;      //will be overridden by volume knob
 
@@ -73,11 +77,11 @@ void setup() {
 
   // Audio connections require memory to work.  For more
   // detailed information, see the MemoryAndCpuUsage example
-  AudioMemory(3);            // I16 type
+  AudioMemory(10);            // I16 type
   AudioMemory_F32(40, audio_settings);
 
   codec.enable();
-  codec.adcHighPassFilterEnable();
+  codec.adcHighPassFilterDisable();
   codec.inputSelect(AUDIO_INPUT_LINEIN);
   
   // Configure the frequency-domain algorithm
@@ -120,12 +124,16 @@ void printCPUandMemory(unsigned long curTime_millis, unsigned long updatePeriod_
     Serial.print(audio_settings.processorUsageMax());
     //Serial.print(AudioProcessorUsageMax());  //if not using AudioSettings_F32
     Serial.print("%,   ");
-    Serial.print("Dyn MEM Float32 Cur/Peak: ");
+    Serial.print("Audio MEM Float32 Cur/Peak: ");
     Serial.print(AudioMemoryUsage_F32());
     Serial.print("/");
-    Serial.print(AudioMemoryUsageMax_F32());
+    Serial.println(AudioMemoryUsageMax_F32());
+    Serial.print("Audio MEM Int16 Cur/Peak: ");
+    Serial.print(AudioMemoryUsage());
+    Serial.print("/");
+    Serial.println(AudioMemoryUsageMax());
     Serial.println();
-
+//if(peak1.available())  Serial.println(peak1.read(), 6);
     lastUpdate_millis = curTime_millis; //we will use this value the next time around.
   }
 }

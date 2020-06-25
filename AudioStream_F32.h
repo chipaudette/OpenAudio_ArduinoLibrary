@@ -7,6 +7,8 @@
  * I modeled it directly on the Teensy code in "AudioStream.h" and "AudioStream.cpp", which are 
  * available here: https://github.com/PaulStoffregen/cores/tree/master/teensy3
  * 
+ * Added id to audio_block_f32_t class, per Tympan.  Bob Larkin June 2020
+ * 
  * MIT License.  use at your own risk.
 */
 
@@ -28,6 +30,7 @@ class AudioConnection_F32;
 //create a new structure to hold audio as floating point values.
 //modeled on the existing teensy audio block struct, which uses Int16
 //https://github.com/PaulStoffregen/cores/blob/268848cdb0121f26b7ef6b82b4fb54abbe465427/teensy3/AudioStream.h
+// Added id, per Tympan.  Should not disturb existing programs.  Bob Larkin June 2020
 class audio_block_f32_t {
 	public:
 		audio_block_f32_t(void) {};
@@ -44,6 +47,7 @@ class audio_block_f32_t {
 		const int full_length = AUDIO_BLOCK_SAMPLES;
 		int length = AUDIO_BLOCK_SAMPLES; // AUDIO_BLOCK_SAMPLES is 128, from AudioStream.h
 		float fs_Hz = AUDIO_SAMPLE_RATE; // AUDIO_SAMPLE_RATE is 44117.64706 from AudioStream.h
+		unsigned long id;
 };
 
 class AudioConnection_F32
