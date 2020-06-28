@@ -20,6 +20,12 @@ OpenAudio Library for Teensy
 15-Moved Overlapped FFT AudioFormantShifter INO and related from Tympan to _OA Open Audio. Tested 3.6 and 4.0.
 16-Moved AudioFrequencyShifter INO and related from Tympan to _OA Open Audio. Tested 3.6 and 4.0.
 17-Working on SdFatWriter and related SdFat files.  DO NOT USE.
+18-Modified AudioEffectDelay for T4.0.
+19-Moved in radio function AudioFilter90Deg_F32.
+20-Moved in radio function RadioIQMixer_F32.
+21-Added Example INO, FineFreqShift_OA.ino with Hilbert shifter and delay stereo.
+22-Brought in support stuff mathDSP_F32 and sinTable512_F32.h.
+
 
 **Purpose**: The purpose of this library is to build upon the [Teensy Audio Library](http://www.pjrc.com/teensy/td_libs_Audio.html) to enable new functionality for real-time audio processing.
 
