@@ -25,6 +25,12 @@ OpenAudio Library for Teensy
 20-Moved in radio function RadioIQMixer_F32.
 21-Added Example INO, FineFreqShift_OA.ino with Hilbert shifter and delay stereo.
 22-Brought in support stuff mathDSP_F32 and sinTable512_F32.h.
+23-Brought in AudioAnalyzePhase_F32 and Example
+24-Brought in AudioFilterEqualyzer_F32 and 2 Example
+25-Brought in AudioFilterFIRGeneral_F32 and 2 Example INOs
+26-Brought in RadioFMDetector_F32 and Example
+27-Brought in synth_sin_cos_F32 and test example
+28-Brought in RadioNoiseBlanker_F32 and Example
 
 
 **Purpose**: The purpose of this library is to build upon the [Teensy Audio Library](http://www.pjrc.com/teensy/td_libs_Audio.html) to enable new functionality for real-time audio processing.
