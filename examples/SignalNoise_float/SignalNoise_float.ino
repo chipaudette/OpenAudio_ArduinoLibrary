@@ -49,8 +49,8 @@ int gainControlDB = -35;  // Set gain in dB.
 
 void setup(void) {
   float32_t gain;
-  AudioMemory(5);
-  AudioMemory_F32(8);
+  AudioMemory(10);
+  AudioMemory_F32(10);
 
   for (int i=0; i<4; i++) sum1.gain(i, 0.0);  // All off
 

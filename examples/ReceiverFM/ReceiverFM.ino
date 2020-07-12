@@ -8,25 +8,46 @@
  * 
  * Change the value of sine1.frequency to see the DC output change.
  * See FMReceiver2.ino for testing with real AC modulation.
+ * 
+ * As an alternative the input can come from the ADC for "SINE_ADC 0"
+ * 
+ * Output is sent to left channel SGTL5000 DAC.
  */
 
 #include "Audio.h"
 #include <OpenAudio_ArduinoLibrary.h>
 
-// Uncomment the lines "SINE" for internally generated sine wave.
-// Uncomment the lines "ADC" to use the SGTL5000 Teensy audio adaptor
-// AudioInputI2S_F32           i2sIn;     // ADC
-AudioSynthWaveformSine_F32  sine1;    // SINE
-RadioFMDetector_F32         fmDet1;
-AudioRecordQueue_F32        queue1; 
-AudioOutputI2S_F32          i2sOut;   // Leave in for timing
-// AudioControlSGTL5000        sgtl5000_1;  // ADC
+// SINE_ADC 1 for internally generated sine wave.
+// SINE_ADC 0 to use the SGTL5000 Teensy audio adaptor ADC/DAC
+#define SINE_ADC 0
 
-// AudioConnection_F32         connect0(i2sIn,  0, fmDet1, 0);  // ADC
-AudioConnection_F32         connect0(sine1,  0, fmDet1, 0);  // SINE
-// AudioConnection_F32         connect1(sine1,  0, queue1, 0);
-AudioConnection_F32         connect3(fmDet1, 0, i2sOut, 0);
-AudioConnection_F32         connect5(fmDet1, 0, queue1, 0);
+#if SINE_ADC
+AudioSynthWaveformSine_F32  sine1;
+RadioFMDetector_F32         fmDet1;
+AudioRecordQueue_F32        queue1;
+AudioConvert_F32toI16       cnvrtOut;
+AudioOutputI2S              i2sOut;
+AudioControlSGTL5000        sgtl5000_1;
+AudioConnection_F32    connect1(sine1,    0, fmDet1,   0);
+AudioConnection_F32    connect3(fmDet1,   0, cnvrtOut, 0);
+AudioConnection        connect4(cnvrtOut, 0, i2sOut,   0); // left
+AudioConnection_F32    connect5(fmDet1,   0, queue1,   0);
+#else            // Input from Teensy Audio Adaptor SGTL5000
+// Note - With no input, the FM detector output is all noise.  This
+// can be loud, so one can add a gain block at the fmDet1 output (like 0.05 gain).
+AudioInputI2S          i2sIn;
+AudioConvert_I16toF32  cnvrtIn;
+RadioFMDetector_F32    fmDet1;
+AudioRecordQueue_F32   queue1; 
+AudioConvert_F32toI16  cnvrtOut;
+AudioOutputI2S         i2sOut;
+AudioControlSGTL5000   sgtl5000_1;
+AudioConnection        connect1(i2sIn,    0, cnvrtIn,  0); // left
+AudioConnection_F32    connect2(cnvrtIn,  0, fmDet1,   0);
+AudioConnection_F32    connect3(fmDet1,   0, cnvrtOut, 0);
+AudioConnection_F32    connect5(fmDet1,   0, queue1,   0);
+AudioConnection        connect7(cnvrtOut, 0, i2sOut,   0);
+#endif
 
 float dt1[512];    // Place to save output
 float *pq1, *pd1;
@@ -39,10 +60,12 @@ void setup(void) {
   Serial.begin(300);  delay(1000);  // Any rate is OK
   Serial.println("Serial Started");
  
-  // sgtl5000_1.enable();              // ADC
-  // sgtl5000_1.inputSelect(AUDIO_INPUT_LINEIN);    //ADC
+  sgtl5000_1.enable();
+  sgtl5000_1.inputSelect(AUDIO_INPUT_LINEIN);   
 
-  sine1.frequency(14000.0);                // SINE
+#if SINE_ADC
+  sine1.frequency(14000.0);
+#endif
 
   // The FM detector has error checking during object construction
   // when Serial.print is not available.  See RadioFMDetector_F32.h:
@@ -78,11 +101,16 @@ void loop(void) {
     }
   }
   // We have 512 data samples.  Serial.print them
-  if(i == 4) { 
-    Serial.println("512 Time in seconds and FM Output samples:");
+  if(i == 4) {
+#if SINE_ADC
+	Serial.println("For 14,000 Hz sine wave input:");
+#endif
+	Serial.println("512 samples of FM Det output, starting t=0");
+    Serial.println("Time in sec, FM Output, Dev from 15,000 Hz:");
     for (k=0; k<512; k++) {
-       Serial.print (0.000022667*(float32_t)k, 6);   Serial.print (",");
-       Serial.println (dt1[k],7);
+       Serial.print (0.000022667*(float32_t)k, 6);   Serial.print (", ");
+       Serial.print (dt1[k],7);   Serial.print (", ");
+       Serial.println (dt1[k]/0.000142421, 2);  // Convert to Hz
     }
     i = 5;
   }
