@@ -58,23 +58,29 @@ void AudioSynthGaussian_F32::update(void)
      * 2nd ed, with the comment "this is about as good as any 32-bit linear
      * congruential generator, entirely adequate for many uses."
      */
+     
+     		    
+ // Try:
+ union {
+    uint32_t  i32;
+    float32_t f32;
+    } uinf;
+    
+    
     for(int i=0; i<blockSize; i++)  {
 	    rdev = 0.0f;
         for (int j=0; j<12; j++){   // Add 12, using Central Limit to get Gaussian
 	       	idum = (uint32_t)1664525 * idum + (uint32_t)1013904223;
             it = FL_ONE | (FL_MASK & idum);  // Generate random number
-		    rdev += (*(float *)&it) - 1.0f;  // Cute convert to float
-		    
-/*		    ====================================
-union (
-  uint32_t  i32;
-  float32_t f32;
-  ) uinf;
 
+
+ //		    rdev += (*(float *)&it) - 1.0f;  // Cute convert to float - Gets warning
+ // Try
   uinf.i32 = it;
   rdev += uinf.f32 - 1.0f;
-===================================
-		*/    
+
+
+   
 	    }
 	    // Next, to get general form
         //  return mu + sd * 3.4641016f * (rdev - 0.5*(float)M) / sqrtf((float32_t)M);

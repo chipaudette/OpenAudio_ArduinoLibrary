@@ -31,7 +31,15 @@ OpenAudio Library for Teensy
 26-Brought in RadioFMDetector_F32 and Example
 27-Brought in synth_sin_cos_F32 and test example
 28-Brought in RadioNoiseBlanker_F32 and Example
+29-Created output_i2s_OA_F32.h and .cpp to have F32 input.  Work in Progress, DO NOT USE. Set to .xxx
 
+**Special Note 2***  2 July 2020 - Recently, the input and output I2S for F32 have been disabled as they had major hardware problems with
+Teensy 4.x.  The previous output_i2s_f32 files supported variable sample rate and variable block size, but only
+for T3.x. To get this going again, the old classes will be re-enabled for T3.x only .  And, new classes have been
+created that compile and run under T4.x (and T3.5, T3.6) but, for now, have no provision for changing block size, sample rate or ADC
+output word (always 16-bit).  The new files are output_i2s_OA_F32.h and output_i2s_OA_F32.cpp with the corresponding inputs to come soon. The classes are AudioInputI2S_OA_F32 and AudioOutputI2S_OA_F32 with the same functionality as their parallel 16-bit
+integer classes under Teensy Audio.  If you need variable block size and/or variable data rate (T3.x only) use the Convert_I16toF32 and
+Convert_F32toU16 classes.
 
 **Purpose**: The purpose of this library is to build upon the [Teensy Audio Library](http://www.pjrc.com/teensy/td_libs_Audio.html) to enable new functionality for real-time audio processing.
 
