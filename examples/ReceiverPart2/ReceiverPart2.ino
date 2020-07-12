@@ -41,25 +41,25 @@
 
 #include "Audio.h"
 #include <OpenAudio_ArduinoLibrary.h>
-#include "DSP_TeensyAudio_F32.h"
 
-// *********  Mini Control Panel  *********
+// *********        Mini Control Panel       ************
 // Set mode and gain here and re-compile
 
 // Here is the mode switch
 #define LSB  1
 #define USB  2
 #define NBFM 3
-uint16_t  mode = NBFM;   // <--Select mode
+uint16_t  mode = LSB;   // <--Select mode
 
-int gainControlDB = 0;  // Set SSB gain in dB. 0 dB is a gain of 1.0
+int gainControlDB = 0;   // <--Set SSB gain in dB. 0 dB is a gain of 1.0
 
-// *****************************************
+// ******************************************************
+
 // To work with T4.0 the I2S routine outputs 16-bit integer (I16).  Then
 // use Audette I16 to F32 convert.  Same below for output, in reverse.
 AudioInputI2S           i2sIn;
 AudioConvert_I16toF32   cnvrt1;
-AudioSwitch4_F32        switch1;    // Select SSB or FM
+AudioSwitch4_OA_F32     switch1;    // Select SSB or FM
 RadioIQMixer_F32        iqmixer1;
 AudioFilter90Deg_F32    hilbert1;
 AudioMixer4_F32         sum1;       // Summing node for the SSB receiver
@@ -108,8 +108,8 @@ float32_t fir_IQ29[29] = {
 
 void setup(void) {
   float32_t vGain;
-  AudioMemory(5);
-  AudioMemory_F32(5);
+  AudioMemory(10);
+  AudioMemory_F32(10);
   Serial.begin(300);  delay(1000);
 
   // Enable the audio shield, select input, and enable output

@@ -7,14 +7,12 @@
  */
 
 #include "Audio.h"
-#include <OpenAudio_ArduinoLibrary.h>
-#include "DSP_TeensyAudio_F32.h"
+#include "OpenAudio_ArduinoLibrary.h"
 
 AudioInputI2S               i2s1;
 AudioSynthWaveformSine_F32  sine1;      // Test signal
 RadioIQMixer_F32            iqmixer1;
 AudioFilter90Deg_F32        hilbert1;
-// NOTE: Use AudioMixer4_F32 *from Tympan* 
 AudioMixer4_F32             sum1;
 AudioRecordQueue_F32        queue1;     // The LSB output
 AudioRecordQueue_F32        queue2;     // The test sine wave
@@ -28,7 +26,6 @@ AudioConnection_F32         patchCord7(hilbert1, 1, sum1,     1);
 AudioConnection_F32         patchCord8(sum1,     0, queue1,   0);
 AudioConnection_F32         patchCord9(sine1,    0, queue2,   0);
 
-// Pick one of these
 #include "hilbert19A.h"
 #include "hilbert121A.h"
 #include "hilbert251A.h"
@@ -42,13 +39,14 @@ void setup(void) {
   AudioMemory(5); 
   AudioMemory_F32(10);
   Serial.begin(300);  delay(1000);
+
   sine1.frequency(14000.0);
   iqmixer1.frequency(16000.0);
-  // Pick one of the three, the 251 does not have
+  // Pick one of the three. Note that the 251 does not have
   // enough samples here to show the full build-up.
   // hilbert1.begin(hilbert19A, 19);
-  // hilbert1.begin(hilbert121A, 121);
   hilbert1.begin(hilbert121A, 121);
+  // hilbert1.begin(hilbert251A, 251);
   sum1.gain(0, 1.0);   // Leave at 1.0
   sum1.gain(1, -1.0);  // -1 for LSB out
   iqmixer1.showError(1);   // Prints update() errors
