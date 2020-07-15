@@ -32,6 +32,7 @@ OpenAudio Library for Teensy
 27-Brought in synth_sin_cos_F32 and test example
 28-Brought in RadioNoiseBlanker_F32 and Example
 29-Created output_i2s_OA_F32.h and .cpp to have F32 input.  Work in Progress, DO NOT USE. Set to .xxx
+30-Repaired Audio Mixers 4 & 8.  These are adders, NOT RF DBM's---see Multiplier_F32.
 
 **Special Note 2***  2 July 2020 - Recently, the input and output I2S for F32 have been disabled as they had major hardware problems with
 Teensy 4.x.  The previous output_i2s_f32 files supported variable sample rate and variable block size, but only
