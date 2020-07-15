@@ -1,63 +1,76 @@
-// Fix 1 to n problem Bob Larkin June 2020
-// Need to convert to TYmpan routine??
+/* Fix 1 to n problem Bob Larkin June 2020
+ * Adapted to Chip Audette's Tympan routine. Allows random channels.
+ * Class name does not have "_OA" to be backward compatible.
+ * 
+ * MIT License.  use at your own risk.
+*/
 
 #include "AudioMixer_F32.h"
 
 void AudioMixer4_F32::update(void) {
   audio_block_f32_t *in, *out=NULL;
-
-  out = receiveWritable_f32(0);
-  if (!out) return;
-
-  arm_scale_f32(out->data, multiplier[0], out->data, out->length);
-
-  for (int channel=0; channel < 4; channel++) {  // Was 1 to 3  RSL June 2020
+  int channel = 0;
+  
+  //get the first available channel
+  while  (channel < 4) {
+	  out = receiveWritable_f32(channel);
+	  if (out) break;
+	  channel++;
+  }
+  if (!out) return;  //there was no data output array available, so exit.
+  arm_scale_f32(out->data, multiplier[channel], out->data, out->length);
+  
+  //add in the remaining channels, as available
+  channel++;
+  while  (channel < 4) {
     in = receiveReadOnly_f32(channel);
-    if (!in) {
-      continue;
-    }
+    if (in) {
+		audio_block_f32_t *tmp = allocate_f32();
 
-    audio_block_f32_t *tmp = allocate_f32();
+		arm_scale_f32(in->data, multiplier[channel], tmp->data, tmp->length);
+		arm_add_f32(out->data, tmp->data, out->data, tmp->length);
 
-    arm_scale_f32(in->data, multiplier[channel], tmp->data, tmp->length);
-    arm_add_f32(out->data, tmp->data, out->data, tmp->length);
-
-    AudioStream_F32::release(tmp);
-    AudioStream_F32::release(in);
+		AudioStream_F32::release(tmp);
+		AudioStream_F32::release(in);
+	} else {
+		//do nothing, this vector is empty
+	}
+	channel++;
   }
-
-  if (out) {
-    AudioStream_F32::transmit(out);
-    AudioStream_F32::release(out);
-  }
+  AudioStream_F32::transmit(out);
+  AudioStream_F32::release(out);
 }
 
 void AudioMixer8_F32::update(void) {
   audio_block_f32_t *in, *out=NULL;
 
-  out = receiveWritable_f32(0);  //try to get the first input channel
-  if (!out) return;  //if it's not there, return immediately
-
-  arm_scale_f32(out->data, multiplier[0], out->data, out->length); //scale the first input channel
-
-  //load and process the rest of the channels
-  for (int channel=0; channel < 8; channel++) {   // Was 1 to 7  RSL June 2020
+  //get the first available channel
+  int channel = 0;
+  while  (channel < 8) {
+	  out = receiveWritable_f32(channel);
+	  if (out) break;
+	  channel++;
+  }
+  if (!out) return;  //there was no data output array.  so exit.
+  arm_scale_f32(out->data, multiplier[channel], out->data, out->length); 
+  
+  //add in the remaining channels, as available
+  channel++;
+  while  (channel < 8) {
     in = receiveReadOnly_f32(channel);
-    if (!in) {
-      continue;
-    }
+    if (in) {
+		audio_block_f32_t *tmp = allocate_f32();
 
-    audio_block_f32_t *tmp = allocate_f32();
+		arm_scale_f32(in->data, multiplier[channel], tmp->data, tmp->length);
+		arm_add_f32(out->data, tmp->data, out->data, tmp->length);
 
-    arm_scale_f32(in->data, multiplier[channel], tmp->data, tmp->length);
-    arm_add_f32(out->data, tmp->data, out->data, tmp->length);
-
-    AudioStream_F32::release(tmp);
-    AudioStream_F32::release(in);
+		AudioStream_F32::release(tmp);
+		AudioStream_F32::release(in);
+	} else {
+		//do nothing, this vector is empty
+	}
+	channel++;
   }
-
-  if (out) {
-    AudioStream_F32::transmit(out);
-    AudioStream_F32::release(out);
-  }
+  AudioStream_F32::transmit(out);
+  AudioStream_F32::release(out);
 }

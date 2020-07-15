@@ -1,5 +1,5 @@
 /* ReceiverPart2.ino    Bob Larkin   29 April 2020
- * This is a simple SP radio design.  It can receive 2 modes,
+ * This is a simple DSP radio design.  It can receive 2 modes,
  * Single Sideband (SSB) and Narrow Band FM (NBFM).  SSB
  * breaks into Lower Sidband  (LSB) and Upper Sideband (USB).
  * It gets even better in that AM can be received on either
@@ -32,11 +32,14 @@
  *   At LPF FIR Out        2.0
  *   
  *   FM Det gives 0.50 out for about 5.6 kHz p-p deviation
+ * 
+ *   With a 14 kHz input sine wave, 0.5 Vp-p the LSB output is 0.738 p-p
+ *   With 15kHz, 1000Hz FM modulation, 2 kHz deviation, NBFM output is 0.173 p-p
  *   
- *   T3.6 Processor load, measured: 16% for NBFM
- *                                  30% for LSB or USB 29 tap LPF
+ *   T3.6 Processor load, measured: 17% for NBFM
+ *                                  31% for LSB or USB, 29 tap LPF
  *   T4.0 Processor load, measured: 4.3% for NBFM
- *                                  6.5% for LSB or USB 29 tap LPF
+ *                                  6.5% for LSB or USB, 29 tap LPF
  */
 
 #include "Audio.h"
@@ -68,8 +71,8 @@ RadioFMDetector_F32     fmdet1;     // NBFM from 10 to 20 kHz
 AudioMixer4_F32         sum2;       // SSB and NBFM rejoin here
 AudioConvert_F32toI16   cnvrt2;     // Left
 AudioConvert_F32toI16   cnvrt3;     // Right
-AudioOutputI2S          i2sOut;
 AudioAnalyzePeak_F32    peak1;
+AudioOutputI2S          i2sOut;
 AudioControlSGTL5000    sgtl5000_1;
 
 AudioConnection         conI16_1(i2sIn,    0, cnvrt1,   0);  // ADC
@@ -81,8 +84,8 @@ AudioConnection_F32     connect4(iqmixer1, 0, hilbert1, 0);  // Broadband 90 deg
 AudioConnection_F32     connect5(iqmixer1, 1, hilbert1, 1);
 AudioConnection_F32     connect6(hilbert1, 0, sum1,     0);   // Sideband select
 AudioConnection_F32     connect7(hilbert1, 1, sum1,     1);
-AudioConnection_F32     connect8(sum1,     0, fir1,     0);   // Limit audio BW
-AudioConnection_F32     connect9(fir1,     0, sum2,     0);   // Output of SSB
+AudioConnection_F32     connect8(sum1,     0, fir1,     0);   // Limit audio SSB BW
+AudioConnection_F32     connect9(fir1,     0, sum2,     0);   // Output of SSB  <<<THESE GOT REVERSED
 AudioConnection_F32     connectA(fmdet1,   0, sum2,     1);   // Output of FM
 AudioConnection_F32     connectC(sum2,     0, cnvrt2,   0);   // Out to the CODEC left
 AudioConnection_F32     connectD(sum2,     0, cnvrt3,   0);   // and right
@@ -133,6 +136,10 @@ void setup(void) {
   Serial.print("FM Initialization errors: ");
   Serial.println( fmdet1.returnInitializeFMError() );
 
+  // The following enables error checking inside of the "ubdate()"
+  // Output goes to the Serial (USB) Monitor.  Normally, this is quiet.
+  if (mode == NBFM)  fmdet1.showError(1);
+
   // See RadioFMDetector_F32.h for information on functions for modifying the
   // FM Detector.  Default values are used here, starting with a 15 kHz center frequency.
   
@@ -141,8 +148,8 @@ void setup(void) {
   // The gainControlDB goes in 1 dB steps.  Convert here to a voltage ratio
   vGain = powf(10.0f, ((float32_t)gainControlDB)/20.0 );
   // And apply that ratio to the output summing block.  Gain here for SSB only
-  sum2.gain(0, vGain);     Serial.print("vGain = "); Serial.println(vGain, 4);
-  sum2.gain(1, 1.0f);       // FM gain
+  sum2.gain(0, vGain);     Serial.print("SSB vGain = "); Serial.println(vGain, 4);
+  sum2.gain(2, 1.0f);       // FM gain
 
   // The following enable error checking inside of the blocks indicated.
   // Output goes to the Serial (USB) Monitor.  Use for debug.
@@ -151,27 +158,24 @@ void setup(void) {
 }
 
 void loop(void) {
-// Here is where the adjustment of the volume control could go.
-// And anything else that needs regular attention, other
-// than the audio stream.
-
-  if (peak1.available() ) {Serial.print("P-P ="); Serial.println(peak1.readPeakToPeak(), 6);}
-  else Serial.println("Peak-Peak not available");
+  if (peak1.available() ) {
+	  Serial.print("P-P =");
+	  Serial.println(peak1.readPeakToPeak(), 6);
+  }
+  else
+      Serial.println("Peak-Peak not available");
   Serial.print("CPU: Percent Usage, Max: ");
   Serial.print(AudioProcessorUsage());
   Serial.print(", ");
-  Serial.print(AudioProcessorUsageMax());
-  Serial.print("    ");
+  Serial.println(AudioProcessorUsageMax());
   Serial.print("Int16 Memory: ");
   Serial.print(AudioMemoryUsage());
   Serial.print(", ");
-  Serial.print(AudioMemoryUsageMax());
-  Serial.print("    ");
-  Serial.print("Float Memory: ");
+  Serial.println(AudioMemoryUsageMax());
+  Serial.print("Float 32 Memory: ");
   Serial.print(AudioMemoryUsage_F32());
   Serial.print(", ");
   Serial.println(AudioMemoryUsageMax_F32());
-  Serial.println();
 
   delay(1000);
 } 
