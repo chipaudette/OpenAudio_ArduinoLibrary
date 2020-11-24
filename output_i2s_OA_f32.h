@@ -49,12 +49,7 @@ class AudioOutputI2S_OA_F32 : public AudioStream_F32
 //GUI: inputs:2, outputs:0  //this line used for automatic generation of GUI node
 public:
 	AudioOutputI2S_OA_F32(void) : AudioStream_F32(2, inputQueueArray) {
-		// Add 2 delays as experimental fix for possible Teensy Loader issue.
-		uint32_t  ii;
-		uint32_t xx = 0;
-		for (ii=0; ii<1000; ii++)  xx += ii;
-		begin();
-		for (ii=0; ii<1000; ii++)  xx += ii;
+      // begin(); // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     }
 	
 /*  This long form needs to be added  <<<<<<<<<<<<<<<<

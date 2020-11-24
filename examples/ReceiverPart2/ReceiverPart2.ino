@@ -45,7 +45,7 @@
 #include "Audio.h"
 #include <OpenAudio_ArduinoLibrary.h>
 
-// *********        Mini Control Panel       ************
+// ***********        Mini Control Panel       ************
 // Set mode and gain here and re-compile
 
 // Here is the mode switch
@@ -54,9 +54,8 @@
 #define NBFM 3
 uint16_t  mode = LSB;   // <--Select mode
 
-int gainControlDB = 0;   // <--Set SSB gain in dB. 0 dB is a gain of 1.0
-
-// ******************************************************
+int gainControlDB = 0;  // <--Set SSB gain in dB.
+// *********************************************************
 
 // To work with T4.0 the I2S routine outputs 16-bit integer (I16).  Then
 // use Audette I16 to F32 convert.  Same below for output, in reverse.

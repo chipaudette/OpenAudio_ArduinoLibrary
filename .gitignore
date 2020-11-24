@@ -6,6 +6,9 @@
 Thumbs.db
 ehthumbs.db
 
+#Gnumeric source file, used locally
+OpenAudioLibraryStatus.gnumeric
+
 # Folder config file
 Desktop.ini
 

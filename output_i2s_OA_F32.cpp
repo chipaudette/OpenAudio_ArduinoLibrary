@@ -78,7 +78,7 @@ void AudioOutputI2S_OA_F32::begin(void)
 
 #elif defined(__IMXRT1062__)
     CORE_PIN7_CONFIG  = 3;  //1:TX_DATA0
-    dma.TCD->SADDR = i2s_tx_buffer;
+    dma.TCD->SADDR = i2s_tx_buffer;                // Serial.println("A1062 begin");
     dma.TCD->SOFF = 2;
     dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
     dma.TCD->NBYTES_MLNO = 2;
@@ -96,7 +96,9 @@ void AudioOutputI2S_OA_F32::begin(void)
     I2S1_TCSR = I2S_TCSR_TE | I2S_TCSR_BCE | I2S_TCSR_FRDE;
 #endif
     update_responsibility = update_setup();
+                                                //Serial.println("BBB");
     dma.attachInterrupt(isr);
+                                                 //Serial.println("CCC");
 }    // end begin()
 
 void AudioOutputI2S_OA_F32::isr(void)
