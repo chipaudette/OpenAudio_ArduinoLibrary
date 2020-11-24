@@ -82,35 +82,33 @@ Status
 
 The following table summarizes the status, as of 24 November 2020.  I will try to keep this up-to-date as work continues, but tere will be lags.
 Thus there may be more T4.x compatibility than shown here.  A blank entry for status does not indicate a problem, but rather a lack
-ofverification.  Further rexamples will come to test some of these objects.
+of verification.  Further examples will come to test some of these objects.
 ![Open Audio F32 Status](OA_LibraryStatus.gif)
 The example files (from the Examples directory) are
 
-1   AudioTestAnalyzePhase_F32
-2   AudioTestPeakRMS
-3   AudioTestSinCos
-4   BasicCompressor_Float
-5   BasicGain_Float
-6   FineFreqShift_OA
-7   FormantShifter_FD_OA
-8   FrequencyShifter_FD_OA
-9   LowpassFilter_FD_OA
-10  MixStereoToMono_Float
-11  MyAudioEffect_Float
-12  OscillatorWithPitchmod_Float
-13  ReceiverFM
-14  ReceiverPart1
-15  ReceiverPart2
-16  Repair audio mixer_F32
-17  SignalNoise_float
-18  Switches_float
-19  TestEqualizer1
-20  TestEqualizer1Audio
-21  TestFIRGeneral3
-22  TestFIRGeneralLarge4
-23  TestFIRGeneralLarge5
-24  TestInputOutput_float
-25  TestLoader
-26  TestLoader2
-27  TestOutput_float
-28  Tympan_TLV320AIC3206
+1.   AudioTestAnalyzePhase_F32
+2.   AudioTestPeakRMS
+3.   AudioTestSinCos
+4.   BasicCompressor_Float
+5.   BasicGain_Float
+6.   FineFreqShift_OA
+7.   FormantShifter_FD_OA
+8.   FrequencyShifter_FD_OA
+9.   LowpassFilter_FD_OA
+10.  MixStereoToMono_Float
+11.  MyAudioEffect_Float
+12.  OscillatorWithPitchmod_Float
+13.  ReceiverFM
+14.  ReceiverPart1
+15.  ReceiverPart2
+16.  Repair audio mixer_F32
+17.  SignalNoise_float
+18.  Switches_float
+19.  TestEqualizer1
+20.  TestEqualizer1Audio
+21.  TestFIRGeneral3
+22.  TestFIRGeneralLarge4
+23.  TestFIRGeneralLarge5
+24.  TestInputOutput_float
+
+28.  Tympan_TLV320AIC3206
