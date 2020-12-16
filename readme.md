@@ -53,6 +53,7 @@ The following table summarizes the status, as of 24 November 2020.  I will try t
 Thus there may be more T4.x compatibility than shown here.  A blank entry for status does not indicate a problem, but rather a lack
 of verification.  Further examples will come to test some of these objects.
 ![Open Audio F32 Status](OA_LibraryStatus.gif)
+Update 15 Dec 20: AudioTestWDRC2_F32.h is here for beta test, See Example testWDRC2.ino
 The example files (from the Examples directory) are
 
 1.   AudioTestAnalyzePhase_F32
@@ -81,7 +82,7 @@ The example files (from the Examples directory) are
 24.  TestInputOutput_float
 
 28.  Tympan_TLV320AIC3206
-
+29.  testWDRC2
 WORKING NOTES - For now, here are some temporary notes:
 ---------------
 1.  synth_sine_f32.h & .cpp allowed both KINETISK and__IMXRT1062__ to support T4.x.  Tested 3.6, 4.0
