@@ -53,8 +53,8 @@ void AudioInputI2S_F32::begin(void)
 	AudioOutputI2S_F32::audio_block_samples = audio_block_samples;
 	AudioOutputI2S_F32::config_i2s();
 
-	CORE_PIN13_CONFIG = PORT_PCR_MUX(4); // pin 13, PTC5, I2S0_RXD0
 #if defined(KINETISK)
+	CORE_PIN13_CONFIG = PORT_PCR_MUX(4); // pin 13, PTC5, I2S0_RXD0
 	dma.TCD->SADDR = &I2S0_RDR0;
 	dma.TCD->SOFF = 0;
 	dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
@@ -69,13 +69,33 @@ void AudioInputI2S_F32::begin(void)
 	//dma.TCD->BITER_ELINKNO = sizeof(i2s_rx_buffer) / 2;	//original
 	dma.TCD->BITER_ELINKNO = I2S_BUFFER_TO_USE_BYTES / 2;
 	dma.TCD->CSR = DMA_TCD_CSR_INTHALF | DMA_TCD_CSR_INTMAJOR;
-#endif
 	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_I2S0_RX);
+	I2S0_RCSR |= I2S_RCSR_RE | I2S_RCSR_BCE | I2S_RCSR_FRDE | I2S_RCSR_FR;
+
+	I2S0_TCSR |= I2S_TCSR_TE | I2S_TCSR_BCE; // TX clock enable, because sync'd to TX
+
+#elif defined(__IMXRT1062__)
+	CORE_PIN8_CONFIG  = 3;  //1:RX_DATA0
+	IOMUXC_SAI1_RX_DATA0_SELECT_INPUT = 2;
+
+	dma.TCD->SADDR = (void *)((uint32_t)&I2S1_RDR0 + 2);
+	dma.TCD->SOFF = 0;
+	dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
+	dma.TCD->NBYTES_MLNO = 2;
+	dma.TCD->SLAST = 0;
+	dma.TCD->DADDR = i2s_rx_buffer;
+	dma.TCD->DOFF = 2;
+	dma.TCD->CITER_ELINKNO = sizeof(i2s_rx_buffer) / 2;
+	dma.TCD->DLASTSGA = -sizeof(i2s_rx_buffer);
+	dma.TCD->BITER_ELINKNO = sizeof(i2s_rx_buffer) / 2;
+	dma.TCD->CSR = DMA_TCD_CSR_INTHALF | DMA_TCD_CSR_INTMAJOR;
+	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_SAI1_RX);
+
+	I2S1_RCSR = I2S_RCSR_RE | I2S_RCSR_BCE | I2S_RCSR_FRDE | I2S_RCSR_FR;
+#endif
+
 	update_responsibility = update_setup();
 	dma.enable();
-
-	I2S0_RCSR |= I2S_RCSR_RE | I2S_RCSR_BCE | I2S_RCSR_FRDE | I2S_RCSR_FR;
-	I2S0_TCSR |= I2S_TCSR_TE | I2S_TCSR_BCE; // TX clock enable, because sync'd to TX
 	dma.attachInterrupt(isr);
 	
 	
@@ -89,7 +109,7 @@ void AudioInputI2S_F32::isr(void)
 	audio_block_t *left, *right;
 
 	//digitalWriteFast(3, HIGH);
-#if defined(KINETISK)
+#if defined(KINETISK) || defined(__IMXRT1062__)
 	daddr = (uint32_t)(dma.TCD->DADDR);
 #endif
 	dma.clearInterrupt();
