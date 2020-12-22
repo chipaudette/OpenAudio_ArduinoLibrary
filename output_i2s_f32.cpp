@@ -90,7 +90,7 @@ audio_block_f32_t * AudioOutputI2S_F32::block_right_2nd = NULL;
 uint16_t  AudioOutputI2S_F32::block_left_offset = 0;
 uint16_t  AudioOutputI2S_F32::block_right_offset = 0;
 bool AudioOutputI2S_F32::update_responsibility = false;
-DMAMEM static uint64_t i2s_tx_buffer[AUDIO_BLOCK_SAMPLES]; //local audio_block_samples should be no larger than global AUDIO_BLOCK_SAMPLES
+DMAMEM __attribute__((aligned(32))) static uint64_t i2s_tx_buffer[AUDIO_BLOCK_SAMPLES]; //local audio_block_samples should be no larger than global AUDIO_BLOCK_SAMPLES
 DMAChannel AudioOutputI2S_F32::dma(false);
 
 float AudioOutputI2S_F32::sample_rate_Hz = AUDIO_SAMPLE_RATE;
@@ -134,15 +134,15 @@ void AudioOutputI2S_F32::begin(void)
 #elif defined(__IMXRT1062__)
 	CORE_PIN7_CONFIG  = 3;  //1:TX_DATA0
 	dma.TCD->SADDR = i2s_tx_buffer;
-	dma.TCD->SOFF = 2;
-	dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
-	dma.TCD->NBYTES_MLNO = 2;
-	dma.TCD->SLAST = -sizeof(i2s_tx_buffer);
+	dma.TCD->SOFF = 4;
+	dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(2) | DMA_TCD_ATTR_DSIZE(2);
+	dma.TCD->NBYTES_MLNO = 4;
+	dma.TCD->SLAST = -I2S_BUFFER_TO_USE_BYTES;
 	dma.TCD->DOFF = 0;
-	dma.TCD->CITER_ELINKNO = sizeof(i2s_tx_buffer) / 2;
+	dma.TCD->CITER_ELINKNO = I2S_BUFFER_TO_USE_BYTES / 4;
 	dma.TCD->DLASTSGA = 0;
-	dma.TCD->BITER_ELINKNO = sizeof(i2s_tx_buffer) / 2;
-	dma.TCD->DADDR = (void *)((uint32_t)&I2S1_TDR0 + 2);
+	dma.TCD->BITER_ELINKNO = I2S_BUFFER_TO_USE_BYTES / 4;
+	dma.TCD->DADDR = (void *)((uint32_t)&I2S1_TDR0);
 	dma.TCD->CSR = DMA_TCD_CSR_INTHALF | DMA_TCD_CSR_INTMAJOR;
 	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_SAI1_TX);
 	dma.enable();
@@ -227,8 +227,9 @@ void AudioOutputI2S_F32::isr(void)
 	} else {
 		//memset(dest,0,AUDIO_BLOCK_SAMPLES * 2);
 		memset(dest,0,audio_block_samples * 4);
-		return;
 	}
+
+	arm_dcache_flush_delete(dest, sizeof(i2s_tx_buffer) / 2);
 
 	//if (offsetL < AUDIO_BLOCK_SAMPLES) { //original
 	if (offsetL < (uint16_t)audio_block_samples) {
