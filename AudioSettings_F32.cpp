@@ -5,7 +5,6 @@
 
 float AudioSettings_F32::cpu_load_percent(const int n) {
 	//n is the number of cycles
-	#define CYCLE_COUNTER_APPROX_PERCENT(n) (((n) + (F_CPU / 32 / AUDIO_SAMPLE_RATE * AUDIO_BLOCK_SAMPLES / 100)) / (F_CPU / 16 / AUDIO_SAMPLE_RATE * AUDIO_BLOCK_SAMPLES / 100))
 	float foo1 = ((float)(F_CPU / 32))/sample_rate_Hz;
 	foo1 *= ((float)audio_block_samples);
 	foo1 /= 100.f;
