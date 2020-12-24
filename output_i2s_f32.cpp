@@ -93,12 +93,28 @@ float setI2SFreq(const float freq_Hz) {
   Serial.println(C, 4);
   */
 
+  // The CCM_CSCMR1 documentation says that the users of the clock should 
+  // be disabled and the clock gated before changing the clock parameters.
+  
+  // turn off the I2S output first
+  I2S1_RCSR &= ~(I2S_RCSR_RE | I2S_RCSR_BCE);
+  I2S1_TCSR &= ~(I2S_TCSR_TE | I2S_TCSR_BCE | I2S_TCSR_FRDE);
+  while((I2S1_RCSR & (I2S_RCSR_RE | I2S_RCSR_BCE)) ||
+        (I2S1_TCSR & (I2S_TCSR_TE | I2S_TCSR_BCE)));
+  // gate the SAI1 clock
+  CCM_CCGR5 &= ~CCM_CCGR5_SAI1(3);
+  
   // PLL
   set_audioClock(c0, c1, c2, true);
   // divider after PLL
   CCM_CS1CDR = (CCM_CS1CDR & ~(CCM_CS1CDR_SAI1_CLK_PRED_MASK | CCM_CS1CDR_SAI1_CLK_PODF_MASK))
        | CCM_CS1CDR_SAI1_CLK_PRED(n1-1) // &0x07
        | CCM_CS1CDR_SAI1_CLK_PODF(n2-1); // &0x3f
+
+  CCM_CCGR5 |= CCM_CCGR5_SAI1(CCM_CCGR_ON);
+
+  I2S1_RCSR |= (I2S_RCSR_RE | I2S_RCSR_BCE);
+  I2S1_TCSR |= (I2S_TCSR_TE | I2S_TCSR_BCE | I2S_TCSR_FRDE);
 
   return freq_Hz;
 
