@@ -1,9 +1,9 @@
 /*
  *  synth_GaussianWhiteNoise_F32.cpp
  *  by Bob Larkin  W7PUA 15 June 2020
- * 
- *	Created: Chip Audette, OpenAudio, Feb 2017
-	
+ *
+ *  Created: Chip Audette, OpenAudio, Feb 2017
+
 
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -32,25 +32,25 @@
 
 void AudioSynthGaussian_F32::update(void)
 {
-	audio_block_f32_t *blockOut;
-	uint32_t it;
-	float32_t rdev = 0.0f;
+    audio_block_f32_t *blockOut;
+    uint32_t it;
+    float32_t rdev = 0.0f;
     float32_t* pd;
 
-	if (sd < 0.01f) {
-		return;  // Not enabled
-	}
+    if (sd < 0.01f) {
+        return;  // Not enabled
+    }
 
 #if TEST_TIME_GWN
   if (iitt++ >1000000) iitt = -10;
   uint32_t t1, t2;
   t1 = tElapse;
 #endif
-	blockOut = AudioStream_F32::allocate_f32();
-	if (!blockOut) {
-	    if(errorPrint)  Serial.println("GWN-ERR: No output memory");
-	        return;
-	}
+    blockOut = AudioStream_F32::allocate_f32();
+    if (!blockOut) {
+        if(errorPrint)  Serial.println("GWN-ERR: No output memory");
+            return;
+    }
 
     pd = &blockOut->data[0];  // Pointer to write data
     /* The "Even Quicker" uniform random sample generator from D. E. Knuth and
@@ -58,44 +58,34 @@ void AudioSynthGaussian_F32::update(void)
      * 2nd ed, with the comment "this is about as good as any 32-bit linear
      * congruential generator, entirely adequate for many uses."
      */
-     
-     		    
- // Try:
- union {
+  union {
     uint32_t  i32;
     float32_t f32;
     } uinf;
-    
-    
-    for(int i=0; i<blockSize; i++)  {
-	    rdev = 0.0f;
-        for (int j=0; j<12; j++){   // Add 12, using Central Limit to get Gaussian
-	       	idum = (uint32_t)1664525 * idum + (uint32_t)1013904223;
-            it = FL_ONE | (FL_MASK & idum);  // Generate random number
 
-
- //		    rdev += (*(float *)&it) - 1.0f;  // Cute convert to float - Gets warning
- // Try
-  uinf.i32 = it;
-  rdev += uinf.f32 - 1.0f;
-
-
-   
-	    }
-	    // Next, to get general form
-        //  return mu + sd * 3.4641016f * (rdev - 0.5*(float)M) / sqrtf((float32_t)M);
-        *pd++ = sd*(rdev - 6.0f);   // Specific for mu=0.0, M=12
-    }
-
-	AudioStream_F32::transmit(blockOut);
-	AudioStream_F32::release(blockOut);
+  for(int i=0; i<blockSize; i++)  {
+     rdev = 0.0f;
+     for (int j=0; j<12; j++){   // Add 12, using Central Limit to get Gaussian
+         idum = (uint32_t)1664525 * idum + (uint32_t)1013904223;
+         it = FL_ONE | (FL_MASK & idum);  // Generate random number
+ /*      dev += (*(float *)&it) - 1.0f;  // Cute convert to float, but gets compiler warning */
+         uinf.i32 = it;
+         rdev += uinf.f32 - 1.0f;
+     }
+     // Next, to get general form
+     //  return mu + sd * 3.4641016f * (rdev - 0.5*(float)M) / sqrtf((float32_t)M);
+     *pd++ = sd*(rdev - 6.0f);   // Specific for mu=0.0, M=12
+  }
+  AudioStream_F32::transmit(blockOut);
+  AudioStream_F32::release(blockOut);
 
 #if TEST_TIME_GWN
   t2 = tElapse;
   if(iitt++ < 0) {
-	  Serial.print("At Gaussian Noise end, microseconds = ");
-	  Serial.println (t2 - t1);
+      Serial.print("At Gaussian Noise end, microseconds = ");
+      Serial.println (t2 - t1);
    }
    t1 = tElapse;
 #endif
+
 }
