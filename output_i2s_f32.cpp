@@ -1,7 +1,7 @@
 /*
  *  ***** output_i2s_f32.cpp  *****
-
-/* Audio Library for Teensy 3.X
+ * 
+ * Audio Library for Teensy 3.X
  * Copyright (c) 2014, Paul Stoffregen, paul@pjrc.com
  *
  * Development of this audio library was funded by PJRC.COM, LLC by sales of
@@ -35,8 +35,7 @@
  
  
 
-// #include "output_i2s_f32.h"  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-#include "output_i2s_OA_F32.h"
+#include "output_i2s_f32.h"
 //#include "input_i2s_f32.h"
 //include "memcpy_audio.h"
 //#include "memcpy_interleave.h"
