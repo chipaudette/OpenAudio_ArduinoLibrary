@@ -77,6 +77,7 @@ The example files (from the Examples directory) are
 
 28.  Tympan_TLV320AIC3206
 29.  testWDRC2
+
 WORKING NOTES - For now, here are some temporary notes:
 ---------------
 1.  synth_sine_f32.h & .cpp allowed both KINETISK and__IMXRT1062__ to support T4.x.  Tested 3.6, 4.0
