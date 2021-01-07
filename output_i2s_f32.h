@@ -75,10 +75,8 @@ public:
 	static void scale_f32_to_i16( float32_t *p_f32, float32_t *p_i16, int len) ;
 	static void scale_f32_to_i24( float32_t *p_f32, float32_t *p_i16, int len) ;
 	static void scale_f32_to_i32( float32_t *p_f32, float32_t *p_i32, int len) ;
-	static float setI2SFreq_T3(const float);
-
-
-
+	
+	static float setI2SFreq_T3(const float);  // I2S clock for T3,x
 protected:
 	AudioOutputI2S_F32(int dummy): AudioStream_F32(2, inputQueueArray) {} // to be used only inside AudioOutputI2Sslave !!
 	static void config_i2s(void);

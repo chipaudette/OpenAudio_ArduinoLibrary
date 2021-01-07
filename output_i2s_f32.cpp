@@ -786,10 +786,10 @@ void AudioOutputI2S_F32::update(void)
 #endif
 #endif
 
-
 void AudioOutputI2S_F32::config_i2s(void) {	config_i2s(false, AudioOutputI2S_F32::sample_rate_Hz); }
 void AudioOutputI2S_F32::config_i2s(bool transferUsing32bit) {	config_i2s(transferUsing32bit, AudioOutputI2S_F32::sample_rate_Hz); }
 void AudioOutputI2S_F32::config_i2s(float fs_Hz) { config_i2s(false, fs_Hz); }
+
 void AudioOutputI2S_F32::config_i2s(bool transferUsing32bit, float fs_Hz)
 {
 #if defined(KINETISK) || defined(KINETISL)
@@ -834,9 +834,7 @@ void AudioOutputI2S_F32::config_i2s(bool transferUsing32bit, float fs_Hz)
 	// change the I2S frequencies to make the requested sample rate
 	setI2SFreq_T3(fs_Hz);  //for T3.x only!
 
-
 #elif defined(__IMXRT1062__)
-
 	CCM_CCGR5 |= CCM_CCGR5_SAI1(CCM_CCGR_ON);
 
 	// if either transmitter or receiver is enabled, do nothing

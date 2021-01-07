@@ -3,7 +3,7 @@ OpenAudio Library for Teensy
 
 *** Special Note ***  6 January 2021- This library is undergoing revision to make Teensy 4.x compatible and to add functionality.  The Tympan Library
 files and associated classes output_i2s_f32.h, output_i2s_f32.cpp, input_i2s_f32.h, input_i2s_f32.cpp are now
-ready to be used for T3.x and T4.x.  There are some restrictions, particularly this should be used with 16-bit I2S codec data. Notes and details are at the bottom of this page.  Work on the F32 i/o routines is continuing.  Thanks to Chip and @jcj83429 .
+ready to be used for T3.x and T4.x.  There are some restrictions, particularly this should be used with 16-bit I2S codec data. Codec sample rates can be varied.  Block size needsto be left at 128 for now.  Work on the F32 i/o routines is continuing.  Thanks to Chip and @jcj83429 .
 
 **Purpose**: The purpose of this library is to build upon the [Teensy Audio Library](http://www.pjrc.com/teensy/td_libs_Audio.html) to enable new functionality for real-time audio processing.
 
