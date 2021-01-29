@@ -47,7 +47,7 @@ The following table summarizes the status, as of 24 November 2020.  I will try t
 Thus there may be more T4.x compatibility than shown here.  A blank entry for status does not indicate a problem, but rather a lack
 of verification.  Further examples will come to test some of these objects.
 ![Open Audio F32 Status](OA_LibraryStatus.gif)
-Update 15 Dec 20: AudioTestWDRC2_F32.h is here for beta test, See Example testWDRC2.ino
+Update 29 Jan 2021: Replaced WDRC2 with AudioEffectCompressor2_F32.  See Example testCompressor2.ino
 The example files (from the Examples directory) are
 
 1.   AudioTestAnalyzePhase_F32
@@ -76,7 +76,8 @@ The example files (from the Examples directory) are
 24.  TestInputOutput_float
 
 28.  Tympan_TLV320AIC3206
-29.  testWDRC2
+29.  testWDRC2 (not supported)
+30.  testCompressor2
 
 WORKING NOTES - For now, here are some temporary notes:
 ---------------
@@ -108,5 +109,8 @@ WORKING NOTES - For now, here are some temporary notes:
 26.  Brought in RadioFMDetector_F32 and Example
 27.  Brought in synth_sin_cos_F32 and test example
 28.  Brought in RadioNoiseBlanker_F32 and Example
-29.  Created output_i2s_OA_F32.h and .cpp to have F32 input.  Work in Progress, DO NOT USE. Set to .xxx
+29.  Created output_i2s_OA_F32.h and .cpp to have F32 input. SEE 31 below
 30.  Repaired Audio Mixers 4 & 8.  These are adders, NOT RF DBM's---see Multiplier_F32.
+31.  I2S Input and Output made T4 compatible, both supporting variable sample rate
+32.  Added AudioEffectCompressor2_F32 quite general audio compressor.
+
