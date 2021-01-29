@@ -8,6 +8,7 @@
 #include "AudioControlTester.h"
 #include "AudioConvert_F32.h"
 #include "AudioEffectCompressor_F32.h"
+#include "AudioEffectCompressor2_F32.h"
 #include "AudioEffectCompWDRC_F32.h"
 #include "AudioEffectEmpty_F32.h"
 #include "AudioEffectGain_F32.h"
