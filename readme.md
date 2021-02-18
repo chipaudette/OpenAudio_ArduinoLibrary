@@ -48,6 +48,7 @@ Thus there may be more T4.x compatibility than shown here.  A blank entry for st
 of verification.  Further examples will come to test some of these objects.
 ![Open Audio F32 Status](OA_LibraryStatus.gif)
 Update 29 Jan 2021: Replaced WDRC2 with AudioEffectCompressor2_F32.  See Example testCompressor2.ino
+Update 18 Feb 2021: Added analyze_fft1024_F32.h and .cpp that parallels analyze_fft1024.h and .cpp in the Teensy Audio Library, but F32.
 The example files (from the Examples directory) are
 
 1.   AudioTestAnalyzePhase_F32
@@ -113,4 +114,5 @@ WORKING NOTES - For now, here are some temporary notes:
 30.  Repaired Audio Mixers 4 & 8.  These are adders, NOT RF DBM's---see Multiplier_F32.
 31.  I2S Input and Output made T4 compatible, both supporting variable sample rate
 32.  Added AudioEffectCompressor2_F32 quite general audio compressor.
+33.  Added analyze_fft1024_F32 that does audio in and rms volts, power or dBFS  out.
 
