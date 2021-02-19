@@ -1,5 +1,5 @@
 /* analyze_fft1024_F32.cpp      Converted from Teensy I16 Audio Library
- * This version uses floating point F32 inputs
+ * This version uses float F32 inputs.  See comments at analyze_fft1024_F32.h
  *
  * Conversion parts copyright (c) Bob Larkin 2021
  *
@@ -57,7 +57,6 @@ static void apply_window_to_fft_buffer(void *buffer, const void *window)
 void AudioAnalyzeFFT1024_F32::update(void)
 {
     audio_block_f32_t *block;
-
     block = receiveReadOnly_f32();
     if (!block) return;
 
@@ -103,7 +102,7 @@ void AudioAnalyzeFFT1024_F32::update(void)
         copy_to_fft_buffer(fft_buffer+0x600, blocklist[6]->data);
         copy_to_fft_buffer(fft_buffer+0x700, blocklist[7]->data);
 
-        if (window)
+        if (pWin)
            apply_window_to_fft_buffer(fft_buffer, window);
 
         arm_cfft_radix4_f32(&fft_inst, fft_buffer);
