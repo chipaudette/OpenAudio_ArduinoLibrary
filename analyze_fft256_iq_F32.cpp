@@ -5,6 +5,7 @@
  *   * Adapted all I/O to be F32 floating point for OpenAudio_ArduinoLibrary
  *   * Future: Add outputs for I & Q FFT x2 for overlapped FFT
  *   * Windowing None, Hann, Kaiser and Blackman-Harris.
+ *  See analyze_fft256_iq_F32. for more info.
  *
  * Conversion Copyright (c) 2021 Bob Larkin
  * Same MIT license as PJRC:

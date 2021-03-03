@@ -1,4 +1,4 @@
-/*    analyze_fft_iq_F32.h
+/*    analyze_fft256_iq_F32.h
  *
  * Converted to F32 floating point input and also extended
  * for complex I and Q inputs
@@ -64,10 +64,10 @@
  *   Full scale for floating point DSP is a nebulous concept.  Normally the
  *   full scale is -1.0 to +1.0.  This is an unscaled FFT and for a sine
  *   wave centered in frequency on a bin and of FS amplitude, the power
- *   at that center bin will grow by 1024^2/4 = 262144 without windowing.
- *   Windowing loss cuts this down.  The RMS level can grow to sqrt(262144)
- *   or 512.  The dBFS has been scaled to make this max value 0 dBFS by
- *   removing 54.2 dB.  With floating point, the dynamic range is maintained
+ *   at that center bin will grow by 256^2/4 = 16384 without windowing.
+ *   Windowing loss cuts this down.  The RMS level can grow to sqrt(16384)
+ *   or 128.  The dBFS has been scaled to make this max value 0 dBFS by
+ *   removing 42.1 dB.  With floating point, the dynamic range is maintained
  *   no matter how it is scaled, but this factor needs to be considered
  *   when building the INO.
  */
@@ -111,7 +111,7 @@ public:
     }
 
     float read(unsigned int binNumber) {
-        if (binNumber>511 || binNumber<0) return 0.0;
+        if (binNumber>255 || binNumber<0) return 0.0;
         return output[binNumber];
     }
 
@@ -123,13 +123,13 @@ public:
             binLast = binFirst;
             binFirst = tmp;
         }
-        if (binFirst > 511) return 0.0;
-        if (binLast > 511) binLast = 511;
-        uint32_t sum = 0;
+        if (binFirst > 255) return 0.0f;
+        if (binLast > 255) binLast = 255;
+        float sum = 0.0f;
         do {
             sum += output[binFirst++];
         } while (binFirst <= binLast);
-        return (float)sum * (1.0 / 16384.0);
+        return sum;
     }
 
     int windowFunction(int wNum) {
