@@ -62,6 +62,7 @@
  *   no matter how it is scaled, but this factor needs to be considered
  *   when building the INO.
  */
+  // Fixed float/int problem in read(first, last).  RSL 3 Mar 21
 
 #ifndef analyze_fft1024_F32_h_
 #define analyze_fft1024_F32_h_
@@ -113,11 +114,11 @@ public:
         }
         if (binFirst > 511) return 0.0;
         if (binLast > 511) binLast = 511;
-        uint32_t sum = 0;
+        float sum = 0.0f;
         do {
             sum += output[binFirst++];
         } while (binFirst <= binLast);
-        return (float)sum * (1.0 / 16384.0);
+        return sum;
     }
 
     int windowFunction(int wNum) {
