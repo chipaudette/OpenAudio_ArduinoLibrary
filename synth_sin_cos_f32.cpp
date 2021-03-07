@@ -40,7 +40,6 @@ void AudioSynthSineCosine_F32::update(void) {
     audio_block_f32_t *blockS, *blockC;
     uint16_t index, i;
     float32_t a, b, deltaPhase, phaseC;
-
     blockS = AudioStream_F32::allocate_f32();   // Output blocks
     if (!blockS)  return;
     
