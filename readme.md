@@ -49,6 +49,8 @@ of verification.  Further examples will come to test some of these objects.
 ![Open Audio F32 Status](OA_LibraryStatus.gif)
 Update 29 Jan 2021: Replaced WDRC2 with AudioEffectCompressor2_F32.  See Example testCompressor2.ino
 Update 18 Feb 2021: Added analyze_fft1024_F32.h and .cpp that parallels analyze_fft1024.h and .cpp in the Teensy Audio Library, but F32.
+Update 8 March 2021 Complex input FFT classes have been added for 256, 1024 and 2048 input points.  These see use in Software Designed 
+Radios for double Fs spectral analysis with I-Q inputs.
 The example files (from the Examples directory) are
 
 1.   AudioTestAnalyzePhase_F32
@@ -115,4 +117,6 @@ WORKING NOTES - For now, here are some temporary notes:
 31.  I2S Input and Output made T4 compatible, both supporting variable sample rate
 32.  Added AudioEffectCompressor2_F32 quite general audio compressor.
 33.  Added analyze_fft1024_F32 that does audio in and rms volts, power or dBFS  out.
-
+34.  Added analyze_fft256_iq_F32 that does complex (I-Q) in and rms volts, power or dBFS  out.
+35.  Added analyze_fft1024_iq_F32 that does complex (I-Q) in and rms volts, power or dBFS  out.
+36.  Added analyze_fft2048_iq_F32 that does complex (I-Q) in and rms volts, power or dBFS  out.
