@@ -39,15 +39,13 @@
 #include "analyze_fft256_iq_F32.h"
 
 // Move audio data from audio_block_f32_t to the interleaved FFT instance buffer.
-static void copy_to_fft_buffer1(void *destination, const void *sourceI, const void *sourceQ)  {
+static void copy_to_fft_buffer0(void *destination, const void *sourceI, const void *sourceQ)  {
     const float *srcI = (const float *)sourceI;
     const float *srcQ = (const float *)sourceQ;
     float *dst = (float *)destination;
     for (int i=0; i < AUDIO_BLOCK_SAMPLES; i++) {
        *dst++ = *srcI++;     // real sample, interleave
-       //*dst++ = 0.0f;
        *dst++ = *srcQ++;     // imag
-       //*dst++ = 0.0f; 
        }
     }
 
@@ -55,13 +53,14 @@ static void apply_window_to_fft_buffer1(void *fft_buffer, const void *window) {
     float *buf = (float *)fft_buffer;      // 0th entry is real (do window) 1th is imag
     const float *win = (float *)window;
     for (int i=0; i < 256; i++)  {
-       buf[2*i] *= *win++;      // real
+       buf[2*i] *= *win;      // real
        buf[2*i + 1] *= *win++;  // imag
        }
     }
 
 void AudioAnalyzeFFT256_IQ_F32::update(void)  {
   audio_block_f32_t *block_i,*block_q;
+  int ii;
 
   block_i = receiveReadOnly_f32(0);
   if (!block_i) return;
@@ -78,40 +77,67 @@ void AudioAnalyzeFFT256_IQ_F32::update(void)  {
      prevblock_q = block_q;
      return;  // Nothing to release
      }
+
   // FFT is 256 and blocks are 128, so we need 2 blocks.  We still do
   // this every 128 samples to get 50% overlap on FFT data to roughly
   // compensate for windowing.
   //                (   dest,            i-source,            q-source   )
-  copy_to_fft_buffer1(fft_buffer,     prevblock_i->data, prevblock_q->data);
-  copy_to_fft_buffer1(fft_buffer+256, block_i->data,     block_q->data);
+  copy_to_fft_buffer0(fft_buffer,     prevblock_i->data, prevblock_q->data);
+  copy_to_fft_buffer0(fft_buffer+256, block_i->data,     block_q->data);
   if (pWin)
     apply_window_to_fft_buffer1(fft_buffer, window);
-  arm_cfft_radix4_f32(&fft_inst, fft_buffer);  // Finally the FFT
+
+#if defined(__IMXRT1062__)
+  // Teensyduino core for T4.x supports arm_cfft_f32
+  // arm_cfft_f32 (const arm_cfft_instance_f32 *S, float32_t *p1, uint8_t ifftFlag, uint8_t bitReverseFlag)
+  arm_cfft_f32(&Sfft, fft_buffer, 0, 1);
+#else
+  // For T3.x go back to old (deprecated) style
+  arm_cfft_radix4_f32(&fft_inst, fft_buffer);
+#endif
 
   count++;
-  for (int i=0; i < 256; i++) {
-     float ss = fft_buffer[2*i]*fft_buffer[2*i] + fft_buffer[2*i+1]*fft_buffer[2*i+1];
-     if(count==1)        // Starting new average
-        sumsq[i] = ss;
-     else if (count <= nAverage)  // Adding on to average
-        sumsq[i] += ss;
+  for (int i = 0; i < 128; i++)   {
+     // From complex FFT the "negative frequencies" are mirrors of the frequencies above fs/2.  So, we get
+     // frequencies from 0 to fs by re-arranging the coefficients. These are powers (not Volts)
+     // See DD4WH SDR  (Note - here and at "if(xAxis & xxxx)" below, we may have redundancy in index changing.
+     // Leave as is for now.)
+     float ss0 = fft_buffer[2 * i] *     fft_buffer[2 * i] +
+                 fft_buffer[2 * i + 1] * fft_buffer[2 * i + 1];
+     float ss1 = fft_buffer[2 * (i + 128)] *     fft_buffer[2 * (i + 128)] +
+                 fft_buffer[2 * (i + 128) + 1] * fft_buffer[2 * (i + 128) + 1];
+
+     if(count==1) {       // Starting new average
+        sumsq[i+128] = ss0;
+        sumsq[i] = ss1;
+        }
+    else if (count <= nAverage) { // Adding on to average
+        sumsq[i+128] += ss0;
+        sumsq[i] += ss1;
+        }
      }
 
   if (count >= nAverage) {    // Average is finished
-    count = 0;
-    float inAf = 1.0f/(float)nAverage;
-    for (int i=0; i < 256; i++) {
-       int ii = 255 - (i ^ 128);
-       if(outputType==FFT_RMS)
-          output[ii] = sqrtf(inAf*sumsq[ii]);
-       else if(outputType==FFT_POWER)
-          output[ii] = inAf*sumsq[ii];
-       else if(outputType==FFT_DBFS)
-          output[ii] = 10.0f*log10f(inAf*sumsq[ii])-42.1442f;  // Scaled to FS sine wave
-       else
-          output[ii] = 0.0f;
-       }
+     count = 0;
+     float inAf = 1.0f/(float)nAverage;
+     for (int i=0; i < 256; i++) {
+         // xAxis, bit 0 left/right;  bit 1 low to high
+         if(xAxis & 0X02)
+            ii = i;
+         else
+            ii = i^128;
+         if(xAxis & 0X01)
+            ii = (255 - ii);
+    if(outputType==FFT_RMS)
+       output[i] = sqrtf(inAf*sumsq[ii]);
+    else if(outputType==FFT_POWER)
+       output[i] = inAf*sumsq[ii];
+    else if(outputType==FFT_DBFS)
+       output[i] = 10.0f*log10f(inAf*sumsq[ii])-42.1442f;  // Scaled to FS sine wave
+    else
+       output[i] = 0.0f;
     }
+  }
   outputflag = true;
   release(prevblock_i);    // Release the 2 blocks that were block_i
   release(prevblock_q);    // and block_q on last time through update()

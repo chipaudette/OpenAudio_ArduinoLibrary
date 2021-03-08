@@ -1,14 +1,26 @@
-/*    analyze_fft256_iq_F32.h
+/*    analyze_fft256_iq_F32.h  Assembled by Bob Larkin   6 Mar 2021
  *
- * Converted to F32 floating point input and also extended
- * for complex I and Q inputs
- *   * Adapted all I/O to be F32 floating point for OpenAudio_ArduinoLibrary
- *   * Future: Add outputs for I & Q FFT x2 for overlapped FFT
+ * Rev 6 Mar 2021 - Added setXAxis()
+ * Rev 7 Mar 2021 - Corrected bug in applying windowing 
+ * 
+ * Does Fast Fourier Transform of a 256 point complex (I-Q) input.
+ * Output is one of three measures of the power in each of the 256
+ * output bins, Power, RMS level or dB relative to a full scale
+ * sine wave.  Windowing of the input data is provided for to reduce
+ * spreading of the power in the output bins.  All inputs are Teensy
+ * floating point extension (_F32) and all outputs are floating point.
+ *
+ * Features include:
+ *   * I and Q inputs are OpenAudio_Arduino Library F32 compatible.
+ *   * FFT output for every 128 inputs to overlapped FFTs to
+ *     compensate for windowing.
  *   * Windowing None, Hann, Kaiser and Blackman-Harris.
+ *   * Multiple bin-sum output to simulate wider bins.
+ *   * Power averaging of multiple FFT
+ *   * Soon: F32 audio outputs for I & Q
  *
  * Conversion Copyright (c) 2021 Bob Larkin
  * Same MIT license as PJRC:
- *
  *
  *  Audio Library for Teensy 3.X
  * Copyright (c) 2014, Paul Stoffregen, paul@pjrc.com
@@ -36,8 +48,8 @@
  * THE SOFTWARE.
  */
 
-/* Does complex input FFT of 1024 points. Output is not audio, and is magnitude
- * only.  Multiple output formats of RMS (same as I16 version, and default),
+/* Does complex input FFT of 256 points.  Multiple non-audio (via functions)
+ * output formats of RMS (same as I16 version, and default),
  * Power or dBFS (full scale).  Output can be bin by bin or a pointer to
  * the output array is available.  Several window functions are provided by
  * in-class design, or a custom window can be provided from the INO.
@@ -51,7 +63,17 @@
  *   float* getData(void)
  *   float* getWindow(void)
  *   void putWindow(float *pwin)
+ *   void setNAverage(int NAve)   // >=1
  *   void setOutputType(int _type)
+ *   void setXAxis(uint8_t _xAxis)  // 0, 1, 2, 3
+ *
+ * x-Axis direction and offset per setXAxis(xAxis) for sine to I
+ * and cosine to Q.
+ *   If xAxis=0  f=fs/2 in middle, f=0 on right edge
+ *   If xAxis=1  f=fs/2 in middle, f=0 on left edge
+ *   If xAxis=2  f=fs/2 on left edge, f=0 in middle
+ *   If xAxis=3  f=fs/2 on right edgr, f=0 in middle
+ * If there is 180 degree phase shift to I or Q these all get reversed.
  *
  * Timing, max is longest update() time:
  *   T3.6 Windowed, RMS out,  - uSec max
@@ -75,13 +97,13 @@
 #ifndef analyze_fft256iq_h_
 #define analyze_fft256iq_h_
 
-//#include "AudioStream.h"
-//#include "arm_math.h"
-
 #include "Arduino.h"
 #include "AudioStream_F32.h"
 #include "arm_math.h"
 #include "mathDSP_F32.h"
+#if defined(__IMXRT1062__)
+#include "arm_const_structs.h"
+#endif
 
 #define FFT_RMS 0
 #define FFT_POWER 1
@@ -97,10 +119,21 @@ class AudioAnalyzeFFT256_IQ_F32 : public AudioStream_F32  {
 //GUI: inputs:2, outputs:4  //this line used for automatic generation of GUI node
 //GUI: shortName:AnalyzeFFT256IQ
 public:
-    AudioAnalyzeFFT256_IQ_F32() : AudioStream_F32(2, inputQueueArray) {   // NEEDS SETTINGS etc  <<<<<<<<
-        arm_cfft_radix4_init_f32(&fft_inst, 256, 0, 1);
+    AudioAnalyzeFFT256_IQ_F32() : AudioStream_F32(2, inputQueueArray) {
+        // __MK20DX128__ T_LC;  __MKL26Z64__ T3.0;  __MK20DX256__T3.1 and T3.2
+        // __MK64FX512__) T3.5; __MK66FX1M0__ T3.6; __IMXRT1062__ T4.0 and T4.1
+#if defined(__IMXRT1062__)
+        // Teensy4 core library has the right files for new FFT
+        // arm CMSIS library has predefined structures of type arm_cfft_instance_f32
+        Sfft = arm_cfft_sR_f32_len256;   // This is one of the structures
+#else
+        arm_cfft_radix4_init_f32(&fft_inst, 256, 0, 1); // for T3.x
+#endif
         useHanningWindow();
     }
+    // There is no varient for "settings," as blocks other than 128 are
+    // not supported and, nothing depends on sample rate so we don't need that.
+
 
     bool available() {
         if (outputflag == true) {
@@ -181,7 +214,18 @@ public:
        outputType = _type;
        }
 
-  virtual void update(void);
+    // Output power (non-coherent) averaging
+    // i.e., the number of FFT powers averaged in the output
+    void setNAverage(int _nAverage)  {
+       nAverage = _nAverage;
+       }
+
+    // xAxis, bit 0 left/right;  bit 1 low to high;  default 0X03
+    void setXAxis(uint8_t _xAxis)  {
+       xAxis = _xAxis;
+       }
+
+    virtual void update(void);
 
 private:
   float output[256];
@@ -193,10 +237,17 @@ private:
   bool outputflag = false;
   audio_block_f32_t *inputQueueArray[2];
   audio_block_f32_t *prevblock_i,*prevblock_q;
+#if defined(__IMXRT1062__)
+  // For T4.x
+  // const static arm_cfft_instance_f32   arm_cfft_sR_f32_len256;
+  arm_cfft_instance_f32 Sfft;
+#else
   arm_cfft_radix4_instance_f32 fft_inst;
+#endif
   int outputType = FFT_RMS;  //Same type as I16 version init
   int count = 0;
   int nAverage = 1;
+  uint8_t xAxis = 3;
 
     // The Hann window is a good all-around window
     void useHanningWindow(void) {
@@ -238,8 +289,6 @@ private:
        kbes = 1.0f / mathEqualizer.i0f(beta);      // An additional derived parameter used in loop
        for (int n=0; n<128; n++) {
           xn2 = 0.5f+(float32_t)n;
-          // 4/(1023^2)=0.00000382215877f
-          // xn2 = 0.00000382215877f*xn2*xn2;
           // 4/(255^2)=0.000061514802f
           xn2 = 0.000061514802f*xn2*xn2;
           window[127 - n]=kbes*(mathEqualizer.i0f(beta*sqrtf(1.0-xn2)));
