@@ -66,7 +66,6 @@ static void apply_window_to_fft_buffer1(void *fft_buffer, const void *window) {
 void AudioAnalyzeFFT2048_IQ_F32::update(void)  {
   audio_block_f32_t *block_i,*block_q;
   int ii;
-uint32_t tt;
 
   block_i = receiveReadOnly_f32(0);
   if (!block_i) return;
@@ -76,7 +75,7 @@ uint32_t tt;
      return;
      }
   // Here with two new blocks of data
- tt=micros();
+
   switch (state) {
   case 0:
       blocklist_i[0] = block_i;  blocklist_q[0] = block_q;
@@ -232,7 +231,7 @@ uint32_t tt;
        blocklist_q[5] = blocklist_q[13];
        blocklist_q[6] = blocklist_q[14];
        blocklist_q[7] = blocklist_q[15];
-       state = 8;                       Serial.println(micros()-tt);
+       state = 8;
        break;       // From case 15
     }  // End of switch & case 15
   }  // End update()
