@@ -2,6 +2,7 @@
  *   AudioSynthSineCosine_F32
  * 
  * Status: Checked for function and accuracy.  19 April 2020
+ * 10 March 2021  Corrected Interpolation equations.  Bob L
  *
  * Created: Bob Larkin 15 April 2020
  *
