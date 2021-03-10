@@ -95,6 +95,8 @@
 #define analyze_fft2048iq_h_
 
 // ***************  TEENSY 4.X ONLY   ****************
+// Use 1024 size, or smaller, for Teensy 3.x
+#if defined(__IMXRT1062__)
 
 #include "Arduino.h"
 #include "AudioStream_F32.h"
@@ -297,4 +299,5 @@ private:
        }
     }
   };
+#endif
 #endif

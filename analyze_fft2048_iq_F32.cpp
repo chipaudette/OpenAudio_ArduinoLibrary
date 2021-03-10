@@ -38,6 +38,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+// *******************   TEENSY 4.x  ONLY   *******************
+#if defined(__IMXRT1062__)
+
 #include <Arduino.h>
 #include "analyze_fft2048_iq_F32.h"
 
@@ -235,3 +239,4 @@ void AudioAnalyzeFFT2048_IQ_F32::update(void)  {
        break;       // From case 15
     }  // End of switch & case 15
   }  // End update()
+#endif
