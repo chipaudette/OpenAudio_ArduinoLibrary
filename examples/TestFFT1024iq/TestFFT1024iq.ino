@@ -51,8 +51,10 @@ void setup(void) {
   //float* pw = FFT1024iq1.getWindow();   // Print window
   //for (int i=0; i<512; i++) Serial.println(pw[i], 4);
 
+  FFT1024iq1.setNAverage(4);
+
   // xAxis, bit 0 left/right;  bit 1 low to high;  default 0X03
-  FFT1024iq1.setXAxis(0X03);
+  FFT1024iq1.setXAxis(0X02);
 
   delay(1000);
   // Print output, once

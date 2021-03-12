@@ -2,6 +2,8 @@
  *   Analyze_fft1024_iq_F32.h    Assembled by Bob Larkin   3 Mar 2021
 *
  * Rev 6 Mar 2021 - Added setXAxis()
+ * Rev 11 Mar 2021 - Fixed xAxis correction for dBFS output
+ * 
  * Does Fast Fourier Transform of a 1024 point complex (I-Q) input.
  * Output is one of three measures of the power in each of the 1024
  * output bins, Power, RMS level or dB relative to a full scale

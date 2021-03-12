@@ -1,6 +1,7 @@
 /*
  *   analyze_fft1024_iq_F32.cpp       Assembled by Bob Larkin   3 Mar 2021
  * Rev 6 Mar 2021 - Added setXAxis()
+ * Rev 10 Mar 2021 Corrected averaging bracket - Bob L
  *
  * Converted to F32 floating point input and also extended
  * for complex I and Q inputs
@@ -144,6 +145,7 @@ void AudioAnalyzeFFT1024_IQ_F32::update(void)  {
            sumsq[i] += ss1;
            }
         }
+
      if (count >= nAverage) {    // Average is finished
         count = 0;
         float inAf = 1.0f/(float)nAverage;
@@ -160,13 +162,17 @@ void AudioAnalyzeFFT1024_IQ_F32::update(void)  {
                output[i] = sqrtf(inAf*sumsq[ii]);
             else if(outputType==FFT_POWER)
                output[i] = inAf*sumsq[ii];
-            else if(outputType==FFT_DBFS)
-               output[i] = 10.0f*log10f(inAf*sumsq[ii])-54.1854f;  // Scaled to FS sine wave
+            else if(outputType==FFT_DBFS)  {
+               if(sumsq[i]>0.0f)
+                  output[i] = 10.0f*log10f(inAf*sumsq[ii])-54.1854f;  // Scaled to FS sine wave
+               else
+                  output[i] = -193.0f;   // lsb for 23 bit mantissa
+               }
             else
                output[i] = 0.0f;
-            }
-         }  // end of Average is Finished
-       outputflag = true;
+            }    // End, set output[i] over all 512
+         outputflag = true;    // moved; rev10mar2021
+         }    // End of average is finished
 
        release(blocklist_i[0]);  release(blocklist_q[0]);
        release(blocklist_i[1]);  release(blocklist_q[1]);
