@@ -1,5 +1,6 @@
 /*
  *   Analyze_fft2048_iq_F32.h    Assembled by Bob Larkin   8 Mar 2021
+ * Rev 12 March 2021 Corrected avaeraging. Bob
  *
  *  Note: Teensy 4.x Only, 3.x not supported
  *

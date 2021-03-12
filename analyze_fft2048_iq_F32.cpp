@@ -206,9 +206,9 @@ void AudioAnalyzeFFT2048_IQ_F32::update(void)  {
             else
                output[i] = 0.0f;
             }
+         outputflag = true;
          }  // end of Average is Finished
-       outputflag = true;
-
+ 
        release(blocklist_i[0]);  release(blocklist_q[0]);
        release(blocklist_i[1]);  release(blocklist_q[1]);
        release(blocklist_i[2]);  release(blocklist_q[2]);
