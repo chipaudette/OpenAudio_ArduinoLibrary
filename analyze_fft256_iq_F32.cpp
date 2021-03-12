@@ -132,15 +132,20 @@ void AudioAnalyzeFFT256_IQ_F32::update(void)  {
        output[i] = sqrtf(inAf*sumsq[ii]);
     else if(outputType==FFT_POWER)
        output[i] = inAf*sumsq[ii];
-    else if(outputType==FFT_DBFS)
-       output[i] = 10.0f*log10f(inAf*sumsq[ii])-42.1442f;  // Scaled to FS sine wave
+
+    else if(outputType==FFT_DBFS)  {
+       if(sumsq[i]>0.0f)
+          output[i] = 10.0f*log10f(inAf*sumsq[ii]) - 42.144f;  // Scaled to FS sine wave
+       else
+          output[i] = -193.0f;   // lsb for 23 bit mantissa
+       }
     else
        output[i] = 0.0f;
-    }
-  }
-  outputflag = true;
+    }    // End, set output[i] over all 512
+    outputflag = true;    // moved; rev10mar2021
+  }    // End of average is finished
   release(prevblock_i);    // Release the 2 blocks that were block_i
   release(prevblock_q);    // and block_q on last time through update()
   prevblock_i = block_i;   // We will use these 2 blocks on next update()
   prevblock_q = block_q;   // Just change pointers
-}
+  }

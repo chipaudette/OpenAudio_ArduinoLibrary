@@ -1,7 +1,8 @@
 /*    analyze_fft256_iq_F32.h  Assembled by Bob Larkin   6 Mar 2021
  *
  * Rev 6 Mar 2021 - Added setXAxis()
- * Rev 7 Mar 2021 - Corrected bug in applying windowing 
+ * Rev 7 Mar 2021 - Corrected bug in applying windowing
+ * Rev 10 Mar 2021 - Corrrected: dBFS offset (up 12 dB) & xAxis for dBFS
  * 
  * Does Fast Fourier Transform of a 256 point complex (I-Q) input.
  * Output is one of three measures of the power in each of the 256
@@ -17,6 +18,7 @@
  *   * Windowing None, Hann, Kaiser and Blackman-Harris.
  *   * Multiple bin-sum output to simulate wider bins.
  *   * Power averaging of multiple FFT
+ *   * Programmable frequency scale arrangement.
  *   * Soon: F32 audio outputs for I & Q
  *
  * Conversion Copyright (c) 2021 Bob Larkin
@@ -76,11 +78,10 @@
  * If there is 180 degree phase shift to I or Q these all get reversed.
  *
  * Timing, max is longest update() time:
- *   T3.6 Windowed, RMS out,  - uSec max
- *   T3.6 Windowed, Power Out, - uSec max
- *   T3.6 Windowed, dBFS out, - uSec max
- *   No Window saves 60 uSec on T3.6 for any output.
- *   T4.0 Windowed, RMS Out,   - uSec
+ *   T3.6 Windowed, Power Out, 285 uSec max
+ *   T3.6 Windowed, dBFS out, 590 uSec max
+ *   T3.6 No Window saves 28 uSec for any output.
+ *   T4.0 Windowed, dBFS Out, 120 uSec
  *
  * Scaling:
  *   Full scale for floating point DSP is a nebulous concept.  Normally the

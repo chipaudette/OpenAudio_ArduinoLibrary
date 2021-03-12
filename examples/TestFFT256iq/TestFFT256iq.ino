@@ -18,14 +18,13 @@ AudioConnection_F32       patchCord2(sine_cos1, 1, FFT256iq1, 1);
 // GUItool: end automatically generated code
 
 void setup(void) {
-  float* pPwr;
-
   Serial.begin(9600);
   delay(1000);
   AudioMemory_F32(20);
-  Serial.println("FFT256IQ Test   v2");
+  Serial.println("FFT256IQ Test   v3");
 
   sine_cos1.amplitude(1.0);         // Initialize Waveform Generator
+
   // bin spacing = 44117.648/256 = 172.335   172.3 * 4 = 689.335 Hz (T3.6)
   // Half bin higher is 775.3 for testing windows
   //sine_cos1.frequency(689.34f);
@@ -39,7 +38,7 @@ void setup(void) {
   // or pick any old frequency
   sine_cos1.frequency(7100.0);
 
-  // elect the output format
+  // Select the output format:  FFT_RMS, FFFT_POWER, FFT_DBFS
   FFT256iq1.setOutputType(FFT_DBFS);
 
   // Select the wndow function
@@ -55,14 +54,12 @@ void setup(void) {
   // xAxis, bit 0 left/right;  bit 1 low to high;  default 0X03
   FFT256iq1.setXAxis(0X03);
 
-  FFT256iq1.windowFunction(AudioWindowBlackmanHarris256);
-  //float* pw = FFT256iq1.getWindow();   // Print window
-  //for (int i=0; i<256; i++) Serial.println(pw[i], 4);
-
   // Do power averaging (outputs appear less often, as well)
-  FFT256iq1.setNAverage(5);  // nAverage >= 1
+  FFT256iq1.setNAverage(1);  // i.e., 16 or 50, etc.  nAverage >= 1
+  }
 
-  delay(1000);
+void loop(void)  {
+  float* pPwr;
   if( FFT256iq1.available() )  {
      pPwr = FFT256iq1.getData();
      for(int i=0; i<256; i++) {
@@ -72,7 +69,5 @@ void setup(void) {
          }
       Serial.print("\n\n");
       }
-  }
-
-void loop(void)  {
+  delay(500);
   }
