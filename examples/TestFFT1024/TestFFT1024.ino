@@ -5,10 +5,11 @@
 // on audio connected to the Left Line-In pin.  By changing code,
 // a synthetic sine wave can be input instead.
 //
-// The first 40 (of 512) frequency analysis bins are printed to
-// the Arduino Serial Monitor.
+// The power output from 512 frequency analysis bins are printed to
+// the Arduino Serial Monitor.  The format is selectable.
+// Output power averaging is an option
 //
-// T4.0: Uses 6.1% processor and 9 F32 memory blocks, both max.
+// T4.0: Uses 11.5% processor and 9 F32 memory blocks, both max.
 //
 // This example code is in the public domain.
 
@@ -25,13 +26,12 @@ const int myInput = AUDIO_INPUT_LINEIN;
 AudioSynthSineCosine_F32   sinewave;
 AudioAnalyzeFFT1024_F32    myFFT;
 AudioOutputI2S_F32         audioOutput; // audio shield: headphones & line-out NU
-
 // Connect either the live input or synthesized sine wave
 // AudioConnection_F32        patchCord1(audioInput, 0, myFFT, 0);
 AudioConnection_F32        patchCord1(sinewave, 0, myFFT, 0);
+AudioControlSGTL5000       audioShield;
 
-AudioControlSGTL5000 audioShield;
-
+uint32_t ct = 0;
 uint32_t count = 0;
 
 void setup() {
@@ -45,50 +45,52 @@ void setup() {
   audioShield.inputSelect(myInput);
   audioShield.volume(0.5);
 
+  // Create a synthetic sine wave, for testing
+  // To use this, edit the connections above
+  // sinewave.frequency(1033.99f);   // Bin 24  T3.x
+  // sinewave.frequency(1033.59375f);   // Bin 24  T4.x at 44100
+  // sinewave.frequency(1055.0f);  // Bin 24.5, demonstrates windowing
+  sinewave.frequency(1076.0f);
+
+  sinewave.amplitude(1.0f);
+
   // Set windowing function
-  // myFFT.windowFunction(NULL);
-  // myFFT.windowFunction(AudioWindowNone);  // Same as NULL
+  // myFFT.windowFunction(AudioWindowNone);
   // myFFT.windowFunction(AudioWindowHanning1024);  // default
   // The next Kaiser window needs a dB peak sidelobe number
-  myFFT.windowFunction(AudioWindowKaiser1024, 70.0f);
-  // myFFT.windowFunction(AudioWindowBlackmanHarris1024);
+  // myFFT.windowFunction(AudioWindowKaiser1024, 70.0f);
+  myFFT.windowFunction(AudioWindowBlackmanHarris1024);
 
   // To print the window function:
   // float* pw=myFFT.getWindow();
   // for(int jj=0; jj<1024; jj++)
   //    Serial.println(*pw++, 6);
 
-  // Create a synthetic sine wave, for testing
-  // To use this, edit the connections above
-  sinewave.frequency(1034.0);   // Bin 24
-  // sinewave.frequency(1055.0f);  // Bin 24.5, demonstrates windowing
+  myFFT.setNAverage(1);
 
-  myFFT.setOutputType(FFT_DBFS);  // FFT_RMS or FFT_POWER or FFT_DBFS
+  myFFT.setOutputType(FFT_DBFS);   // FFT_RMS or FFT_POWER or FFT_DBFS
 }
 
 void loop() {
-  if (myFFT.available()) {
+  if (myFFT.available() /*&& ++ct == 4*/ ) {
     // each time new FFT data is available
     // print it all to the Arduino Serial Monitor
-    Serial.print("FFT: ");
-    for (int i=0; i<40; i++) {
-        Serial.print(myFFT.read(i), 2);
+    Serial.println("FFT Output: ");
+    for (int i=0; i<512; i++) {
+        Serial.print(i);
         Serial.print(",");
-    }
+        Serial.println(myFFT.read(i), 3);
+        }
     Serial.println();
-  }
-  
-/* if(count++ == 3000) {
-     Serial.print("CPU: Percent Usage, Max: ");
-     Serial.print(AudioProcessorUsage());
-     Serial.print(", ");
+    }
+
+  /*
+  if(count++<200) {
+     Serial.print("CPU: Max Percent Usage: ");
      Serial.println(AudioProcessorUsageMax());
-     Serial.print("   Float 32 Memory: ");
-     Serial.print(AudioMemoryUsage_F32());
-     Serial.print(", ");
+     Serial.print("   Max Float 32 Memory: ");
      Serial.println(AudioMemoryUsageMax_F32());
      }
-  delay(2);
- */
-}
-
+   */
+  delay(500);
+  }

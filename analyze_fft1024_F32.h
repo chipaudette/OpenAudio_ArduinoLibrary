@@ -32,7 +32,7 @@
  * Power or dBFS (full scale).  Output can be bin by bin or a pointer to
  * the output array is available.  Several window functions are provided by
  * in-class design, or a custom window can be provided from the INO.
- * 
+ *
  * Functions (See comments below and #defines above:
  *   bool available()
  *   float read(unsigned int binNumber)
@@ -43,14 +43,15 @@
  *   float* getWindow(void)
  *   void putWindow(float *pwin)
  *   void setOutputType(int _type)
- * 
+ *   void setNAverage(int nAverage)
+ *
  * Timing, max is longest update() time:
- *   T3.6 Windowed, RMS out,  1016 uSec max
- *   T3.6 Windowed, Power Out, 975 uSec max
- *   T3.6 Windowed, dBFS out, 1591 uSec max
+ *   T3.6 Windowed, Power Out, 975 uSec
+ *   T3.6 Windowed, RMS out,  1016 uSec
+ *   T3.6 Windowed, dBFS out, 1591 uSec
  *   No Window saves 60 uSec on T3.6 for any output.
- *   T4.0 Windowed, RMS Out,   149 uSec
- * 
+ *   T4.0 Windowed, Ave=1, Power Out, 156 uSec
+ *   T4.0 Windowed, Ave=1, dBFS Out,  302 uSec
  * Scaling:
  *   Full scale for floating point DSP is a nebulous concept.  Normally the
  *   full scale is -1.0 to +1.0.  This is an unscaled FFT and for a sine
@@ -62,7 +63,7 @@
  *   no matter how it is scaled, but this factor needs to be considered
  *   when building the INO.
  */
-  // Fixed float/int problem in read(first, last).  RSL 3 Mar 21
+// Fixed float/int problem in read(first, last).  RSL 3 Mar 21
 
 #ifndef analyze_fft1024_F32_h_
 #define analyze_fft1024_F32_h_
@@ -71,6 +72,9 @@
 #include "AudioStream_F32.h"
 #include "arm_math.h"
 #include "mathDSP_F32.h"
+#if defined(__IMXRT1062__)
+#include "arm_const_structs.h"
+#endif
 
 #define FFT_RMS 0
 #define FFT_POWER 1
@@ -84,25 +88,37 @@
 
 class AudioAnalyzeFFT1024_F32 : public AudioStream_F32  {
 //GUI: inputs:1, outputs:0  //this line used for automatic generation of GUI node
-//GUI: shortName:AnalyzeFFT1024
+//GUI: shortName:FFT1024
 public:
     AudioAnalyzeFFT1024_F32() : AudioStream_F32(1, inputQueueArray) {
-        arm_cfft_radix4_init_f32(&fft_inst, 1024, 0, 1);
-        useHanningWindow();  // Revisit this for more flexibility  <<<<<
+        // __MK20DX128__ T_LC;  __MKL26Z64__ T3.0;  __MK20DX256__T3.1 and T3.2
+        // __MK64FX512__) T3.5; __MK66FX1M0__ T3.6; __IMXRT1062__ T4.0 and T4.1
+#if defined(__IMXRT1062__)
+        // Teensy4 core library has the right files for new FFT
+        // arm CMSIS library has predefined structures of type arm_cfft_instance_f32
+        Sfft = arm_cfft_sR_f32_len1024;   // This is one of the structures
+#else
+        arm_cfft_radix4_init_f32(&fft_inst, 1024, 0, 1); // for T3.x
+#endif
+        // This is always 128 block size.  Any sample rate.  No use of "setings"
+        // Bob:  Revisit this to use CMSIS fast fft in place of cfft.  faster?
+        useHanningWindow();
     }
 
+    // Inform that the output is available for read()
     bool available() {
         if (outputflag == true) {
             outputflag = false;
             return true;
-        }
+            }
         return false;
-    }
+        }
 
+    // Output data from a single bin is transferred
     float read(unsigned int binNumber) {
         if (binNumber>511 || binNumber<0) return 0.0;
         return output[binNumber];
-    }
+        }
 
     // Return sum of several bins. Normally use with power output.
     // This produces the equivalent of bigger bins.
@@ -147,8 +163,8 @@ public:
      return 0;
      }
 
-    // Fast pointer transfer.  Be aware that the data will go away 
-    // after the next 512 data points occur.  
+    // Fast pointer transfer.  Be aware that the data will go away
+    // after the next 512 data points occur.
     float* getData(void)  {
        return output;
        }
@@ -164,16 +180,22 @@ public:
        for(int i=0; i<1024; i++)
           *p++ = *pwin++;
        }
-  
+
     // Output RMS (default) Power or dBFS
     void setOutputType(int _type)  {
        outputType = _type;
        }
 
+    // Output power (non-coherent) averaging
+    void setNAverage(int _nAverage)  {
+       nAverage = _nAverage;
+       }
+
     virtual void update(void);
- 
-private:    
+
+private:
     float output[512];
+    float sumsq[512];
     float window[1024];
     float *pWin = window;
     audio_block_f32_t *blocklist[8];
@@ -181,8 +203,16 @@ private:
     uint8_t state = 0;
     bool outputflag = false;
     audio_block_f32_t *inputQueueArray[1];
-    arm_cfft_radix4_instance_f32 fft_inst;
+#if defined(__IMXRT1062__)
+  // For T4.x
+  // const static arm_cfft_instance_f32   arm_cfft_sR_f32_len1024;
+  arm_cfft_instance_f32 Sfft;
+#else
+  arm_cfft_radix4_instance_f32 fft_inst;
+#endif
     int outputType = FFT_RMS;  //Same type as I16 version init
+    int nAverage = 1;
+    int count = 0;     // used to average for nAverage of powers
 
     // The Hann window is a good all-around window
     void useHanningWindow(void) {
@@ -199,8 +229,8 @@ private:
            float kx = 0.006141921;  // 2*PI/1023
            int ix = (float) i;
            window[i] = 0.35875 -
-                       0.48829*cosf(     kx*ix) + 
-                       0.14128*cosf(2.0f*kx*ix) - 
+                       0.48829*cosf(     kx*ix) +
+                       0.14128*cosf(2.0f*kx*ix) -
                        0.01168*cosf(3.0f*kx*ix);
         }
     }
@@ -228,8 +258,7 @@ private:
           xn2 = 0.00000382215877f*xn2*xn2;
           window[511 - n]=kbes*(mathEqualizer.i0f(beta*sqrtf(1.0-xn2)));
           window[512 + n] = window[511 - n];
+          }
        }
-    }
-
-};
+    };
 #endif
