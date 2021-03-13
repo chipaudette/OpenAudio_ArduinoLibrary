@@ -24,6 +24,11 @@
  * The sign of the coefficients for feedback, the a[], here use the
  * convention of the ARM CMSIS library.  Matlab reverses the signs of these.
  * I believe these are treated per those rules!! Bob
+ * 
+ * Algorithm for CMSIS library
+ * Each Biquad stage implements a second order filter using the difference equation:
+ *   y[n] = b0 * x[n] + b1 * x[n-1] + b2 * x[n-2] + a1 * y[n-1] + a2 * y[n-2]
+ * The a1 and a2 coeccicients do not have minus signs as do the Matlab ones.
  */
 
 #ifndef _filter_iir_f32
@@ -182,6 +187,8 @@ class AudioFilterBiquad_F32 : public AudioStream_F32
         setCoefficients(stage, coeff);
         }
 
+    // frequency in Hz.  q makes the response stay close to 0.0dB until
+    // close to the notch frequency.  q up to 100 or more seem stable.
     void setNotch(uint32_t stage, float frequency, float q) {
         double coeff[5];
         double w0 = frequency * (2 * 3.141592654 / sampleRate_Hz);

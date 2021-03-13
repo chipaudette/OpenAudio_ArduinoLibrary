@@ -31,6 +31,7 @@
 #include "analyze_fft256_iq_F32.h"
 #include "analyze_fft1024_iq_F32.h"
 #include "analyze_fft2048_iq_F32.h"
+#include "analyze_fft4096_iq_F32.h"
 #include "analyze_peak_f32.h"
 #include "analyze_rms_f32.h"
 // #include "control_tlv320aic3206.h"  collides much with Teensy Audio
