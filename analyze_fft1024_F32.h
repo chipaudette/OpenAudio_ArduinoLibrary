@@ -26,7 +26,7 @@
  * THE SOFTWARE.
  */
 
-/* Moved directly I16 to F32. Bob Larkin 16 Feb 2021
+/* Translated from  I16 to F32. Bob Larkin 16 Feb 2021
  * Does real input FFT of 1024 points. Output is not audio, and is magnitude
  * only.  Multiple output formats of RMS (same as I16 version, and default),
  * Power or dBFS (full scale).  Output can be bin by bin or a pointer to
@@ -45,13 +45,13 @@
  *   void setOutputType(int _type)
  *   void setNAverage(int nAverage)
  *
- * Timing, max is longest update() time:
- *   T3.6 Windowed, Power Out, 975 uSec
- *   T3.6 Windowed, RMS out,  1016 uSec
- *   T3.6 Windowed, dBFS out, 1591 uSec
+ * Timing, max is longest update() time. Comparison is using full complex FFT
+ * and no load sharing on "states".
+ *   T3.6 Windowed, Power Out, 682 uSec (was 975 w/ 1024 FFT)
+ *   T3.6 Windowed, dBFS out, 834 uSec (was 1591 w/1024 FFT)
  *   No Window saves 60 uSec on T3.6 for any output.
- *   T4.0 Windowed, Ave=1, Power Out, 156 uSec
- *   T4.0 Windowed, Ave=1, dBFS Out,  302 uSec
+ *   T4.0 Windowed, Power Out, 54 uSec (was 156 w/1024  FFT)
+ *   T4.0 Windowed, dBFS Out, 203 uSec (was 302 w/1024 FFT)
  * Scaling:
  *   Full scale for floating point DSP is a nebulous concept.  Normally the
  *   full scale is -1.0 to +1.0.  This is an unscaled FFT and for a sine
@@ -64,6 +64,9 @@
  *   when building the INO.
  */
 // Fixed float/int problem in read(first, last).  RSL 3 Mar 21
+// Converted to using half-size FFT for real input, with no zero inputs.
+// See E. Oran Brigham and many other FFT references.  16 March 2021 RSL
+// Moved post-FFT calculations to state 4 to load share.  RSL 18 Mar 2021
 
 #ifndef analyze_fft1024_F32_h_
 #define analyze_fft1024_F32_h_
@@ -75,6 +78,15 @@
 #if defined(__IMXRT1062__)
 #include "arm_const_structs.h"
 #endif
+
+// Doing an FFT with NFFT real inputs
+#define NFFT 1024
+#define NFFT_M1 NFFT-1
+#define NFFT_D2  NFFT/2
+#define NFFT_D2M1 (NFFT/2)-1
+#define NFFT_X2  NFFT*2
+#define FFT_PI  3.14159265359f
+#define FFT_2PI 6.28318530718f
 
 #define FFT_RMS 0
 #define FFT_POWER 1
@@ -96,13 +108,17 @@ public:
 #if defined(__IMXRT1062__)
         // Teensy4 core library has the right files for new FFT
         // arm CMSIS library has predefined structures of type arm_cfft_instance_f32
-        Sfft = arm_cfft_sR_f32_len1024;   // This is one of the structures
+        Sfft = arm_cfft_sR_f32_len512;   // Like this.  Changes with size <<<
 #else
-        arm_cfft_radix4_init_f32(&fft_inst, 1024, 0, 1); // for T3.x
+        arm_cfft_radix2_init_f32(&fft_inst, NFFT_D2, 0, 1);   // for T3.x (check radix2/radix4)<<<
 #endif
-        // This is always 128 block size.  Any sample rate.  No use of "setings"
-        // Bob:  Revisit this to use CMSIS fast fft in place of cfft.  faster?
+        // This class is always 128 block size.  Any sample rate.  No use of "settings"
         useHanningWindow();
+        // Factors for using half size complex FFT
+        for(int n=0; n<NFFT_D2; n++)  {
+           sinN[n] = sinf(FFT_PI*((float)n)/((float)NFFT_D2));
+           cosN[n] = cosf(FFT_PI*((float)n)/((float)NFFT_D2));
+           }
     }
 
     // Inform that the output is available for read()
@@ -116,7 +132,7 @@ public:
 
     // Output data from a single bin is transferred
     float read(unsigned int binNumber) {
-        if (binNumber>511 || binNumber<0) return 0.0;
+        if (binNumber>NFFT_D2M1 || binNumber<0) return 0.0;
         return output[binNumber];
         }
 
@@ -128,8 +144,8 @@ public:
             binLast = binFirst;
             binFirst = tmp;
         }
-        if (binFirst > 511) return 0.0;
-        if (binLast > 511) binLast = 511;
+        if (binFirst > NFFT_D2M1) return 0.0;
+        if (binLast > NFFT_D2M1) binLast = NFFT_D2M1;
         float sum = 0.0f;
         do {
             sum += output[binFirst++];
@@ -138,7 +154,7 @@ public:
     }
 
     int windowFunction(int wNum) {
-      if(wNum == AudioWindowKaiser1024)
+      if(wNum == AudioWindowKaiser1024)  // Changes with size <<<
          return -1;                 // Kaiser needs the kdb
       windowFunction(wNum, 0.0f);
       return 0;
@@ -149,14 +165,14 @@ public:
       pWin = window;
       if(wNum == NO_WINDOW)
          pWin = NULL;
-      else if (wNum == AudioWindowKaiser1024)  {
+      else if (wNum == AudioWindowKaiser1024)  {  // Changes with size <<<
          if(_kdb<20.0f)
             kd = 20.0f;
          else
             kd = _kdb;
          useKaiserWindow(kd);
          }
-      else if (wNum == AudioWindowBlackmanHarris1024)
+      else if (wNum == AudioWindowBlackmanHarris1024)  // Changes with size <<<
          useBHWindow();
      else
          useHanningWindow();   // Default
@@ -177,7 +193,7 @@ public:
     // Bring custom window from the INO
     void putWindow(float *pwin)  {
        float *p = window;
-       for(int i=0; i<1024; i++)
+       for(int i=0; i<NFFT; i++)
           *p++ = *pwin++;
        }
 
@@ -194,21 +210,27 @@ public:
     virtual void update(void);
 
 private:
-    float output[512];
-    float sumsq[512];
-    float window[1024];
+    float output[NFFT_D2];
+    float sumsq[NFFT_D2];  // Accumulates averages of outputs
+    float window[NFFT];
     float *pWin = window;
+    float fft_buffer[NFFT];
+
+    // The cosN and sinN would seem to be twidddle factors.  Someday
+    // look at this and see if they can be stolen from arm math/DSP.
+    float cosN[NFFT_D2];
+    float sinN[NFFT_D2];
+
     audio_block_f32_t *blocklist[8];
-    float fft_buffer[2048];
     uint8_t state = 0;
     bool outputflag = false;
     audio_block_f32_t *inputQueueArray[1];
 #if defined(__IMXRT1062__)
-  // For T4.x
-  // const static arm_cfft_instance_f32   arm_cfft_sR_f32_len1024;
+  // For T4.x, 512 length for real 1024 input, etc.
+  // const static arm_cfft_instance_f32   arm_cfft_sR_f32_len512;
   arm_cfft_instance_f32 Sfft;
 #else
-  arm_cfft_radix4_instance_f32 fft_inst;
+  arm_cfft_radix2_instance_f32 fft_inst;  // Check radix2/radix4 <<<
 #endif
     int outputType = FFT_RMS;  //Same type as I16 version init
     int nAverage = 1;
@@ -216,22 +238,22 @@ private:
 
     // The Hann window is a good all-around window
     void useHanningWindow(void) {
-        for (int i=0; i < 1024; i++) {
-           // 2*PI/1023 = 0.006141921
-           window[i] = 0.5*(1.0 - cosf(0.006141921f*(float)i));
+        for (int i=0; i < NFFT; i++) {
+           float kx = FFT_2PI/((float)NFFT_M1); // 0.006141921 for 1024
+           window[i] = 0.5f*(1.0f - cosf(kx*(float)i));
         }
     }
 
     // Blackman-Harris produces a first sidelobe more than 90 dB down.
     // The price is a bandwidth of about 2 bins.  Very useful at times.
     void useBHWindow(void) {
-        for (int i=0; i < 1024; i++) {
-           float kx = 0.006141921;  // 2*PI/1023
+        for (int i=0; i < NFFT; i++) {
+           float kx = FFT_2PI/((float)NFFT_M1);  // 0.006141921 for 1024
            int ix = (float) i;
-           window[i] = 0.35875 -
-                       0.48829*cosf(     kx*ix) +
-                       0.14128*cosf(2.0f*kx*ix) -
-                       0.01168*cosf(3.0f*kx*ix);
+           window[i] = 0.35875f -
+                       0.48829f*cosf(     kx*ix) +
+                       0.14128f*cosf(2.0f*kx*ix) -
+                       0.01168f*cosf(3.0f*kx*ix);
         }
     }
 
@@ -252,12 +274,12 @@ private:
 
        // Note: i0f is the fp zero'th order modified Bessel function (see mathDSP_F32.h)
        kbes = 1.0f / mathEqualizer.i0f(beta);      // An additional derived parameter used in loop
-       for (int n=0; n<512; n++) {
+       for (int n=0; n<NFFT_D2; n++) {
           xn2 = 0.5f+(float32_t)n;
-          // 4/(1023^2)=0.00000382215877f
-          xn2 = 0.00000382215877f*xn2*xn2;
-          window[511 - n]=kbes*(mathEqualizer.i0f(beta*sqrtf(1.0-xn2)));
-          window[512 + n] = window[511 - n];
+          float kx = 4.0f/(((float)NFFT_M1) * ((float)NFFT_M1));  // 0.00000382215877f for 1024
+          xn2 = kx*xn2*xn2;
+          window[NFFT_D2M1 - n]=kbes*(mathEqualizer.i0f(beta*sqrtf(1.0-xn2)));
+          window[NFFT_D2 + n] = window[NFFT_D2M1 - n];
           }
        }
     };
