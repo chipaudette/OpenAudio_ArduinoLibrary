@@ -82,7 +82,7 @@ void AudioSynthSineCosine_F32::update(void) {
           /* Read two nearest values of input value from the sin table */
           a = sinTable512_f32[index];
           b = sinTable512_f32[index+1];
-          blockS->data[i] = amplitude_pk * (a + (b-a)*deltaPhase);  /* Linear interpolation process */
+          blockS->data[i] = amplitude_pk*(a + 0.001953125*(b-a)*deltaPhase);  /* Linear interpolation process */
  
           /* Shift forward phaseS_C  and get cos. First, the calculation of index of the table */
           phaseC = phaseS + phaseS_C;
@@ -92,7 +92,7 @@ void AudioSynthSineCosine_F32::update(void) {
           /* Read two nearest values of input value from the sin table */
           a = sinTable512_f32[index];
           b = sinTable512_f32[index+1];
-          blockC->data[i] = amplitude_pk * (a + (b-a)*deltaPhase);  /* Linear interpolation process */
+          blockC->data[i] = amplitude_pk*(a + 0.001953125*(b-a)*deltaPhase);  /* Linear interpolation process */
         }
     }
     AudioStream_F32::transmit(blockS, 0);
