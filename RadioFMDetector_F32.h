@@ -94,9 +94,9 @@
  *   showError(uint16_t e) Turns error printing in the update function on (e=1)
  *                  or off (e=0).  For debug only.
  *
- * Time:            For T3.6, an update of a 128 sample block, 370 microseconds, or
- *                  2.9 microseconds per data point.
- *                  For T4.0, 87 microseconds, or 0.68 microseconds per data point.
+ * Time:            For T3.6, an update of a 128 sample block, 430 microseconds, or
+ *                  3.4 microseconds per data point.
+ *                  For T4.0, 97 microseconds, or 0.76 microseconds per data point.
  *
  * Error checking:  See functions setSampleRate_Hz() and returnInitializeFMError()
  *                  above.
@@ -187,7 +187,6 @@ public:
         gamma = _sqDcy;
         alpha = 0.5f*(1.0f - gamma);
         }
-
 
 /*    void setSampleRate_Hz(float32_t _sampleRate_Hz) {
         if (fCenter > _sampleRate_Hz/2.0f) {  // Check freq range
