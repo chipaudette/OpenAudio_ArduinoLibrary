@@ -33,7 +33,7 @@
  * frequency of the input sine wave frequency, i.e., an it is an FM detector.
  * The input needs to be band limited below the lower frequency side of the
  * input, typically 10 kHz.  This is not part of this block.
- * 
+ *
  * NOTE: Due to the sample frequencies we are working with, like 44.1 kHz, this
  * detector cannot handle full FM broadcast bandwidths.  It is suitable for
  * NBFM as used in communications, marine radio, ham radio, etc.
@@ -51,17 +51,17 @@
  * be removed before the atan2.  A pair of FIR filters, using FIR_IQ_Coeffs
  * are used.  These are again programmable and default to a 29-tap LPF with
  * a 5 kHz cutoff.
- * 
+ *
  * Status: Tested static, tested with FM modulated Fluke 6061B.
  *         An input of about 60 microvolts to the SGTL5000 gave 12 dB SINAD.
  *         The output sounded good. Tested T3.6 and T4.0. No known bugs
- * 
+ *
  * Output: Float, sensitivity is 2*pi*(f - fCenter)*sample_rate_Hz
  *         For 44117Hz samplerate, this is 0.000142421 per Hz
- * 
+ *
  * Accuracy:  The function used is precise.  However, the approximations, such
  *            fastAtan2, slightly limit the accuracy.  A 200 point sample of a
- *            14 kHz input had an average error of 0.03 Hz 
+ *            14 kHz input had an average error of 0.03 Hz
  *            and a standard deviation of 0.81 Hz.
  *            The largest errors in this sample were about +/- 1.7 Hz.  This is
  *            with the default filters.
@@ -80,24 +80,24 @@
  *   filterIQ(float *fir_IQ_Coeffs, uint nFIR_IQ) sets output filtering where:
  *      float32_t*  fir_IQ_Coeffs is an array of coefficients
  *      uint        nFIR_IQ is the number of coefficients, max 60
- * 
+ *
  *   setSampleRate_Hz(float32_t _sampleRate_Hz) allows dynamic changing of
  *                  the sample rate (experimental as of May 2020).
- * 
+ *
  *   returnInitializeFMError()  Returns the initialization errors.
  *                  B0001 (value 1) is an error in the IQ FIR Coefficients or quantity.
  *                  B0010 (value 2) is an error in the Output FIR Coefficients or quantity.
  *                  B0100 (value 4) is an error in the de-emphasis constant
  *                  B1000 (value 8) is center frequency above half-sample frequency.
  *                  All for debug.
- * 
+ *
  *   showError(uint16_t e) Turns error printing in the update function on (e=1)
  *                  or off (e=0).  For debug only.
  *
  * Time:            For T3.6, an update of a 128 sample block, 370 microseconds, or
  *                  2.9 microseconds per data point.
  *                  For T4.0, 87 microseconds, or 0.68 microseconds per data point.
- * 
+ *
  * Error checking:  See functions setSampleRate_Hz() and returnInitializeFMError()
  *                  above.
  */
@@ -115,7 +115,7 @@
 #define TEST_TIME_FM 0
 
 class RadioFMDetector_F32 : public AudioStream_F32 {
-//GUI: inputs:1, outputs:1  //this line used for automatic generation of GUI node
+//GUI: inputs:1, outputs:2  //this line used for automatic generation of GUI node
 //GUI: shortName: FMDetector
 public:
     // Default block size and sample rate:
@@ -163,26 +163,53 @@ public:
         initializeFM();
     }
 
-    void setSampleRate_Hz(float32_t _sampleRate_Hz) {
-        if (fCenter > _sampleRate_Hz/2.0f) {   // Check freq range
+    // Provide for changing to user supplied BiQuad for Squelch input.
+    void setSquelchFilter(float* _sqCoeffs)  {
+       if( _sqCoeffs==NULL)
+          pCfSq = coeffSqIn;   // Default filter
+       else
+          pCfSq = _sqCoeffs;
+       initializeFM();
+       }
+
+    // The squelch level reads nominally 0.0 to 1.0 where
+    float getSquelchLevel (void)  {
+        return squelchLevel;
+        }
+
+    // The squelch threshold is nominally 0.7 where
+    // 0.0 always lets audio through. 
+    void setSquelchThreshold (float _sqTh)  {
+        squelchThreshold = _sqTh;
+        }
+
+    void setSquelchDecay (float _sqDcy)  {
+        gamma = _sqDcy;
+        alpha = 0.5f*(1.0f - gamma);
+        }
+
+
+/*    void setSampleRate_Hz(float32_t _sampleRate_Hz) {
+        if (fCenter > _sampleRate_Hz/2.0f) {  // Check freq range
             initializeFMErrors |= 8;
             return;
-        }
+            }
         sampleRate_Hz = _sampleRate_Hz;
         // update phase increment for new frequency
         phaseIncrement = 512.0f * fCenter / sampleRate_Hz;
-    }
+        }  // NOT SUPPORTED - No Dynamic changes
+*/
 
     void showError(uint16_t e) {
         errorPrintFM = e;
-    }
-    
+        }
+
     uint16_t returnInitializeFMError(void) {
-		return initializeFMErrors;
-	}
+        return initializeFMErrors;
+        }
 
     void update(void);
-    
+
 private:
     // One input data pointer
     audio_block_f32_t *inputQueueArray_f32[1];
@@ -207,6 +234,25 @@ private:
     float32_t* fir_IQ_Coeffs = fir_IQ29;
     uint16_t nFIR_Out = 39;
     float32_t* fir_Out_Coeffs = fir_Out39;
+
+    /* Info - The structure from arm_biquad_casd_df1_inst_f32 consists of
+     *    uint32_t  numStages;
+     *    const float32_t *pCoeffs;  //Points to the array of coefficients, length 5*numStages.
+     *    float32_t *pState;         //Points to the array of state variables, length 4*numStages. */
+    arm_biquad_casd_df1_inst_f32 iirSqIn_inst;
+    // Default 2 stage Squelch input BiQuad filter, 3000 Hz, 4000 Hz both Q=5
+    // The -6 dB points are  2680 and 4420 Hz
+    // The -20 dB points are 2300 and 5300 Hz
+    float  coeffSqIn[10] = {
+        0.0398031529f, 0.0f, -0.0398031529f, 1.74762569f, -0.92039369f,
+        0.0511929547f, 0.0f, -0.0511929547f, 1.59770204f, -0.89761409f};
+    float* pCfSq = coeffSqIn;
+    float stateSqIn[8];
+    float squelchThreshold = 0.7f;
+    float squelchLevel = 1.0f;
+    float gamma = 0.99;
+    float alpha = 0.5f*(1.0f - gamma);
+
 #if TEST_TIME_FM
 elapsedMicros tElapse;
 int32_t iitt = 999000;     // count up to a million during startup
@@ -220,29 +266,33 @@ int32_t iitt = 999000;     // count up to a million during startup
 
     arm_fir_instance_f32 FMDet_Out_inst;
     float32_t State_Out_F32[AUDIO_BLOCK_SAMPLES + MAX_FIR_OUT_COEFFS];
-       
+
     // Initialize the FM Detector, part of setting up and changing parameters
     void initializeFM(void) {
-		if (fir_IQ_Coeffs  && nFIR_IQ <= MAX_FIR_IQ_COEFFS) {
+        if (fir_IQ_Coeffs  && nFIR_IQ <= MAX_FIR_IQ_COEFFS) {
 /*          the instance setup call
- *          void  arm_fir_init_f32(          
+ *          void  arm_fir_init_f32(
  *          arm_fir_instance_f32* S,       points to instance of floating-point FIR filter structure.
  *           uint16_t              numTaps, Number of filter coefficients in the filter.
  *           float32_t*            pCoeffs, points to the filter coefficients buffer.
  *           float32_t*            pState,  points to the state buffer.
  *           uint32_t              blockSize) Number of samples that are processed per call.
  */
-            arm_fir_init_f32(&FMDet_I_inst, nFIR_IQ, (float32_t*)fir_IQ_Coeffs, &State_I_F32[0], (uint32_t)block_size);   
-            arm_fir_init_f32(&FMDet_Q_inst, nFIR_IQ, (float32_t*)fir_IQ_Coeffs, &State_Q_F32[0], (uint32_t)block_size);         
-        }
-        else  initializeFMErrors |= B0001;     
+            arm_fir_init_f32(&FMDet_I_inst, nFIR_IQ, (float32_t*)fir_IQ_Coeffs, &State_I_F32[0], (uint32_t)block_size);
+            arm_fir_init_f32(&FMDet_Q_inst, nFIR_IQ, (float32_t*)fir_IQ_Coeffs, &State_Q_F32[0], (uint32_t)block_size);
+            }
+        else  initializeFMErrors |= B0001;
 
         if (fir_Out_Coeffs  && nFIR_Out <= MAX_FIR_OUT_COEFFS) {
             arm_fir_init_f32(&FMDet_Out_inst, nFIR_Out, (float32_t*)fir_Out_Coeffs,  &State_Out_F32[0], (uint32_t)block_size);
-        }
+            }
         else  initializeFMErrors |= B0010;
         dLast = 0.0;
-     }
+
+        // Initialize squelch Input BPF BiQuad instance (ARM DSP Math Library)
+        // https://www.keil.com/pack/doc/CMSIS/DSP/html/group__BiquadCascadeDF1.html
+        arm_biquad_cascade_df1_init_f32(&iirSqIn_inst, 2, pCfSq,  &stateSqIn[0]);
+        }
 
     /* FIR filter designed with http://t-filter.appspot.com
      * fs = 44100 Hz, < 5kHz ripple 0.29 dB, >9 kHz, -62 dB, 29 taps
@@ -259,19 +309,19 @@ int32_t iitt = 999000;     // count up to a million during startup
 
     /* FIR filter designed with http://t-filter.appspot.com
      * fs = 44100 Hz, < 3kHz ripple 0.36 dB, >6 kHz, -60 dB, 39 taps
-     * Corrected to give DC gain = 1.00 
+     * Corrected to give DC gain = 1.00
      */
     float32_t fir_Out39[39] = {
-    -0.0008908477f,  -0.0008401274f,  -0.0001837353f,   0.0017556005f, 
-     0.0049353322f,   0.0084952916f,   0.0107668722f,   0.0097441685f, 
-     0.0039877576f,  -0.0063455016f,  -0.0188069300f,  -0.0287453055f, 
-    -0.0303831521f,  -0.0186809770f,   0.0085931270f,   0.0493875744f, 
-     0.0971742012f,   0.1423015880f,   0.1745838382f,   0.1863024485f, 
-     0.1745838382f,   0.1423015880f,   0.0971742012f,   0.0493875744f, 
-     0.0085931270f,  -0.0186809770f,  -0.0303831521f,  -0.0287453055f, 
-    -0.0188069300f,  -0.0063455016f,   0.0039877576f,   0.0097441685f, 
-     0.0107668722f,   0.0084952916f,   0.0049353322f,   0.0017556005f, 
+    -0.0008908477f,  -0.0008401274f,  -0.0001837353f,   0.0017556005f,
+     0.0049353322f,   0.0084952916f,   0.0107668722f,   0.0097441685f,
+     0.0039877576f,  -0.0063455016f,  -0.0188069300f,  -0.0287453055f,
+    -0.0303831521f,  -0.0186809770f,   0.0085931270f,   0.0493875744f,
+     0.0971742012f,   0.1423015880f,   0.1745838382f,   0.1863024485f,
+     0.1745838382f,   0.1423015880f,   0.0971742012f,   0.0493875744f,
+     0.0085931270f,  -0.0186809770f,  -0.0303831521f,  -0.0287453055f,
+    -0.0188069300f,  -0.0063455016f,   0.0039877576f,   0.0097441685f,
+     0.0107668722f,   0.0084952916f,   0.0049353322f,   0.0017556005f,
     -0.0001837353f,  -0.0008401274f,  -0.0008908477f };
 
-};
-#endif 
+  };
+#endif
