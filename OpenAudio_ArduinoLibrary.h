@@ -9,7 +9,7 @@
 #include "AudioConvert_F32.h"
 #include "AudioEffectCompressor_F32.h"
 #include "AudioEffectCompressor2_F32.h"
-#include "AudioEffectCompWDRC_F32.h"
+//#include "AudioEffectCompWDRC_F32.h"
 #include "AudioEffectEmpty_F32.h"
 #include "AudioEffectGain_F32.h"
 #include "AudioFilterBiquad_F32.h"
@@ -34,6 +34,7 @@
 #include "analyze_fft4096_iq_F32.h"
 #include "analyze_peak_f32.h"
 #include "analyze_rms_f32.h"
+#include "analyze_tonedetect_F32.h"
 // #include "control_tlv320aic3206.h"  collides much with Teensy Audio
 #include "AudioSwitch_OA_F32.h"
 #include "FFT_Overlapped_OA_F32.h"
@@ -45,5 +46,6 @@
 #include "AudioFilterEqualizer_F32.h"
 #include "AudioFilterFIRGeneral_F32.h"
 #include "RadioFMDetector_F32.h"
+#include "radioFMSquelch_F32.h"
 #include "radioNoiseBlanker_F32.h"
 #include "synth_sin_cos_f32.h"
