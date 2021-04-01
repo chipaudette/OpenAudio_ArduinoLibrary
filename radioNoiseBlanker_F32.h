@@ -51,6 +51,9 @@
  * Examples:
  *   TestNoiseBlanker1.ino  128 data for plotting and examination
  * Time: Update() of 128 samples 32 microseconds
+* 
+* Allow two channels, for I-Q receivers.  Input 0 operates gate.
+* Paths 0 & 1 are gated.  31 March 2021.  Bob L.
  */
 
 #ifndef _radio_noise_blanker_f32_h
@@ -62,19 +65,24 @@
 #define RUNNING_SUM_SIZE 125
 
 class radioNoiseBlanker_F32 : public AudioStream_F32 {
-//GUI: inputs:1, outputs:1  //this line used for automatic generation of GUI node
+//GUI: inputs:2, outputs:2  //this line used for automatic generation of GUI node
 //GUI: shortName: NoiseBlanker
 public:
     // Option of AudioSettings_F32 change to block size (no sample rate dependent variables here):
-    radioNoiseBlanker_F32(void) :  AudioStream_F32(1, inputQueueArray_f32) {
+    radioNoiseBlanker_F32(void) :  AudioStream_F32(2, inputQueueArray_f32) {
         block_size = AUDIO_BLOCK_SAMPLES;
     }
-    radioNoiseBlanker_F32(const AudioSettings_F32 &settings) : AudioStream_F32(1, inputQueueArray_f32) {
+    radioNoiseBlanker_F32(const AudioSettings_F32 &settings) : AudioStream_F32(2, inputQueueArray_f32) {
         block_size = settings.audio_block_samples;
     }
 
     void enable(bool _runNB) {
         runNB = _runNB;
+    } 
+
+    // Channel 0 gates both Channel 0 & 1
+    void useTwoChannel(bool _2Ch) {
+        twoChannel = _2Ch;
     } 
     
     void setNoiseBlanker(float32_t _threshold, uint16_t _nAnticipation, uint16_t _nDecay) { 
@@ -99,22 +107,23 @@ public:
 private:
     uint16_t block_size =  AUDIO_BLOCK_SAMPLES;
     // Input data pointers
-    audio_block_f32_t *inputQueueArray_f32[1];
+    audio_block_f32_t *inputQueueArray_f32[2];
 
     // Control error printing in update() 0=No print
     uint16_t errorPrint = 0;
 
-    // To look ahead we need a delay of up to 128 samples.  Too much removes good data.
+    // To look ahead we need a delay of up to 256 samples.  Too much removes good data.
     // Too little enters noise pulse data to the output. This can be a simple circular
     // buffer if we make the buffer a power of 2 in length and binary-truncate the index.
     // Choose 2^8 = 256.
-    float32_t delayData[256];   // The circular delay line
+    float32_t delayData0[256];   // The circular delay lines
+    float32_t delayData1[256];
     uint16_t in_index = 0;      // Pointer to next block update entry
     // And a mask to make the circular buffer limit to a power of 2
     uint16_t delayBufferMask = 0X00FF;
 
     // Three variables to allow .INO control of Noise Blanker
-    float32_t threshold = 1.0E6f;   // Start disabled
+    float32_t threshold = 1.0E3f;   // Start disabled
     uint16_t  nAnticipation = 5;
     uint16_t  nDecay = 8;
     
@@ -122,5 +131,6 @@ private:
     bool      gateOn = true;     // Signals going through NB
     float32_t runningSum = 0.0;
     bool      runNB = false;
+    bool      twoChannel = false;  // Activates 2 channels for I-Q.
 };
 #endif

@@ -12,43 +12,75 @@
 #include "radioNoiseBlanker_F32.h"
 
 void radioNoiseBlanker_F32::update(void) {
-  audio_block_f32_t *blockIn, *blockOut=NULL;
+  audio_block_f32_t *blockIn0=NULL;
+  audio_block_f32_t *blockOut0=NULL;
+  audio_block_f32_t *blockIn1=NULL;
+  audio_block_f32_t *blockOut1=NULL;
   uint16_t i;
   float32_t absSignal;
 
   // Get input block   // <<Writable??
-  blockIn = AudioStream_F32::receiveWritable_f32(0);
-  if (!blockIn) {
+  blockIn0 = AudioStream_F32::receiveWritable_f32(0);
+  if (!blockIn0) {
      if(errorPrint)  Serial.println("NB-ERR: No input memory");
      return;
   }
+
+  if(twoChannel)  {
+     blockIn1 = AudioStream_F32::receiveWritable_f32(1);
+     if (!blockIn1) {
+        AudioStream_F32::release(blockIn0);
+        if(errorPrint)  Serial.println("NB-ERR: No 1 input memory");
+        return;
+     }
+  }
   
-  // Are we noise blanking?
+  // Are we not noise blanking?
   if(! runNB) {
-      AudioStream_F32::transmit(blockIn, 0); // send the delayed or blanked data
-      AudioStream_F32::release (blockIn);
+      AudioStream_F32::transmit(blockIn0, 0); // send the unchanged data
+      AudioStream_F32::release (blockIn0);
+      AudioStream_F32::transmit(blockIn1, 1);
+      AudioStream_F32::release (blockIn1);
       return;
   }
 
   // Get a block for the output
-  blockOut = AudioStream_F32::allocate_f32();
-  if (!blockOut){      // Didn't have any
+  blockOut0 = AudioStream_F32::allocate_f32();
+  if (!blockOut0) {      // Didn't have any
     if(errorPrint)  Serial.println("NB-ERR: No output memory");
-    AudioStream_F32::release(blockIn);
+    AudioStream_F32::release(blockIn0);
+    if(twoChannel)
+       AudioStream_F32::release(blockIn1);
     return;
   }
 
-  // delayData[] always represents 256 points of I-F data.  It is pre-gate and includes noise pulses.
+  if(twoChannel)  {
+     blockOut1 = AudioStream_F32::allocate_f32();
+     if (!blockOut1) {      // Didn't have any
+       if(errorPrint)  Serial.println("NB-ERR: No output 1 memory");
+       AudioStream_F32::release(blockOut0);
+       AudioStream_F32::release(blockIn0);
+       AudioStream_F32::release(blockIn1);
+       return;
+     }
+  }
+
+  // delayData0[], and 1, always represents 256 points of I-F data.  It is pre-gate and includes noise pulses.
   // Go through new data, point i at a time, entering to delay line, looking
-  // for noise pulses.  Then in same loop, move data to output buffer blockOut->data
+  // for noise pulses.  Then in same loop, move data to output buffer blockOut0->data
   // based on whether gate is open or not.
   for(i=0;  i<block_size;  i++) {
-      float32_t datai = blockIn->data[i];     // ith data
-      delayData[(i+in_index) & delayBufferMask] = datai;  // Put ith data to circular delay buffer
+      float32_t datai0 = blockIn0->data[i];     // ith data
+      delayData0[(i+in_index) & delayBufferMask] = datai0;  // Put ith data to circular delay buffer
+      if(twoChannel)  {
+         float32_t datai1 = blockIn1->data[i]; 
+         delayData1[(i+in_index) & delayBufferMask] = datai1; 
+         }
 
-      absSignal = fabsf(datai);    // Rectified I-F
-      runningSum += fabsf(datai);  // Update by adding one rectified point
-      runningSum -= delayData[(i + in_index - RUNNING_SUM_SIZE) & delayBufferMask]; // & subtract one
+      // All control comes from the 0 input (not the 1 input)
+      absSignal = fabsf(datai0);    // Rectified I-F
+      runningSum += absSignal;  // Update by adding one rectified point
+      runningSum -= delayData0[(i + in_index - RUNNING_SUM_SIZE) & delayBufferMask]; // & subtract one
 
       pulseTime++;     // This keeps track of leading and trailing delays of the gate pulse
       if (absSignal > (threshold * runningSum)) {  // A noise pulse event
@@ -74,15 +106,26 @@ void radioNoiseBlanker_F32::update(void) {
           }
       }
       // Ready to enter I-F data to output, offset in time by "nAnticipation"
-      if (pulseTime == -9999)
-          blockOut->data[i] = delayData[(256 + i - nAnticipation) & delayBufferMask];  // Need 256??
-      else        //  -nAnticipation < pulseTime < nDecay   i.e., blanked out
-          blockOut->data[i] = 0.0f;
+      if (pulseTime == -9999)  {
+          blockOut0->data[i] = delayData0[(256 + i - nAnticipation) & delayBufferMask];
+          if(twoChannel)
+             blockOut1->data[i] = delayData1[(256 + i - nAnticipation) & delayBufferMask];
+      }
+      else  {      //  -nAnticipation < pulseTime < nDecay   i.e., blanked out
+          blockOut0->data[i] = 0.0f;
+          if(twoChannel)
+             blockOut1->data[i] = 0.0f; 
+      }
   }    // End of loop point by point over input 128 data points
 
-  AudioStream_F32::release (blockIn);
-  AudioStream_F32::transmit(blockOut, 0); // send the delayed or blanked data
-  AudioStream_F32::release (blockOut);
+  AudioStream_F32::release (blockIn0);
+  AudioStream_F32::transmit(blockOut0, 0); // send the delayed or blanked data
+  AudioStream_F32::release (blockOut0);
+  if(twoChannel) {
+     AudioStream_F32::release (blockIn1);
+     AudioStream_F32::transmit(blockOut1, 1); // send second "Q" channel
+     AudioStream_F32::release (blockOut1);
+     }
 
   // Update pointer in_index to delay line for next 128 update
   in_index = (in_index + block_size) & delayBufferMask;
