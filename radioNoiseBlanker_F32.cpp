@@ -39,8 +39,10 @@ void radioNoiseBlanker_F32::update(void) {
   if(! runNB) {
       AudioStream_F32::transmit(blockIn0, 0); // send the unchanged data
       AudioStream_F32::release (blockIn0);
-      AudioStream_F32::transmit(blockIn1, 1);
-      AudioStream_F32::release (blockIn1);
+      if(twoChannel) {
+         AudioStream_F32::transmit(blockIn1, 1);
+         AudioStream_F32::release (blockIn1);
+      }
       return;
   }
 
