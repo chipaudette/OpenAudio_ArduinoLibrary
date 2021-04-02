@@ -22,7 +22,7 @@ void radioNoiseBlanker_F32::update(void) {
   // Get input block   // <<Writable??
   blockIn0 = AudioStream_F32::receiveWritable_f32(0);
   if (!blockIn0) {
-     if(errorPrint)  Serial.println("NB-ERR: No input memory");
+     // if(errorPrint)  Serial.println("NB-ERR: No input memory");
      return;
   }
 
