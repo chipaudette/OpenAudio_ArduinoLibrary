@@ -12,20 +12,42 @@
 #include "Arduino.h"
 #include "Audio.h"
 
-#include "radioNoiseBlanker_F32.h"
+//          *********    CONTROLS   *********
+// Comment out the next line to use a sine wave plus fake impulse noise
+#define INPUT_GWN
 
-AudioInputI2S_F32            i2sIn1;
-//AudioSynthGaussian_F32       gwn1;
+// Comment out he next line to input only to the 0 (left) channel
+#define TWO_INPUT
+//******************************************************************
+
+AudioInputI2S_F32            i2sIn1;  // Needed to invole AudioStream_F32
+
+#ifdef INPUT_GWN
+AudioSynthGaussian_F32       gwn1;
+#else
 AudioPlayQueue_F32           playq1;
+#endif
+
 radioNoiseBlanker_F32        nb1;
 AudioRecordQueue_F32         queue1;
 
+#ifdef INPUT_GWN
+AudioConnection_F32    pcord0(gwn1,  0, nb1,     0);
+#ifdef TWO_INPUT
+AudioConnection_F32    pcord1(gwn1,  0, nb1,     1);
+#endif
+
+#else
 AudioConnection_F32    pcord0(playq1,  0, nb1,     0);
+#ifdef TWO_INPUT
 AudioConnection_F32    pcord1(playq1,  0, nb1,     1);
+#endif
+#endif
 
 //  The next two should be identical data outputs.  Pick ONLY ONE at a time
-//AudioConnection_F32    pcord2(nb1,     0, queue1,  0);
-AudioConnection_F32    pcord2(nb1,     1, queue1,  0);
+// Do not use secon one without TWO_INPUT
+AudioConnection_F32    pcord2(nb1,     0, queue1,  0);
+//AudioConnection_F32    pcord2(nb1,     1, queue1,  0);
 
 float32_t *pin;
 float32_t dt1[128];
@@ -48,13 +70,22 @@ void setup(void) {
   Serial.begin(300);  delay(1000);
   Serial.println("*** Test Noise Blanker ***");
   
+#ifdef INPUT_GWN
+  gwn1.amplitude(0.1);
+#endif
+
   // setNoiseBlanker(float threshold, uint16_t nAnticipation, uint16_t nDecay)
   nb1.setNoiseBlanker(4.0f, 2, 3);
 
-  //nb1.showError(1);
+  nb1.showError(1);
+
+#ifdef TWO_INPUT
   nb1.useTwoChannel(true);  // true enables a path trrough the "1" side
+#endif
+
   nb1.enable(true);
 
+#ifndef INPUT_GWN
   while(pin == NULL)
       pin = playq1.getBuffer();
   Serial.println("Input to NB:");
@@ -63,6 +94,8 @@ void setup(void) {
       Serial.println(pin[k], 6);
   }
   playq1.playBuffer();  // Put 128 data into stream
+#endif
+
   queue1.begin();
   i = 0;
 }
