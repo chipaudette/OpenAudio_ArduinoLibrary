@@ -40,6 +40,7 @@
 #include "FFT_Overlapped_OA_F32.h"
 #include "AudioEffectFreqShiftFD_OA_F32.h"
 #include "AudioEffectDelay_OA_F32.h"
+#include "radioModulatedGenerator_F32.h"
 #include "RadioIQMixer_F32.h"
 #include "AudioFilter90Deg_F32.h"
 #include "AudioAnalyzePhase_F32.h"
