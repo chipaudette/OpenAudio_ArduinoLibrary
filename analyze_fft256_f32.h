@@ -90,6 +90,7 @@ public:
 #if AUDIO_BLOCK_SAMPLES == 128
 		if (n == 0) n = 1;
 		naverage = n;
+		count = 0;
 #endif
 	}
 	void windowFunction(const int16_t *w) {
