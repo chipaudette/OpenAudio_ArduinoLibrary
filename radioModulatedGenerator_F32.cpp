@@ -33,9 +33,6 @@ void radioModulatedGenerator_F32::update(void) {
   uint16_t index, i;
   float32_t a, b, deltaPhase, phaseC, amSig;
 
-
- uint32_t tt=micros();
-
   // Input 0 is for amplitude modulation.
   if(doAM) {
     inAmpl = AudioStream_F32::receiveReadOnly_f32(0);
@@ -120,5 +117,4 @@ void radioModulatedGenerator_F32::update(void) {
       AudioStream_F32::transmit(outBlockQ, 1);
       AudioStream_F32::release (outBlockQ);
    }
-Serial.println(micros() - tt);
 }
