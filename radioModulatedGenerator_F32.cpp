@@ -69,7 +69,7 @@ void radioModulatedGenerator_F32::update(void) {
      if(doPM)  // Phase in inPhaseFreq->data[i] is scaled for (0.0, 2*PI)
         phaseS += (phaseIncrement0 + K512ON2PI*inPhaseFreq->data[i]);
      else if(doFM)
-        phaseS += kp*(freq + inPhaseFreq->data[i]);  //  kp=512.0/sample_rate_Hz
+        phaseS += kp*(freq + deviationFMScale*inPhaseFreq->data[i]);  //  kp=512.0/sample_rate_Hz
      else
         phaseS += phaseIncrement0;  // No PM or FM alteration to carrier phase
 

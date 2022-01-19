@@ -12,7 +12,7 @@
  *
  * For PM or FM (only one at a time) the input goes to the 1 channel.  For PM,
  * the input level corresponds to radians of phase change, + or -.  For FM,
- * the input correspondss to Hz of deviation.
+ * the input correspondss to Hz of deviation (or as modified by deviationFMMultiplier).
  *
  * For digital modulation, such as QAM, there can be both phase and amplitude
  * modulation.  This would be set by
@@ -104,6 +104,13 @@ public:
         return;
     }
 
+    // A deviationFMScale of 1000.0 causes the deviation in FM to
+    // * be 1000 Hz/unit instead of 1 Hz/unit.
+    // */
+    void setFMScale(float mult) {
+		deviationFMScale = mult;
+	}
+
     // phaseQ_I  is the number of radians that the cosine output leads the
     // sine output.  The default is M_PI_2 = pi/2 = 1.57079633 radians,
     // corresponding to 90.00 degrees cosine leading sine.
@@ -159,6 +166,7 @@ public:
 private:
     audio_block_f32_t *inputQueueArray_f32[2];
     float32_t freq = 10000.0f;  // Center frequecy, Hz
+    float32_t deviationFMScale = 1.0f; // Hz is default, 1000.0 is kHz, not Hz
     float32_t phaseS = 0.0f;
     float32_t phaseQ_I = 128.00;
     float32_t amplitudeQ_I = 1.0f;
