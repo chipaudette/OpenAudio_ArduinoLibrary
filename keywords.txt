@@ -7,6 +7,72 @@ audio_block_f32_t	KEYWORD1
 AudioStream_F32		KEYWORD1
 AudioConnection_F32	KEYWORD1
 
+AudioAnalyzeFFT256_IQ_F32	KEYWORD1
+windowFunction	KEYWORD2
+getData	KEYWORD2
+getWindow	KEYWORD2
+putWindow	KEYWORD2
+setOutputType	KEYWORD2
+setNAverage	KEYWORD2
+setXAxis	KEYWORD2
+
+AudioAnalyzeFFT1024_F32	KEYWORD1
+AudioAnalyzeFFT2048_F32	KEYWORD1
+AudioAnalyzeFFT4096_F32	KEYWORD1
+
+AudioAnalyzePeak_F32 KEYWORD1
+readPeakToPeak	KEYWORD2
+
+AudioAnalyzePhase_F32	KEYWORD1
+setAnalyzePhaseConfig
+
+AudioAnalyzeToneDetect_F32 KEYWORD1
+threshold KEYWORD2
+set_params	KEYWORD2
+
+AudioAnalyzeRMS_F32	KEYWORD1
+showError	KEYWORD1
+
+AudioCalcEnvelope_F32	KEYWORD1
+smooth_env	 KEYWORD2
+setAttackRelease_msec KEYWORD2
+setDefaultValues KEYWORD2
+setSampleRate_Hz KEYWORD2
+resetStates	 KEYWORD2
+getCurrentLevel KEYWORD2
+
+AudioCalcGainDecWDRC_F32 KEYWORD1
+calcGainFromEnvelope KEYWORD2
+WDRC_circuit_gain KEYWORD2
+setDefaultValues KEYWORD2
+setParams_from_CHA_WDRC KEYWORD2
+setGain_dB KEYWORD2
+incrementGain_dB KEYWORD2
+getCurrentGain KEYWORD2
+getCurrentGain_dB KEYWORD2
+setDecimationFactor KEYWORD2
+setMaxdB	KEYWORD2
+getMaxdB 	KEYWORD2
+setKneeExpansion_dBSPL KEYWORD2
+getKneeExpansion_dBSPL KEYWORD2
+setExpansionCompRatio KEYWORD2
+getExpansionCompRatio KEYWORD2
+setKneeCompressor_dBSPL KEYWORD2
+getKneeCompressor_dBSPL KEYWORD2
+setCompRatio KEYWORD2
+getCompRatio KEYWORD2
+setKneeLimiter_dBSPL KEYWORD2
+getKneeLimiter_dBSPL KEYWORD2
+undb 	KEYWORD2
+db2 	KEYWORD2
+log2f_approx KEYWORD2
+
+AudioCalcGainWDRC_F32	KEYWORD1
+
+AudioConfigFIRFilterBank_F32	KEYWORD1
+createFilterCoeff 	KEYWORD2
+computeLogSpacedCornerFreqs KEYWORD2
+
 AudioControlTLV320AIC3206	KEYWORD1
 inputSelect		KEYWORD2
 setMicBias		KEYWORD2
@@ -15,7 +81,8 @@ volume_dB		KEYWORD2
 setInputGain_dB		KEYWORD2
 
 AudioControlSGTL5000_Extended	KEYWORD1
-micBiasEnable		KEYWORD2
+micBiasEnable	KEYWORD2
+micBiasDisable	KEYWORD2
 
 AudioConvert_I16toF32	KEYWORD1
 AudioConvert_F32toI16	KEYWORD1
@@ -23,7 +90,28 @@ AudioConvert_F32toI16	KEYWORD1
 AudioEffectGain_F32	KEYWORD1
 setGain_dB		KEYWORD2
 
+analyze_CTCSS_F32	KEYWORD1
+initCTCSS		KEYWORD2
+readTonePower	KEYWORD2
+readRefPower	KEYWORD2
+readTonePresent	KEYWORD2
+thresholds		KEYWORD2
+setCTCSS_BP		KEYWORD2
+
+AudioFilterBiquad_F32	KEYWORD1
+doClassInit	KEYWORD2
+setCoefficients	KEYWORD2
+setBlockDC		KEYWORD2
+setFilterCoeff_Matlab	KEYWORD2
+setLowpass	KEYWORD2
+setHighpass	KEYWORD2
+setBandpass	KEYWORD2
+setNotch	KEYWORD2
+
 AudioFilterFIR_F32	KEYWORD1
+setSampleRate_Hz	KEYWORD2
+setBlockLength		KEYWORD2
+
 AudioEffectIIR_F32	KEYWORD1
 AudioEffectCompressor_F32	KEYWORD1
 AudioInputI2S_F32	KEYWORD1
@@ -31,13 +119,32 @@ AudioMemory_F32		KEYWORD1
 AudioMemoryUsage_F32	KEYWORD1
 AudioMemoryUsageMax_F32	KEYWORD1
 AudioMemoryUsageMaxReset_F32	KEYWORD1
+
 AudioMixer4_F32		KEYWORD1
+gain			KEYWORD2
+
 AudioMultiply_F32	KEYWORD1
 AudioOutputI2S_F32	KEYWORD1
 AudioPlayQueue_F32	KEYWORD1
+
 AudioRecordQueue_F32	KEYWORD1
+begin		KEYWORD1
+clear		KEYWORD1
+available	KEYWORD1
+readBuffer	KEYWORD1
+freeBuffer	KEYWORD1
+end			KEYWORD1
+
+AudioSynthGaussian_F32	KEYWORD1
+
 AudioSynthNoiseWhite_F32	KEYWORD1
 AudioSynthNoisePink_F32	KEYWORD1
+
+AudioSynthSineCosine_F32	KEYWORD1
+phase_r		KEYWORD2
+phaseS_C_r	KEYWORD2
+simple		KEYWORD2
+
 AudioSynthWaveform_F32	KEYWORD1
 
 
@@ -46,4 +153,17 @@ frequency		KEYWORD2
 phase			KEYWORD2
 amplitude		KEYWORD2
 
+RadioFMDetector_F32		 KEYWORD1
+filterIQ		KEYWORD2
+filterOut		KEYWORD2
+setSquelchFilter	KEYWORD2
+getSquelchLevel	KEYWORD2
+setSquelchDecay	KEYWORD2
+setSquelchThreshold	KEYWORD2
+showError		KEYWORD2
+returnInitializeFMError	KEYWORD2
 
+radioModulatedGenerator_F32 KEYWORD1
+setFMScale		KEYWORD2
+amplitudeQI		KEYWORD2
+doModulation_AM_PM_FM	KEYWORD2
