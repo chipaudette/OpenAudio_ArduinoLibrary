@@ -2,7 +2,8 @@
  * analyze_CTCSS_F32.h   For the OpenAudio_TeensyArduino library
  * (floating point audio).
  *   MIT License on changed portions
- *   Bob Larkin March 2021
+ *   Bob Larkin March 2021 original write
+ *   Rev 21 Jan 2022 Major redo and ready to publish.  RSL
  *
  * This is specific for the CTCSS tone system
  * with tones in the 67.0 to 254.1 Hz range.
