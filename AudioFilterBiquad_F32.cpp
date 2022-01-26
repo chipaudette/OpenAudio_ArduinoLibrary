@@ -18,14 +18,9 @@ void AudioFilterBiquad_F32::update(void)  {
 
   block = AudioStream_F32::receiveWritable_f32();
   if (!block) return;  // Out of memory
-  // Serial.print(block->data[37],6); Serial.print(", IN "); Serial.println(block->data[38],6);
   if(doBiquad)   // Filter is defined, so go to it
   arm_biquad_cascade_df1_f32(&iir_inst, block->data,
            block->data, block->length);
-  // Serial.print(block->data[37],6); Serial.print(", OUT "); Serial.println(block->data[38],6);
-
-  // Add double filter call here
-
   // Transmit the data, filtered or unfiltered
   AudioStream_F32::transmit(block);
   AudioStream_F32::release(block);
