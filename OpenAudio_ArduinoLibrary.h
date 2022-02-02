@@ -15,6 +15,7 @@
 #include "AudioFilterBiquad_F32.h"
 #include <AudioFilterFIR_F32.h>
 #include <AudioFilterIIR_F32.h>
+#include "AudioLMSDenoiseNotch_F32.h"
 #include "AudioMixer_F32.h"
 #include "AudioMultiply_F32.h"
 #include "AudioSettings_F32.h"
