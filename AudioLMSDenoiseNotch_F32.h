@@ -2,7 +2,8 @@
  * AudioLMSDenoiseNotch_F32.h
  *
  * Created: Bob Larkin, January 2022
- * Purpose; LMS DeNoise for audio.  Assumes floating-point data.
+ * Purpose; LMS DeNoise and Auto-notch for audio.
+ * Assumes floating-point data.
  *
  * 22 January 2022   copyright (c)Robert Larkin 2022
  *
@@ -33,7 +34,7 @@
   * The auto-notch is very effective at removing annoying tones when they are
   * reasonably strong.  Again for radio systems, this can be quite useful.
   * The initialization selects whether DeNoise or AutoNotch is used.  It makes
-  * no sense to use both at once as, in a perfect world, would remove everything.
+  * no sense to use both at once as, in a perfect world, that would remove everything.
   *
   * The LMS algorithm for optimization was first proposed by
   * Widrow and Hoff in 1960.
@@ -44,9 +45,13 @@
   * subtracted from the FIR filter output to remove coherent signals,
   * producing the so called "auto-notch."
   *
-  *       Johan, dsp-10  <<<<<<<<<<<<<<<<<<<<
+  * This particular write of the denoise and auto-notch traces back to
+  * Johan Forrer, KC7WW, per September 1994 QEX.  From there it was used
+  * in the DSP-10 project, http://www.janbob.com/electron/dsp10/dsp10.htm
   *
-  *   beta and decay
+  * The normalized version of coefficient update is generally best.  If it
+  * is not desired, it can be removed at compile time by commenting out
+  * "#define LMS_NORMALIZE" below.
   *
   * Initialization also sets the size of the FIR  buffer used to filter signal
   * and noise.  Small buffers respond to change quickly.  Large buffers can work
@@ -62,6 +67,14 @@
   *
   * This block behaves as a pass-through filter with one input and one output.
   *
+  * There are two parameters that are set in the .ino via the function
+  * setParameters(float32_t beta, float32_t decay)
+  * The first, beta determines the rate of convergence of the coefficients.
+  * This changes the "sound" of the audio and normally is one of a radio's
+  * front panel adjustments.  The second parameter, decay, slowly turns
+  * the algorithm off when signals are absent.  It is normally very
+  * slightly less than 1.0.  This can also change the "sound."
+  *
   * The Teensy 3.6 needs 690 microseconds per 128 block update using a FIR
   * buffer size of 32.  It needs 1335 microseconds using 64 FIR Buffer.
   * Note that the ARM library LMS routines might improve these
@@ -74,7 +87,8 @@
   * 270 for 64, and 529 microseconds for 128.
   *
   * All timing was done with a delay buffer of 4, but this size has
-  * very little effect, anyway.
+  * very little effect, anyway. Normalization was off, also, but
+  * again, this has a minor effect.
   */
 
 #ifndef _AudioLMSDenoiseNotch_F32_h
@@ -82,6 +96,9 @@
 
 #include <AudioStream_F32.h>
 #include "arm_math.h"
+
+// Default is to use the normalized form of coefficient update
+#define LMS_NORMALIZE
 
 #define MAX_FIR  256
 #define MAX_DELAY 16
@@ -106,6 +123,10 @@ class AudioLMSDenoiseNotch_F32 : public AudioStream_F32
         kMask = lengthDataF - 1;
         lengthDataD = _lengthDataD;
         lengthDataD = (lengthDataD>MAX_DELAY ? MAX_DELAY : lengthDataD);  // Limit length
+#ifdef LMS_NORMALIZE
+        for(int i=0; i<128; i++) powerNorm[i] = 0.01f;
+        pNorm = 0.01f * 128.0f;
+#endif
         return lengthDataF;
         }
 
@@ -138,6 +159,10 @@ class AudioLMSDenoiseNotch_F32 : public AudioStream_F32
     uint16_t lengthDataD = 4;      // Any value, 2 to MAX_DELAY
 
     float32_t coeff[128];
+#ifdef LMS_NORMALIZE
+    float32_t powerNorm[128];
+    float32_t pNorm = 0.0f;
+#endif
 
     // dataF[] is arranged, by added variables kOffset and
     // lengthDataF, to be circular. A power-of-2 mask makes it circular.
@@ -147,8 +172,8 @@ class AudioLMSDenoiseNotch_F32 : public AudioStream_F32
     uint16_t lengthDataF = 64;
     uint16_t kMask = 63;
 
-    float32_t beta = 0.001;  //0.03f;
-    float32_t decay = 0.9952f;
+    float32_t beta = 0.03f;
+    float32_t decay = 0.995f;
     uint16_t numLeak = 0;
 };
 #endif

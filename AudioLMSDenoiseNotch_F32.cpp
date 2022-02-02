@@ -61,7 +61,15 @@ void AudioLMSDenoiseNotch_F32::update(void)
 
         // Circular delay line to find correlated components
         dataD[kNextD] = blockDataIn;     // Get a new data point from block
-        // Rotate to next higher k index
+
+#ifdef LMS_NORMALIZE
+        powerNorm[i] = blockDataIn*blockDataIn;
+        pNorm += powerNorm[i];
+        if(i==127)
+           pNorm -= powerNorm[0];
+        else
+           pNorm -= powerNorm[i+1];
+#endif
 
         if(++kNextD >= lengthDataD)     // Next spot in delay line
            kNextD = 0;
@@ -80,10 +88,15 @@ void AudioLMSDenoiseNotch_F32::update(void)
         error = blockDataIn - firOut;
 
         // Update the coefficients
+#ifdef LMS_NORMALIZE
+        float32_t kcf = error*beta/pNorm;
+#else
+        float32_t kcf = error*beta;
+#endif
         for(j=0; j<lengthDataF; j++)
             {
             k = (j + kOffsetF) & kMask;
-            coeff[j] = coeff[j] + beta*error*dataF[k];
+            coeff[j] = coeff[j] + kcf*dataF[k];
             }
 
         // Move to next positions in circular data buffer via kOffsetF
@@ -94,7 +107,7 @@ void AudioLMSDenoiseNotch_F32::update(void)
         if(what == DENOISE)
           blockOut->data[i] = firOut;
         else
-          blockOut->data[i] = blockDataIn;    //  error;           // Auto-Notch
+          blockOut->data[i] = error;           // Auto-Notch
         }
         //transmit the block and be done
         AudioStream_F32::transmit(blockOut);
