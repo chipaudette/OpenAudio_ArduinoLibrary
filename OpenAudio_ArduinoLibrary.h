@@ -13,6 +13,7 @@
 #include "AudioEffectEmpty_F32.h"
 #include "AudioEffectGain_F32.h"
 #include "AudioFilterBiquad_F32.h"
+#include "AudioFilterConvolution_F32.h"
 #include <AudioFilterFIR_F32.h>
 #include <AudioFilterIIR_F32.h>
 #include "AudioLMSDenoiseNotch_F32.h"

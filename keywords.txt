@@ -115,6 +115,11 @@ setBlockLength		KEYWORD2
 AudioEffectIIR_F32	KEYWORD1
 AudioEffectCompressor_F32	KEYWORD1
 AudioInputI2S_F32	KEYWORD1
+
+AudioLMSDenoiseNotch_F32 KEYWORD1
+initializeLMS		KEYWORD2
+
+
 AudioMemory_F32		KEYWORD1
 AudioMemoryUsage_F32	KEYWORD1
 AudioMemoryUsageMax_F32	KEYWORD1
