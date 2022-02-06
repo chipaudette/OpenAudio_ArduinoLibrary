@@ -63,8 +63,8 @@
    * AudioFilterFIRGeneral_F32 showed that a 512 tap FIR gave
    * essentially the same response and was slightly faster at
    * 225 microseconds per update.  Also, note that this form of
-   * computation uses about 78 kB of memory where the direct FIR
-   * uses about 15 kB.  The responses differ in only minor ways.
+   * computation uses about 52 kB of memory where the direct FIR
+   * uses about 10 kB.  The responses differ in only minor ways.
    * ************************************************************ */
 
 #ifndef AudioFilterConvolution_F32_h_
