@@ -66,6 +66,24 @@ void setup(void) {
      // BP filter, Centered at 6000Hz, 50 db SL, 2=BPF, width = 2000Hz
      //convFilt1.initFilter(6000.0f, 60.0f, BANDPASS, 2000.0f);
 
+     // INO designed FIR coefficients
+     // Simple 7 tap LPF 4 kHz with 20 dB stop band
+     /*
+     float32_t taps[7] = {
+     0.06597017637343348f,
+     0.18600068295067165f,
+     0.21675619343104624f,
+     0.2802036313373938f,
+     0.21675619343104624f,
+     0.18600068295067165f,
+     0.06597017637343348f};
+     //// Get the pointer to the coefficient storage
+     float32_t* cf=convFilt1.getCoeffPtr();
+     // Load the filter and pad coefficients with zeros
+     for(int ii=0; ii<7; ii++) cf[ii] = taps[ii];
+     for(int ii=7; ii<512; ii++) cf[ii] = 0.0f;
+     convFilt1.initFilter();  // Generate the filter mask
+     */
 
   // Design for direct FIR.  This sets frequency response.
   // Bin for 4kHz at 44.117kHz sample rate and 400 coeff's is (4000/44117) * (512/2) = 23.2
