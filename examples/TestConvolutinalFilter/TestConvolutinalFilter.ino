@@ -49,7 +49,7 @@ void setup(void) {
 
   //  *** Un-comment just ONE of the following filters  ***
      // Low Pass Filter, 4000 Hz cut off, 60 dB first sidelobe
-     convFilt1.initFilter(4000.0f, 60.0f, LOWPASS, 0.0f);
+     //convFilt1.initFilter(4000.0f, 60.0f, LOWPASS, 0.0f);
 
      // High Pass Filter, 2000 Hz cut off, 25 dB first sidelobe
      //convFilt1.initFilter(2000.0f, 25.0f, HIGHPASS, 0.0f);
@@ -85,6 +85,10 @@ void setup(void) {
      convFilt1.initFilter();  // Generate the filter mask
      */
 
+     // Alternatively, the passthrough case:
+     convFilt1.passThrough(1);
+     convFilt1.initFilter();
+
   // Design for direct FIR.  This sets frequency response.
   // Bin for 4kHz at 44.117kHz sample rate and 400 coeff's is (4000/44117) * (512/2) = 23.2
 //  for(int ii=0; ii<47; ii++)    attenFIR[ii] = 0.0f;
@@ -108,7 +112,7 @@ void setup(void) {
      Serial.print(f);
      Serial.print(", ");
      while(!toneDet2.available())delay(2) ;
-     Serial.println(20.0f*log10f(toneDet2.read() ) );
+     Serial.println(20.0f*log10f(toneDet2.read()), 3);
      }
   }
 

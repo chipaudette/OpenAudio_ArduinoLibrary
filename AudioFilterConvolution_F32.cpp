@@ -78,9 +78,8 @@ void AudioFilterConvolution_F32::update(void)
                   k++;
                   l++;
                 }
-              // convert floats to Q15 and save in temporary array tbuffer
-              arm_copy_f32 (&buffer[0], &tbuffer[0], BUFFER_SIZE*4);
             }
+            arm_copy_f32 (&buffer[0], &tbuffer[0], BUFFER_SIZE*4);
             bp = block->data;
             for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
                 buffer[i] = *bp;
