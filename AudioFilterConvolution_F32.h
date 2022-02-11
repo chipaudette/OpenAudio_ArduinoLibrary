@@ -131,6 +131,7 @@ public:
 
   virtual void update(void);
   void passThrough(int stat);
+  void initFilter (void) {impulse(FIR_Coef);}
   void initFilter (float32_t fc, float32_t Astop,
                    int type, float32_t dfc);
   float32_t* getCoeffPtr(void) {return &FIR_Coef[0];}
