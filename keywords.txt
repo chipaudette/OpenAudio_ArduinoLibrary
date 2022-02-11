@@ -108,6 +108,11 @@ setHighpass	KEYWORD2
 setBandpass	KEYWORD2
 setNotch	KEYWORD2
 
+AudioFilterConvolution_F32	KEYWORD1
+passThrough	KEYWORD2
+initFilter	KEYWORD2
+getCoeffPtr	KEYWORD2
+
 AudioFilterFIR_F32	KEYWORD1
 setSampleRate_Hz	KEYWORD2
 setBlockLength		KEYWORD2
