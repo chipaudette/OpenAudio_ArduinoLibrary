@@ -35,6 +35,7 @@
 #include "analyze_fft1024_iq_F32.h"
 #include "analyze_fft2048_iq_F32.h"
 #include "analyze_fft4096_iq_F32.h"
+#include "analyze_fft4096_iqem_F32.h"
 #include "analyze_peak_f32.h"
 #include "analyze_rms_f32.h"
 #include "analyze_tonedetect_F32.h"
