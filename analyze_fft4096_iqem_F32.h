@@ -278,7 +278,7 @@ public:
 
     // xAxis, bit 0 left/right;  bit 1 low to high;  default 0X03
     void setXAxis(uint8_t _xAxis)  {
-       xAxis = _xAxis ^ 0X20;   // Change bit 1 to be consistent with other IQ FFT
+       xAxis = _xAxis ^ 0X02;   // Change bit 1 to be consistent with other IQ FFT
        }
 
   virtual void update(void);
