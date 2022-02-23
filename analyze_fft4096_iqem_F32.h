@@ -1,5 +1,5 @@
 /*
- *   analyze_fft4096_iqem_F32.h    Assembled by Bob Larkin   9 Mar 2021
+ *   analyze_fft4096_iqem_F32.h    Assembled by Bob Larkin   18 Feb 2022
  *
  * External Memory  ****  BETA TEST VERSION - NOT FULLY TESTED **** <<<<<<<<<<
  *
@@ -20,7 +20,7 @@
  *   * Multiple bin-sum output to simulate wider bins.
  *   * Power averaging of multiple FFT
  *
- * Conversion Copyright (c) 2021 Bob Larkin
+ * Conversion Copyright (c) 2022 Bob Larkin
  * Same MIT license as PJRC:
  *
  * From original real FFT:
@@ -90,17 +90,23 @@
  *
  * x-Axis direction and offset per setXAxis(xAxis) for sine to I
  * and cosine to Q:
- *   If xAxis=0  f=0 in middle, f=fs/2 on left edge
- *   If xAxis=1  f=0 in middle, f=fs/2 on right edge
- *   If xAxis=2  f=0 on right edge, f=fs/2 in middle
- *   If xAxis=3  f=0 on left edge, f=fs/2 in middle
+ *
+ *   If xAxis=0  f=fs/2 in middle, f=0 on right edge
+ *   If xAxis=1  f=fs/2 in middle, f=0 on left edge
+ *   If xAxis=2  f=fs/2 on left edge, f=0 in middle
+ *   If xAxis=3  f=fs/2 on right edgr, f=0 in middle
+ *
  * If there is 180 degree phase shift to I or Q these all get reversed.
  * xAxis=1 is a mathemetically consistent method.  It has positive frequencies
  * on the right and negative ones on the left.  The center is half the sample
  * rate, both + and -.  Uniormly sampled data lives in this circular world.rate.
  *
- * Timing, max is longest update() time:
- *   T4.0 Windowed, dBFS Out, 987 uSec  <<<<<<CHECK
+ * Timing, maximum microseconds per update() over the 16 updates,
+ * and the average percent processor use for 44.1 kHz sample rate and Nave=1:
+ *   T4.0 Windowed, dBFS Out (FFT_DBFS), 710 uSec, Ave 4.64%
+ *   T4.0 Windowed, Power Out (FFT_POWER), 530 uSec, Ave 1.7%
+ *   T4.0 Windowed, RMS Out, (FFT_RMS) 530 uSec, Ave 1.92%
+ * Nave greater than 1 decreases the average processor load.
  *
  * Windows:  The FFT window array memory is provided by the INO.  Three common and
  * useful window functions, plus no window, can be filled into the array by calling
@@ -131,6 +137,8 @@
  *   removing 66.2 dB.  With floating point, the dynamic range is maintained
  *   no matter how it is scaled, but this factor needs to be considered
  *   when building the INO.
+ *
+ *   22 Feb 2022 Fixed xAxis error.
  */
  /*  Info
   * __MK20DX128__ T_LC;  __MKL26Z64__ T3.0;  __MK20DX256__T3.1 and T3.2
@@ -270,7 +278,7 @@ public:
 
     // xAxis, bit 0 left/right;  bit 1 low to high;  default 0X03
     void setXAxis(uint8_t _xAxis)  {
-       xAxis = _xAxis;
+       xAxis = _xAxis ^ 0X20;   // Change bit 1 to be consistent with other IQ FFT
        }
 
   virtual void update(void);

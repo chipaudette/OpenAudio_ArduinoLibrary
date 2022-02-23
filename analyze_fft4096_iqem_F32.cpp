@@ -1,5 +1,5 @@
 /*
- *   analyze_fft4096_iq_F32.cpp       Assembled by Bob Larkin   9 Mar 2021
+ *   analyze_fft4096_iq_F32.cpp       Assembled by Bob Larkin   18 Feb 2022
  *
  * External Memory  ****  BETA TEST VERSION - NOT FULLY TESTED **** <<<<<<<<<<
  *
@@ -12,7 +12,7 @@
  *   * Future: Add outputs for I & Q FFT x2 for overlapped FFT
  *   * Windowing None, Hann, Kaiser and Blackman-Harris.
  *
- * Conversion Copyright (c) 2021 Bob Larkin
+ * Conversion Copyright (c) 2022 Bob Larkin
  * Same MIT license as PJRC:
  *
  *  Audio Library for Teensy 3.X
@@ -73,6 +73,11 @@ void AudioAnalyzeFFT4096_IQEM_F32::update(void)  {
      }
   // Here with two new blocks of data.  These are retained until the FFT
   // but with new pointers, blocklist_i[] and blocklist_q[].
+
+  uint32_t tt = micros(); Serial.print(state);
+
+
+
   switch (state) {
   case 0:
       blocklist_i[0] = block_i;  blocklist_q[0] = block_q;  // Copy 2 ptrs
@@ -144,7 +149,7 @@ void AudioAnalyzeFFT4096_IQEM_F32::update(void)  {
       blocklist_i[16] = block_i;  blocklist_q[16] = block_q;
 
      // Now work on the FFT output data.  This was created in case 31.
-     // This next forming of the sumsq[] takes 48 uSec
+     // This next forming of the sumsq[] takes 66 uSec (was 48 uSec with local memory)
      count++;
      for (int i = 0; i < 2048; i++)   {
         // Re-arranging the coefficients. These are bin powers (not Volts)
@@ -315,7 +320,7 @@ void AudioAnalyzeFFT4096_IQEM_F32::update(void)  {
   case 31:
       blocklist_i[31] = block_i;  blocklist_q[31] = block_q;
 
-      // Copy 8192 data to fft_buffer This state==31 takes about 500 uSec, including the FFT.
+      // Copy 8192 data to fft_buffer This state==31 takes about 530 uSec, including the FFT.
       // i & q interleaved data.
       copy_to_fft_buffer1(pFFT_buffer+0x000, blocklist_i[0]->data, blocklist_q[0]->data);
       copy_to_fft_buffer1(pFFT_buffer+0x100, blocklist_i[1]->data, blocklist_q[1]->data);
@@ -424,6 +429,10 @@ void AudioAnalyzeFFT4096_IQEM_F32::update(void)  {
       state = 16;
       break;       // From case 31
     } // End of switch & case 31
+
+
+    Serial.print(",");  Serial.println(micros() - tt);
+
   }  // End update()
   // End, if Teensy 4.x
 #endif
