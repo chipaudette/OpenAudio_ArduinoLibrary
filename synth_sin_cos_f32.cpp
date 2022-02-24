@@ -1,5 +1,5 @@
 /* synth_sin_cos_f32.cpp
- * 
+ *
  * SynthSinCos_F32  Bob Larkin April 17, 2020
  *
  * Based on Chip Audette's OpenAudio sine(), that was
@@ -44,13 +44,13 @@ void AudioSynthSineCosine_F32::update(void) {
     float32_t a, b, deltaPhase, phaseC;
     blockS = AudioStream_F32::allocate_f32();   // Output blocks
     if (!blockS)  return;
-    
+
     blockC = AudioStream_F32::allocate_f32();
 	if (!blockC) {
 		AudioStream_F32::release(blockS);
 		return;
     }
- 
+
     // doSimple has amplitude (-1, 1) and sin/cos differ by 90.00 degrees.
     if (doSimple) {
        for (i=0; i < block_length; i++) {
@@ -62,15 +62,16 @@ void AudioSynthSineCosine_F32::update(void) {
           /* Read two nearest values of input value from the sin table */
           a = sinTable512_f32[index];
           b = sinTable512_f32[index+1];
-          blockS->data[i] = a + 0.001953125*(b-a)*deltaPhase;  /* Linear interpolation process */
- 
+          // Corrected
+          // blockS->data[i] = a + 0.001953125*(b-a)*deltaPhase;  /* Linear interpolation process */
+          blockS->data[i] = a+(b-a)*deltaPhase;  /* Linear interpolation process */
           /* Repeat for cosine by adding 90 degrees phase  */
           index = (index + 128) & 0x01ff;
           /* Read two nearest values of input value from the sin table */
           a = sinTable512_f32[index];
           b = sinTable512_f32[index+1];
           /* deltaPhase will be the same as used for sin  */
-          blockC->data[i] = a + 0.001953125*(b-a)*deltaPhase;  /* Linear interpolation process */
+          blockC->data[i] = a +(b-a)*deltaPhase;  /* Linear interpolation process */
        }
     }
     else {   // Do a more flexible update, i.e., not doSimple
@@ -82,8 +83,8 @@ void AudioSynthSineCosine_F32::update(void) {
           /* Read two nearest values of input value from the sin table */
           a = sinTable512_f32[index];
           b = sinTable512_f32[index+1];
-          blockS->data[i] = amplitude_pk*(a + 0.001953125*(b-a)*deltaPhase);  /* Linear interpolation process */
- 
+          blockS->data[i] = amplitude_pk*(a +(b-a)*deltaPhase);  /* Linear interpolation process */
+
           /* Shift forward phaseS_C  and get cos. First, the calculation of index of the table */
           phaseC = phaseS + phaseS_C;
           if (phaseC > 512.0f)  phaseC -= 512.0f;
@@ -92,13 +93,21 @@ void AudioSynthSineCosine_F32::update(void) {
           /* Read two nearest values of input value from the sin table */
           a = sinTable512_f32[index];
           b = sinTable512_f32[index+1];
-          blockC->data[i] = amplitude_pk*(a + 0.001953125*(b-a)*deltaPhase);  /* Linear interpolation process */
+          blockC->data[i] = amplitude_pk*(a +(b-a)*deltaPhase);  /* Linear interpolation process */
         }
     }
+
+    // For higher frequencies, an optional bandpass filter the output
+    // This does a pass through for lower frequencies
+    if(doPureSpectrum)
+       {
+       arm_biquad_cascade_df1_f32(&bq_instS, blockS->data, blockS->data, 128);
+       arm_biquad_cascade_df1_f32(&bq_instC, blockC->data, blockC->data, 128);
+       }
+
     AudioStream_F32::transmit(blockS, 0);
-    AudioStream_F32::release (blockS);       
+    AudioStream_F32::release (blockS);
     AudioStream_F32::transmit(blockC, 1);
     AudioStream_F32::release (blockC);
     return;
 }
-
