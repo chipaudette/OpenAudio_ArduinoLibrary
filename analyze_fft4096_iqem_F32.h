@@ -1,9 +1,9 @@
 /*
  *   analyze_fft4096_iqem_F32.h    Assembled by Bob Larkin   18 Feb 2022
  *
- * External Memory  ****  BETA TEST VERSION - NOT FULLY TESTED **** <<<<<<<<<<
+ * External Memory - INO supplied memory arrays.  Windows are half width.
  *
- *  Note: Teensy 4.x Only, 3.x not supported
+ *  Note: Teensy 4.x ONLY, 3.x not supported
  *
  * Does Fast Fourier Transform of a 4096 point complex (I-Q) input.
  * Output is one of three measures of the power in each of the 4096
@@ -73,7 +73,7 @@
  * required if power averaging is used and about 58 kBytes without power averaging.
  *
  * In addition, this requires 64 AudioMemory_F32 which work out to about  an
- * additional 33 kBytesof memory.
+ * additional 33 kBytes of memory.
  *
  * If several FFT sizes are used, one at a time, the memory can be shared.  Probably
  * the simplest way to do this with a Teensy is to set up C-language unions.
@@ -96,11 +96,6 @@
  *   If xAxis=2  f=fs/2 on left edge, f=0 in middle
  *   If xAxis=3  f=fs/2 on right edgr, f=0 in middle
  *
- * If there is 180 degree phase shift to I or Q these all get reversed.
- * xAxis=1 is a mathemetically consistent method.  It has positive frequencies
- * on the right and negative ones on the left.  The center is half the sample
- * rate, both + and -.  Uniormly sampled data lives in this circular world.rate.
- *
  * Timing, maximum microseconds per update() over the 16 updates,
  * and the average percent processor use for 44.1 kHz sample rate and Nave=1:
  *   T4.0 Windowed, dBFS Out (FFT_DBFS), 710 uSec, Ave 4.64%
@@ -119,7 +114,7 @@
  *
  * To use an alternate window function, just fill it into the array, window, above.
  * It is only half of the window (2048 floats).  It looks like a full window
- * function with the righ half missing.  It should start with small
+ * function with the right half missing.  It should start with small
  * values on the left (near[0]) and go to 1.0 at the right ([2048]).
  *
  * As with all library FFT's this one provides overlapping time series.  This
@@ -140,7 +135,7 @@
  *
  *   22 Feb 2022 Fixed xAxis error, twice!
  */
- /*  Info
+ /*  Info:
   * __MK20DX128__ T_LC;  __MKL26Z64__ T3.0;  __MK20DX256__T3.1 and T3.2
   * __MK64FX512__) T3.5; __MK66FX1M0__ T3.6; __IMXRT1062__ T4.0 and T4.1 */
 
@@ -298,7 +293,7 @@ private:
   int outputType = FFT_RMS;  //Same type as I16 version init
   int count = 0;
   int nAverage = 1;
-  uint8_t xAxis = 0x03;
+  uint8_t xAxis = 0x03;   // See discussion above
 
     // The Hann window is a good all-around window
     // This can be used with zero-bias frequency interpolation.
