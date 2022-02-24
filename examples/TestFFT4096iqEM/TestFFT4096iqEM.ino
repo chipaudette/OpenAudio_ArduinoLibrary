@@ -1,10 +1,10 @@
 // TestFFT2048iqEM.ino  for Teensy 4.x
+// ***  EXTERNAL MEMORY VERSION of 4095 FFT  ***
 // Bob Larkin 9 March 2021
 
 // Generate Sin and Cosine pair and input to IQ FFT.
-// Serial Print out powers of all 4096 bins in
-// dB relative to Sine Wave Full Scale
-//       EXTERNAL MEMORY FFT
+// Serial Print outputs of all 4096 bins.
+//
 // Public Domain
 
 #include "OpenAudio_ArduinoLibrary.h"
@@ -41,8 +41,11 @@ void setup(void) {
 
   sine_cos1.amplitude(1.0f); // Initialize Waveform Generator
 
+  // Engage the identical BP Filters on sine/cosine outputs (true).
+  sine_cos1.pureSpectrum(true);
+
   // Pick T4.x bin center
-  //sine_cos1.frequency(689.0625f);
+  // sine_cos1.frequency(689.0625f);
 
   // or pick any old frequency
   sine_cos1.frequency(1000.0f);
@@ -59,36 +62,38 @@ void setup(void) {
   // Uncomment to Serial print window function
   // for (int i=0; i<2048; i++) Serial.println(*(window+i), 7);
 
-  // xAxis, bit 0 left/right;  bit 1 low to high;  default 0X03
-  FFT4096iqEM1.setXAxis(0X01);
+  // xAxis, See leadin discussion at analyze_fft4096_iqem_F32.h
+  FFT4096iqEM1.setXAxis(0X03);    // 0X03 default
 
   // In order to average powers, a buffer for sumsq[4096] must be
   // globally declared and that pointer, sumsq, set as the last
   // parameter in the object creation.  Then the following will
   // cause averaging of 4 powers:
-  FFT4096iqEM1.setNAverage(20);
+  FFT4096iqEM1.setNAverage(4);
 
-  jj = 0;   // This is todelay data gathering to get steady state
+  jj = 0;   // This is to delay data gathering to get steady state
   }
 
 void loop(void)  {
   static bool doPrint=true;
   float *pPwr;
 
-  delay(10);
-
   // Print output, once
-  if( FFT4096iqEM1.available() && doPrint )  {
+  if( FFT4096iqEM1.available() && jj++>2 && doPrint )  {
 	  if(jj++ < 3)return;
       for(int i=0; i<4096; i++)
         {
-        Serial.print((int)((float32_t)i * 44100.0/4096.0));
+//      Serial.print((int)((float32_t)i * 44100.0/4096.0)); // Print freq
+        Serial.print(i);     // FFT Output index (0, 4095)
         Serial.print(" ");
         Serial.println(*(fftOutput + i), 8 );
 	    }
       doPrint = false;
       }
-  Serial.print(" Audio MEM Float32 Peak: ");
-  Serial.println(AudioMemoryUsageMax_F32());
-  delay(500);
+  if(doPrint)
+      {
+      Serial.print(" Audio MEM Float32 Peak: ");
+      Serial.println(AudioMemoryUsageMax_F32());
+      }
+  delay(100);
   }

@@ -138,7 +138,7 @@
  *   no matter how it is scaled, but this factor needs to be considered
  *   when building the INO.
  *
- *   22 Feb 2022 Fixed xAxis error.
+ *   22 Feb 2022 Fixed xAxis error, twice!
  */
  /*  Info
   * __MK20DX128__ T_LC;  __MKL26Z64__ T3.0;  __MK20DX256__T3.1 and T3.2
@@ -278,7 +278,7 @@ public:
 
     // xAxis, bit 0 left/right;  bit 1 low to high;  default 0X03
     void setXAxis(uint8_t _xAxis)  {
-       xAxis = _xAxis ^ 0X02;   // Change bit 1 to be consistent with other IQ FFT
+	   xAxis = _xAxis;
        }
 
   virtual void update(void);

@@ -74,9 +74,7 @@ void AudioAnalyzeFFT4096_IQEM_F32::update(void)  {
   // Here with two new blocks of data.  These are retained until the FFT
   // but with new pointers, blocklist_i[] and blocklist_q[].
 
-  uint32_t tt = micros(); Serial.print(state);
-
-
+  // uint32_t tt = micros(); Serial.print(state);
 
   switch (state) {
   case 0:
@@ -228,10 +226,7 @@ void AudioAnalyzeFFT4096_IQEM_F32::update(void)  {
 
      // Second half of post-FFT processing.  dBFS (log10f) is the big user of time.
      if (pSumsq==NULL || count>=nAverage) {    // Average is finished
-
-		 Serial.println(count);
-
-        count = 0;                  // CHECK WHERE IS count++ ???  <<<<<<<<<<<<<<
+        count = 0;
         float inAf = 1.0f/(float)nAverage;
         // ii is the index to data source, i is for data output
         for (int ii=2048; ii < 4096; ii++) {
@@ -429,10 +424,7 @@ void AudioAnalyzeFFT4096_IQEM_F32::update(void)  {
       state = 16;
       break;       // From case 31
     } // End of switch & case 31
-
-
-    Serial.print(",");  Serial.println(micros() - tt);
-
+    // Serial.print(",");  Serial.println(micros() - tt);
   }  // End update()
   // End, if Teensy 4.x
 #endif
