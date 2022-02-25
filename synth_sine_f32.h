@@ -96,7 +96,6 @@ public:
     /* Externally, phase comes in the range (.0, 360.0).
      * Internally,  the full circle is represented as (0.0, 512.0).  This is
      * convenient for finding the entry to the sine table.
-     * Corrected 1-day at phase_r() 24 Feb 22
      */
     void phase(float32_t _angle) {
         angle = 1.42222222f*_angle;  // Change (0,360) to (0, 512)
