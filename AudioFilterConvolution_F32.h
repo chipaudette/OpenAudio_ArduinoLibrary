@@ -95,6 +95,8 @@
    * See the example TestConvolutionFilter.ino for more inforation on the
    * use of this class.
    *
+   * Removed #defines that were not needed. Thanks K7MDL. Bob 6 Mar 2022
+   *
    * ************************************************************ */
 
 #ifndef AudioFilterConvolution_F32_h_
@@ -105,10 +107,8 @@
 #include <arm_const_structs.h>
 
 #define MAX_NUMCOEF 513
-#define TPI           6.28318530717959f
-#define PIH           1.57079632679490f
-#define FOURPI        2.0 * TPI
-#define SIXPI         3.0 * TPI
+
+#define PIH_F32    1.5707963f
 
 #define LOWPASS    0
 #define HIGHPASS   1
@@ -122,7 +122,7 @@ class AudioFilterConvolution_F32 :
 public:
   AudioFilterConvolution_F32(void) : AudioStream_F32(1, inputQueueArray_F32) {
         fs = AUDIO_SAMPLE_RATE;
-         //block_size = AUDIO_BLOCK_SAMPLES;
+         //block_size = 128;  // Always
         };
   AudioFilterConvolution_F32(const AudioSettings_F32 &settings) : AudioStream_F32(1, inputQueueArray_F32) {
         // Performs the first initialize
@@ -139,7 +139,6 @@ public:
 //#define Alternate filter init
 
 private:
-  #define BUFFER_SIZE 128
   float32_t fs;
   audio_block_f32_t *inputQueueArray_F32[1];
   float32_t *sp_L;
@@ -151,7 +150,6 @@ private:
   int enabled=0;
   float32_t FIR_Coef[MAX_NUMCOEF];
   const uint32_t FFT_length = 1024;
-//  float32_t FIR_coef[2048] __attribute__((aligned(4)));  <<<<<<<<<<<<<<<
   float32_t FIR_filter_mask[2048] __attribute__((aligned(4)));
   float32_t buffer[2048] __attribute__((aligned(4)));
   float32_t tbuffer[2048]__attribute__((aligned(4)));

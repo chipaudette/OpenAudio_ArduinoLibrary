@@ -51,7 +51,7 @@ void AudioFilterConvolution_F32::impulse(float32_t *FIR_coef)
     arm_cfft_f32( &arm_cfft_sR_f32_len1024, FIR_filter_mask, 0, 1);
 
     // for 1st time thru, zero out the last sample buffer to 0
-  arm_fill_f32(0, last_sample_buffer_L, BUFFER_SIZE *4);
+  arm_fill_f32(0, last_sample_buffer_L, 128*4);
 
     state = 0;
     enabled = 1;  //enable audio stream again
@@ -79,9 +79,9 @@ void AudioFilterConvolution_F32::update(void)
                   l++;
                 }
             }
-            arm_copy_f32 (&buffer[0], &tbuffer[0], BUFFER_SIZE*4);
+            arm_copy_f32 (&buffer[0], &tbuffer[0], 128*4);
             bp = block->data;
-            for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
+            for (int i = 0; i < 128; i++) {
                 buffer[i] = *bp;
                 *bp++ = tbuffer[i];
             }
@@ -92,7 +92,7 @@ void AudioFilterConvolution_F32::update(void)
 
         case 1:
             bp = block->data;
-            for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
+            for (int i = 0; i < 128; i++) {
                 buffer[128+i] = *bp;
                 *bp++ = tbuffer[i+128];
             }
@@ -103,7 +103,7 @@ void AudioFilterConvolution_F32::update(void)
 
         case 2:
             bp = block->data;
-            for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
+            for (int i = 0; i < 128; i++) {
                 buffer[256 + i] = *bp;
                 *bp++ = tbuffer[i+256];  // tbuffer contains results of last FFT/multiply/iFFT processing (convolution filtering)
             }
@@ -117,7 +117,7 @@ void AudioFilterConvolution_F32::update(void)
 
         case 3:
             bp = block->data;
-            for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
+            for (int i = 0; i < 128; i++) {
                 buffer[384 + i] = *bp;
                 *bp++ = tbuffer[i + 384];  // tbuffer contains results of last FFT/multiply/iFFT processing (convolution filtering)
             }
@@ -165,7 +165,7 @@ float AudioFilterConvolution_F32::m_sinc(int m, float fc)
 { // fc is f_cut/(Fsamp/2)
   // m is between -M and M step 2
   //
-  float x = m*PIH;
+  float x = m*PIH_F32;
   if(m == 0)
     return 1.0f;
   else
@@ -229,8 +229,8 @@ void AudioFilterConvolution_F32::calc_FIR_coeffs
          if(2*ii==nc) continue;
          float x =(float)(2*ii - nc)/(float)nc;
          float w = Izero(Beta*sqrtf(1.0f - x*x))/izb; // Kaiser window
-         coeffs[ii-1] = 1.0f/(PIH*(float)(ii-nc/2)) * w ;
-         //coeffs[2*ii+1] = 1.0f/(PIH*(float)(ii-nc/2)) * w ;
+         coeffs[ii-1] = 1.0f/(PIH_F32*(float)(ii-nc/2)) * w ;
+         //coeffs[2*ii+1] = 1.0f/(PIH_F32*(float)(ii-nc/2)) * w ;
        }
        return;  // From Hilbert design
      }
@@ -249,11 +249,11 @@ void AudioFilterConvolution_F32::calc_FIR_coeffs
      }
      else if (type==BANDPASS)
      {
-       for(jj=0; jj< nc+1; jj++) coeffs[jj] *= 2.0f*cosf(PIH*(2*jj-nc)*fc);
+       for(jj=0; jj< nc+1; jj++) coeffs[jj] *= 2.0f*cosf(PIH_F32*(2*jj-nc)*fc);
      }
      else if (type==BANDREJECT)
      {
-       for(jj=0; jj< nc+1; jj++) coeffs[jj] *= -2.0f*cosf(PIH*(2*jj-nc)*fc);
+       for(jj=0; jj< nc+1; jj++) coeffs[jj] *= -2.0f*cosf(PIH_F32*(2*jj-nc)*fc);
        coeffs[nc/2] += 1;
      }
 } // END calc_FIR_coef
