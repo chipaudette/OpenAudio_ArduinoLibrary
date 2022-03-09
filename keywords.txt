@@ -7,6 +7,11 @@ audio_block_f32_t	KEYWORD1
 AudioStream_F32		KEYWORD1
 AudioConnection_F32	KEYWORD1
 
+AudioAlignLR_F32	KEYWORD1
+TPinfo			KEYWORD2
+stateAlignLR	KEYWORD2
+setThreshold	KEYWORD2
+
 AudioAnalyzeFFT256_IQ_F32	KEYWORD1
 windowFunction	KEYWORD2
 getData	KEYWORD2
