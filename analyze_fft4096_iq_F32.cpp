@@ -70,7 +70,7 @@ static void apply_window_to_fft_buffer1(void *fft_buffer, const void *window) {
 void AudioAnalyzeFFT4096_IQ_F32::update(void)  {
   audio_block_f32_t *block_i,*block_q;
   int ii;
-
+  // uint32_t tt = micros();   // timing
   block_i = receiveReadOnly_f32(0);
   if (!block_i) return;
   block_q = receiveReadOnly_f32(1);
@@ -79,7 +79,6 @@ void AudioAnalyzeFFT4096_IQ_F32::update(void)  {
      return;
      }
   // Here with two new blocks of data
-
   switch (state) {
   case 0:
       blocklist_i[0] = block_i;  blocklist_q[0] = block_q;
@@ -283,7 +282,7 @@ void AudioAnalyzeFFT4096_IQ_F32::update(void)  {
   case 31:
       blocklist_i[31] = block_i;  blocklist_q[31] = block_q;
 
-      // This state==31 takes about 500 uSec, including the FFT.  
+      // This state==31 takes about 500 uSec, including the FFT.
       copy_to_fft_buffer1(fft_buffer+0x000, blocklist_i[0]->data, blocklist_q[0]->data);
       copy_to_fft_buffer1(fft_buffer+0x100, blocklist_i[1]->data, blocklist_q[1]->data);
       copy_to_fft_buffer1(fft_buffer+0x200, blocklist_i[2]->data, blocklist_q[2]->data);
@@ -378,5 +377,6 @@ void AudioAnalyzeFFT4096_IQ_F32::update(void)  {
        state = 16;
        break;       // From case 31
     }  // End of switch & case 31
+    // Serial.println(micros() - tt);
   }  // End update()
 #endif
