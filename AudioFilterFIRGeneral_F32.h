@@ -9,7 +9,7 @@
  * for the library structures and wonderful Teensy products.
  *
  * There are enough different FIR filter Audio blocks to need a summary.  Here goes:
- * 
+ *
  * AudioFilterFIR   (Teensy Audio Library by PJRC) handles 16-bit integer data,
  *     and a maximum of 200 FIR coefficients, even only. (taps). For Teensy Audio.
  * AudioFilterFIR_F32 (OpenAudio_ArduinoLibrary by Chip Audette) handles 32-bit floating point
@@ -32,21 +32,21 @@
  * FIR filters suffer from needing considerable computation of the multiply-and-add
  * sort.  This limits the number of taps that can be used, but less so as time goes by.
  * In particular, the Teensy 4.x, if it *did nothing but*  FIR calculations, could
- * use about 6000 taps inmonaural, which is a huge number.  But, this also 
+ * use about 6000 taps inmonaural, which is a huge number.  But, this also
  * suggests that if the filtering task is an important function of a project,
  * using, say 2000 taps is practical.
- * 
+ *
  * FIR filters can be (and are here) implemented to have symmetrical coefficients.  This
  * results in constant delay at all frequencies (linear phase).  For some applications this can
  * be an important feature.  Sometimes it is suggested that the FIR should not be
  * used because of the latency it creates.  Note that if constant delay is needed, the FIR
  * implementation does this with minimum latency.
- * 
+ *
  * For this block, AudioFilterFIRGeneral_F32, memory storage for the FIR
  * coefficiients as well as working storage for the ARM FIR routine is provided
  * by the calling .INO.  This allows large FIR sizes without always tying up a
  * big memory block.
- * 
+ *
  * This block normally calculates the FIR coefficients using a Fourier transform
  * of the desired amplitude response and a Kaiser window.  This flexability requires
  * the calling .INO to provide an array of response levels, in relative dB,
@@ -57,17 +57,17 @@
  *     else        dbA[i] = -140.0f;
  *   }
  *   firg1.FIRGeneralNew(&dbA[0], 300, &equalizeCoeffs[0], 50.0f, &workSpace[0]);
- * 
+ *
  * As an alternate to inputting the response function, the FIR coefficients can be
  * entered directly using LoadCoeffs(nFIR, cf32f, *pStateArray).  This is a very quick
  * operation as only pointers to coefficients are involved.  Several filters can be
  * stored in arrays and switched quickly this way.  If this is done, pStateArray[]
  * as initially setup should be large enough for all filters. There will be "clicks"
- * associated with filter changes and these may need to be muted. 
+ * associated with filter changes and these may need to be muted.
  *
  * How well the desired response is achieved depends on the number of FIR coefficients
  * being used.  As noted above, for some applications it may be desired to use
- * large numbers of taps.  The achieved response can be evaluated 
+ * large numbers of taps.  The achieved response can be evaluated
  * by the function getResponse(nPoints, pResponse) which fills an .INO-supplied array
  * pResponse[nPoints] with the frequency response of the equalizer in dB.  The nPoints
  * are spread evenly between 0.0 and half of the sample frequency.
@@ -99,11 +99,11 @@
  *      frequency response.
  *   LoadCoeffs(nFIR, cf32f, *pStateArray);    // To directly load FIR coefficients cf32f[]
  *   getResponse(nFreq, *rdb);   // To obtain the amplitude response in dB, rdb[]
- * 
+ *
  * Status: Tested T3.6, T4.0  No known bugs
- * 
+ *
  * Examples: TestFIRGeneralLarge4.ino   TestFIRGeneralLarge5.ino
- * 
+ *
  * Copyright (c) 2020 Bob Larkin
  * Any snippets of code from PJRC or Chip Audette used here brings with it
  * the associated license.

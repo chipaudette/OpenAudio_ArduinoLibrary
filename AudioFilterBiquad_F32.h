@@ -1,5 +1,5 @@
 /*
- * AudioFilterBiquad_F32.cpp
+ * AudioFilterBiquad_F32.h
  * Chip Audette, OpenAudio, Apr 2017
  * MIT License,  Use at your own risk.
  *
@@ -20,11 +20,11 @@
  * begin of the ARM CMSIS.  We can't do that with multiple stages. If you
  * encouter this, add myBiquad.begin(); to your INO after the
  * coefficients have been set.  Feb 2021
- * 
+ *
  * The sign of the coefficients for feedback, the a[], here use the
  * convention of the ARM CMSIS library.  Matlab reverses the signs of these.
  * I believe these are treated per those rules!! Bob
- * 
+ *
  * Algorithm for CMSIS library
  * Each Biquad stage implements a second order filter using the difference equation:
  *   y[n] = b0 * x[n] + b1 * x[n-1] + b2 * x[n-2] + a1 * y[n-1] + a2 * y[n-2]
@@ -100,11 +100,11 @@ class AudioFilterBiquad_F32 : public AudioStream_F32
        }
 
     // ARM DSP Math library filter instance.
-    // Does the initialization of ARM CMSIS DSP BiQuad  structure.  This MUST follow the 
-    // setting of coefficients to catch the max number of stages and do the 
+    // Does the initialization of ARM CMSIS DSP BiQuad  structure.  This MUST follow the
+    // setting of coefficients to catch the max number of stages and do the
     // double to float conversion for the CMSIS routine.
     void begin(void) {
-        // Initialize FIR instance (ARM DSP Math Library)
+        // Initialize BiQuad instance (ARM DSP Math Library)
         //https://www.keil.com/pack/doc/CMSIS/DSP/html/group__BiquadCascadeDF1.html
         arm_biquad_cascade_df1_init_f32(&iir_inst, numStagesUsed, &coeff32[0],  &StateF32[0]);
         }
@@ -115,7 +115,7 @@ class AudioFilterBiquad_F32 : public AudioStream_F32
 
     void setSampleRate_Hz(float _fs_Hz) { sampleRate_Hz = _fs_Hz; }
 
-    //  Deprecated  
+    //  Deprecated
     void setBlockDC(void) {
       // https://www.keil.com/pack/doc/CMSIS/DSP/html/group__BiquadCascadeDF1.html#ga8e73b69a788e681a61bccc8959d823c5
       // Use matlab to compute the coeff for HP at 40Hz: [b,a]=butter(2,40/(44100/2),'high'); %assumes fs_Hz = 44100
