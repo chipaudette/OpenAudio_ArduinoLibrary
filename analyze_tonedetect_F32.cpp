@@ -1,7 +1,11 @@
 /*
  * analyze_tonedetect_F32.cpp  Converted to float from PJRC Teensy Audio Library
+ * for the OpenAudio_TeensyArduino library (floating point audio).
  *   MIT License on changed portions
  *   Bob Larkin March 2021
+ *
+ * See also  analyze_CTCSS_F32  that is specific for the CTCSS tone system
+ * with tones in the 67.0 to 250.3 Hz range.  (In this same library)
  *
  * Audio Library for Teensy 3.X
  * Copyright (c) 2014, Paul Stoffregen, paul@pjrc.com
