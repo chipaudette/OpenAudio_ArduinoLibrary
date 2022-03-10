@@ -3,9 +3,10 @@
  * This version is for the Chip Audette _F32 Library.
  */
 
+// Removed redundant DSP_TeensyAudio_F32.h  Bob  9 Mar 2022
+
 #include "Audio.h"
 #include "OpenAudio_ArduinoLibrary.h"
-#include "DSP_TeensyAudio_F32.h"
 
 AudioInputI2S               i2s1;       // Start interrupts
 AudioSynthWaveformSine_F32  sine1;      // Test signal
@@ -24,7 +25,7 @@ int i, k;
 float32_t dBResponse[500];  // Show lots of detail
 
 void setup(void) {
-  AudioMemory(5); 
+  AudioMemory(5);
   AudioMemory_F32(10);
   Serial.begin(300);  delay(1000);
   Serial.println("*** Test Audio Equalizer ***");
@@ -55,7 +56,7 @@ void setup(void) {
 void loop(void) {
   if(i<0) i++;  // Get past startup
   if(i==0) queue1.begin();
-  
+
   // Collect 128 samples and output to Serial
   // This "if" will be active for i == 0
   if (queue1.available() >= 1  &&  i >= 0) {
@@ -70,7 +71,7 @@ void loop(void) {
     queue1.freeBuffer();
     queue1.end();  // No more data to queue1
   }
-  if(i == 1) { 
+  if(i == 1) {
     // Uncomment the next 3 lines to printout a sample of the sine wave.
     /*Serial.println("128 Samples:  ");
     for (k=0; k<128; k++) {
