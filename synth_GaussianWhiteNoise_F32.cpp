@@ -30,6 +30,8 @@
 // Park-Miller-Carta Pseudo-Random Number Generator
 // http://www.firstpr.com.au/dsp/rand31/
 
+// Rev - Lower limit on sd changed, 0.01 to 1.0e-20f  RSL 19Jan2022
+
 void AudioSynthGaussian_F32::update(void)
 {
     audio_block_f32_t *blockOut;
@@ -37,7 +39,7 @@ void AudioSynthGaussian_F32::update(void)
     float32_t rdev = 0.0f;
     float32_t* pd;
 
-    if (sd < 0.01f) {
+    if (sd < 1.000e-20f) {
         return;  // Not enabled
     }
 
