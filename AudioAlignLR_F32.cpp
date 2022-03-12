@@ -89,21 +89,30 @@ void AudioAlignLR_F32::update(void)  {
             {
             currentTPinfo.xcVal[j] += block_i->data[k] * block_q->data[k+j];
             }
+         currentTPinfo.xNorm = 0.0f;
+         for(k=0; k<4; k++)
+            currentTPinfo.xNorm += fabsf( currentTPinfo.xcVal[k] );
          }
 
       // Decision time. Still in Measure. Can we leave? Need one more update()?
       // Sort out the offset that is cross-correlated
-      if(currentTPinfo.nMeas>5)  // Get past junk at startup
+      if(currentTPinfo.nMeas>5 && currentTPinfo.xNorm > 0.0001f)  // Get past junk at startup
          {
          currentTPinfo.TPerror = ERROR_TP_NONE;  // Change later if not true
          needOneMore = true;  // Change later if not true
-         if(currentTPinfo.xcVal[0]>TPthreshold && currentTPinfo.xcVal[2]<-TPthreshold)
+
+         // Redo (12 March 2022) with normalized values
+         float32_t  xcN[4];
+         for(j=0; j<4; j++)
+            xcN[j] = currentTPinfo.xcVal[j]/currentTPinfo.xNorm;
+         // Look for a good cross-correlation with the normalized values
+         if(xcN[0] - xcN[2] > 0.75f)
             currentTPinfo.neededShift = 0;
-         else if(currentTPinfo.xcVal[1]>TPthreshold && currentTPinfo.xcVal[3]<-TPthreshold)
+         else if(xcN[1] - xcN[3] > 0.75f)
             currentTPinfo.neededShift = 1;
-         else if(currentTPinfo.xcVal[3]>TPthreshold && currentTPinfo.xcVal[1]<-TPthreshold)
+         else if(xcN[3] - xcN[1] > 0.75f)
             currentTPinfo.neededShift = -1;
-         else  // Don't have a combination above the threshold.
+         else  // Don't have a combination awith much cross-correlation
             {
             currentTPinfo.neededShift = 0;  //  Just a guess
             currentTPinfo.TPerror = ERROR_TP_BAD_DATA;  // Probably no, or low signal

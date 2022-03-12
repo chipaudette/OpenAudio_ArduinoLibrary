@@ -54,6 +54,30 @@
 //
 //              BETA    NOTE That calls and operations may change.    BETA
 
+// Rev 12 Mar 2022 Added normalized decisions to eliminate need for a threshold.
+/* This is best placed in the setup() part of the INO.  A signal needs to be generated
+ * and this would look like:
+
+   uint32_t timeSquareWave = 0; 
+   #define PIN_FOR_TP 2
+   pinMode (PIN_FOR_TP, OUTPUT);    // Digital output pin
+
+   pData = TwinPeak.read();       // Base data to check error
+   while (pData->TPerror < 0  &&  millis()-tMillis < 2000)  // with timeout
+      {
+      if(micros()-timeSquareWave >= 45 && pData->TPstate==TP_MEASURE)
+         {
+         timeSquareWave = micros();
+         squareWave = squareWave^1;
+         digitalWrite(PIN_FOR_TP, squareWave);
+         }
+      pData = TwinPeak.read();
+      }
+      digitalWrite(PIN_FOR_TP, 0);    // Set pin to zero
+
+ * where the 45 microseconds needs to be adjusted for the sample rate of the Codec
+ */
+
 #ifndef audio_align_lr_f32_h_
 #define audio_align_lr_f32_h_
 
@@ -76,6 +100,7 @@ struct TPinfo{
    uint16_t  TPstate;
    uint32_t  nMeas;
    float32_t xcVal[4];     // I-Q cross-correlation sums
+   float32_t xNorm;
    int16_t   neededShift;
    int16_t   TPerror;
    uint16_t  TPsignalHardware;
@@ -139,7 +164,8 @@ public:
       }
 
    void setThreshold(float32_t _TPthreshold) {
-      TPthreshold = _TPthreshold;
+      //TPthreshold = _TPthreshold;
+      Serial.println("ERROR:  Threshold is no longer used.  12 Mar 2022");
       }
 
    virtual void update(void);
@@ -151,7 +177,7 @@ private:
    bool controlPinInvert = true;
    uint16_t  block_size = 128;
    bool needOneMore = false;
-   float32_t TPthreshold = 1.0f;
+   // float32_t TPthreshold = 1.0f;
    float32_t TPextraI = 0.0f;
    float32_t TPextraQ = 0.0f;
    TPinfo currentTPinfo;

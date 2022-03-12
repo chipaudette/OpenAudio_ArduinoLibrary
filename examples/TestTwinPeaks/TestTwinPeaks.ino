@@ -1,4 +1,4 @@
-/* TestTwinPeaks.ino    Bob Larkin   26 Feb 2022
+/* TestTwinPeaks.ino    Bob Larkin   26 Feb 2022    1
  * Tests the AlignLR class for finding the relative
  * time order of the Codec ADC L and R channels, and then
  * corrects these offsets.
@@ -15,6 +15,9 @@
  *
  */
 
+// Beta rev 12 Mar 2022: Added normalized measures and removed threshold. Moved
+// the L-R alignment to setup().
+
 #include "Audio.h"
 #include "OpenAudio_ArduinoLibrary.h"
 
@@ -29,10 +32,7 @@
 //
 // Set threshold as needed. Examine 3 output data around update #15
 // and use about half of maximum positive value.
-#define  TP_THRESHOLD 11.0f
-//
-// Un-comment the next to print samples of the phase-adjusted L&R data
-// #define PRINT_OUTPUT_DATA
+// #define  TP_THRESHOLD 0.001f    <<<< No Longer Used
 //
 //                      End Control Panel
 
@@ -40,10 +40,14 @@ const float sample_rate_Hz = 44100.0f;
 const int   audio_block_samples = 128;
 AudioSettings_F32 audio_settings(sample_rate_Hz, audio_block_samples);
 
-uint16_t nMeasLast = 0;
-uint32_t timeSquareWave = 0;   // Switch every 45 microseconds
+TPinfo* pData;
+uint32_t timeSquareWave = 0;   // Switch every twoPeriods microseconds
+uint32_t twoPeriods;
 
 AudioInputI2S_F32        i2sIn;
+// BEWARE _ -- The SIGNAL_HARDWARE==TP_SIGNAL_CODEC is likely to be removed and
+// then the constructtion of the object will be *ONLY* the simple cases
+// of TwinPeak(audio_settings) or just TwinPeak
 //                                 Pin or Codec       Pin,     Invert
 AudioAlignLR_F32       TwinPeak(SIGNAL_HARDWARE, PIN_FOR_TP, false, audio_settings);
 AudioOutputI2S_F32       i2sOut;
@@ -57,18 +61,27 @@ AudioConnection_F32      connection1(i2sIn,     0, TwinPeak,  0);
 AudioConnection_F32      connection2(i2sIn,     1, TwinPeak,  1);
 
 #if SIGNAL_HARDWARE==TP_SIGNAL_CODEC
-AudioConnection_F32      connection4(TwinPeak,  2, i2sOut,    0); // DAC L
-AudioConnection_F32      connection6(TwinPeak,  2, i2sOut,    1); // DAC R
+// Not realistic for a radio but useful for testing
+AudioConnection_F32      connection3(TwinPeak,  2, i2sOut,    1); // DAC R
 #endif
+
+#if SIGNAL_HARDWARE==TP_SIGNAL_IO_PIN
+// Not realistic for a radio but useful for testing
+AudioConnection_F32      connection4(TwinPeak,  1, i2sOut,    1); // DAC R
+#endif
+
+AudioConnection_F32      connection5(TwinPeak,  0, i2sOut,    0); // DAC L
 
 // For test, send to queue.  For real, send to receiver.
 #ifdef PRINT_OUTPUT_DATA
-AudioConnection_F32      connectionA(TwinPeak,  0, q1, 0);
-AudioConnection_F32      connectionB(TwinPeak,  1, q2, 0);
+AudioConnection_F32      connection6(TwinPeak,  0, q1, 0);
+AudioConnection_F32      connection7(TwinPeak,  1, q2, 0);
 #endif
 
 void setup(void) {
-   AudioMemory_F32(30, audio_settings);
+   uint32_t tMillis = millis();
+   AudioMemory_F32(50, audio_settings);
+
    Serial.begin(100);  // Any rate
    delay(500);
    Serial.println("Twin Peaks L-R Synchronizer Test");
@@ -84,84 +97,48 @@ void setup(void) {
    Serial.println("Using I/O pin for cross-correlation test signal.");
 #endif
 
-   TwinPeak.setThreshold(TP_THRESHOLD);
+   //TwinPeak.setThreshold(TP_THRESHOLD);   Not used
    TwinPeak.stateAlignLR(TP_MEASURE);  // Comes up TP_IDLE
 
-   Serial.println("");
-   Serial.println("Update ------- Outputs  -------");
-   Serial.println("Number  -1        0         1   Shift Error");// Column headings
-}
-
-void loop(void) {
-   // The following, under PRINT_OUTPUT_DATA, is an output of the L & R channels
-   // suitable for examination in a spreadsheet.
-#ifdef PRINT_OUTPUT_DATA
-static int32_t ii=0;
-   if(ii==5)
+#if SIGNAL_HARDWARE==TP_SIGNAL_IO_PIN
+   twoPeriods = (uint32_t)(0.5f + (2000000.0f / sample_rate_Hz));
+   // Note that for this  hardware, the INO is 100% in charge of the PIN_FOR_TP
+   pData = TwinPeak.read();       // Base data to check error
+   while (pData->TPerror < 0  &&  millis()-tMillis < 2000)  // with timeout
       {
-      q1.begin();
-      q2.begin();
+      if(micros()-timeSquareWave >= twoPeriods && pData->TPstate==TP_MEASURE)
+         {
+         static uint16_t squareWave = 0;
+         timeSquareWave = micros();
+         squareWave = squareWave^1;
+         digitalWrite(PIN_FOR_TP, squareWave);
+         }
+      pData = TwinPeak.read();
       }
-   if(ii>5 && ii<15)
-      {
-	   if(q1.available())
-	      {
-		   Serial.println(" ====================");
-	      float* pf1 = q1.readBuffer();
-	      for(int mm=0; mm<128; mm++)
-		      Serial.println(*(pf1 + mm),5);
-		   q1.freeBuffer();
-		   }
-		Serial.println("^--L");
-		if(q2.available())
-	      {
-	      float* pf2 = q2.readBuffer();
-	      for(int mm=0; mm<128; mm++)
-		      Serial.println(*(pf2 + mm),5);
-		   q2.freeBuffer();
-		   }
-		Serial.println("^--R");
-	    }
-   if(ii==16)
-      {
-      q1.end();
-      q2.end();
-   ii++;
-      }
-#endif
+      // The update has moved from Measure to Run. Ground the PIN_FOR_TP
+      //TwinPeak.stateAlignLR(TP_RUN);  // TP is done, not TP_MEASURE
+      digitalWrite(PIN_FOR_TP, 0);    // Set pin to zero
 
-   // uint32_t tt=micros();
-   TPinfo* pData = TwinPeak.read();
-   if(pData->nMeas > nMeasLast && pData->nMeas<20)
-      {
-      nMeasLast = pData->nMeas;     // This print takes about 6 microseconds
-      Serial.print(pData->nMeas); Serial.print(", ");
+      Serial.println("");
+      Serial.println("Update  ------------ Outputs  ------------");
+      Serial.println("Number  xNorm     -1        0         1   Shift Error State");// Column headings
+      Serial.print(pData->nMeas); Serial.print(",  ");
+      Serial.print(pData->xNorm, 6); Serial.print(", ");
       Serial.print(pData->xcVal[3], 6); Serial.print(", ");
       Serial.print(pData->xcVal[0], 6); Serial.print(", ");
       Serial.print(pData->xcVal[1], 6); Serial.print(", ");
       Serial.print(pData->neededShift); Serial.print(",   ");
-      Serial.println(pData->TPerror);
-      //Serial.println(pData->TPstate);
-#if SIGNAL_HARDWARE==TP_SIGNAL_IO_PIN
-      if(pData->TPerror == 0)
-         {
-         TwinPeak.stateAlignLR(TP_RUN);  // TP is done
-         digitalWrite(PIN_FOR_TP, 0);
-         }
-#endif
-      // Serial.println(micros()-tt);
-      }
+      Serial.print(pData->TPerror); Serial.print(",    ");
+      Serial.println(pData->TPstate);
 
-#if SIGNAL_HARDWARE==TP_SIGNAL_IO_PIN
-   // Generate 11.11 kHz square wave
-   // For other sample rates, set to roughly 2 sample periods, in microseconds
-   if(micros()-timeSquareWave >= 45 && pData->TPstate==TP_MEASURE)
-      {
-      static uint16_t squareWave = 0;
-      timeSquareWave = micros();
-      squareWave = squareWave^1;
-      digitalWrite(PIN_FOR_TP, squareWave);
-      }
+  // You can see the injected signal level by the printed variable, pData->xNorm
+  // It is the sum of the 4 cross-correlation numbers and if it is below 0.0001 the
+  // measurement is getting noisy and un-reliable.  Raise the injected signal level
+  // to solve the problem.
 #endif
+}
 
+void loop(void) {
    }
+
+
