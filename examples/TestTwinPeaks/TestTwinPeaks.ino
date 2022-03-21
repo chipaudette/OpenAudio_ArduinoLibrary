@@ -79,7 +79,7 @@ AudioConnection_F32      connection7(TwinPeak,  1, q2, 0);
 #endif
 
 void setup(void) {
-   uint32_t tMillis = millis();
+   static uint32_t tMillis = millis();
    AudioMemory_F32(50, audio_settings);
 
    Serial.begin(100);  // Any rate
