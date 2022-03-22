@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------------------------
-   AudioAlignLR_F32.h
+   AudioAlignLR_F32.h                                 21 Mar 2022
 
    Function:  Waits for CODEC startup and measures L-R time alignment errors.
    Automatically corrects delay errors.  Requires extra control to disable
@@ -77,6 +77,7 @@
 
  * where the 45 microseconds needs to be adjusted for the sample rate of the Codec
  */
+ // Rev 21 Mar 2022 Added BP Filters on two inputs, pass fs/4.
 
 #ifndef audio_align_lr_f32_h_
 #define audio_align_lr_f32_h_

@@ -1,6 +1,6 @@
 
 /*------------------------------------------------------------------------------------
-   AudioAlignLR_F32.cpp
+   AudioAlignLR_F32.cpp                             3-21-2022
 
    Author:    Bob Larkin  W7PUA
    Date:      28 Feb 2022
