@@ -214,7 +214,7 @@ var RED = (function() {
 		statusEnabled = btnStatus.toggleClass("active").hasClass("active");
 		RED.view.status(statusEnabled);
 	}
-	
+
 	function showHelp() {
 
 		var dialog = $('#node-help');
