@@ -386,6 +386,7 @@ span.mainfunction {color: #993300; font-weight: bolder}
 
 
         {"type":"AudioLMSDenoiseNotch_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"LMS","inputs":"1","output":"0","category":"filter-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
+        {"type":"AudioSpectralDenoise_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"Spectral","inputs":"1","output":"0","category":"filter-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"AudioFilterFreqWeighting_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"freqWeight","inputs":"NaN","output":"0","category":"filter-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"NaN"}},
         {"type":"AudioFilterTimeWeighting_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"timeWeight","inputs":"1","output":"0","category":"filter-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"AudioMathAdd_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"mathAdd","inputs":"2","output":"0","category":"math-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
@@ -899,6 +900,114 @@ See Compressor and Compressor2 for complete, ready to use classes.</p>
     </div>
 </script>
 
+<div>
+<script type="text/x-red" data-help-name="AudioSpectralDenoise_F32">
+<!-- ============   AudioSpectralDenoise_F32    ========= -->
+	<h3>Summary</h3>
+	<div class=tooltipinfo>
+	<p>Spectral Noise Reduction</p>
+	<p>Remove random noise, such as background noise or machine generated noise, and try
+           to leave voice intact.</p>
+	<p>Spectral NR does not try to remove constant tones or clicks and pops.</p>
+	<p>Spectral NR is generally not useful for cleaning up 'pure tone' sources, such as morse code.</p>
+	<h3>Audio Connections</h3>
+	<table class=doc align=center cellpadding=3>
+		<tr class=top><th>Port</th><th>Purpose</th></tr>
+		<tr class=odd><td align=center>In 0</td><td>Signal to be filtered</td></tr>
+		<tr class=odd><td align=center>Out 0</td><td>Filtered Signal Output</td></tr>
+	</table>
+	<h3>Functions</h3>
+	<p class=func><span class=keyword>setup</span>(<strong>AudioSettings_F32 &</strong>settings, <strong>int</strong> n_fft);</p>
+	<p class=desc>Setup the filter. Must be called if parameters not passed in to the
+                constructor. Can be re-called if other parameters have been changed to have
+                the changes take effect.
+                The maximum FFT size is dictated by the underlying FFT_OA code.
+	</p>
+	<p class=func><span class=keyword>enable</span>(<strong>bool</strong> start);</p>
+	<p class=desc>Turn on or offthe filter. The filter is enabled by default upon
+                creation.
+	</p>
+	<p class=func><span class=keyword>enabled</span>();</p>
+	<p class=desc>Return the enabled state of the filter.</p>
+	<p class=func><span class=keyword>getAsnr</span>();</p>
+	<p class=desc>Return the current ASNR value.</p>
+	<p class=func><span class=keyword>setAsnr</span>(<strong>float32_t</strong> value);</p>
+	<p class=desc>Set the ASNR value. Active SNR.</p>
+        <p class=desc>Call <span class=keyword>setup()</span> for the change to take effect.</p>
+	<p class=func><span class=keyword>getVADHighFreq</span>();</p>
+	<p class=desc>Get the VAD band high frequency cutoff value.</p>
+	<p class=func><span class=keyword>setVADHighFreq</span>(<strong>float32_t</strong> value);</p>
+	<p class=desc>Set the VAD High Frequency cutoff value. Sets the high
+                      frequency value of the Voice Activity Detector (VAD) window.
+	</p>
+        <p class=desc>Call <span class=keyword>setup()</span> for the change to take effect.</p>
+	<p class=func><span class=keyword>getVADLowFreq</span>();</p>
+	<p class=desc>Get the VAD band low frequency value.</p>
+	<p class=func><span class=keyword>setVADLowFreq</span>(<strong>float32_t</strong> value);</p>
+	<p class=desc>Set the VAD band low frequency value.</p>
+        <p class=desc>Call <span class=keyword>setup()</span> for the change to take effect.</p>
+	<p class=func><span class=keyword>getNRAlpha</span>();</p>
+	<p class=desc>get the NRalpha value. NR alpha is the time smoothing constant. It's
+                      range is clipped between 0.9 and 0.9999 in the code. Settings >0.95
+                      generally recommended, or you can get strong reverb and 'watery' effects.
+	</p>
+	<p class=func><span class=keyword>setNRAlpha</span>(<strong>float32_t</strong> value);</p>
+	<p class=desc>Set the NRalpha value.</p>
+        <p class=desc>The change takes effect immediately.</p>
+	<p class=func><span class=keyword>getSNRPrioMin</span>();</p>
+	<p class=desc>Get the SNR prior value.</p>
+	<p class=func><span class=keyword>setSNRPrioMin</span>(<strong>float32_t</strong> value);</p>
+	<p class=desc>Set the SNR prior value.</p>
+        <p class=desc>The change takes effect immediately.</p>
+	<p class=func><span class=keyword>getNRWidth</span>();</p>
+	<p class=desc>Get the NR width. Used for the measuring 'span' in the musical note
+                      reduction code.
+	</p>
+	<p class=func><span class=keyword>setNRWidth</span>(<strong>int16_t</strong> value);</p>
+	<p class=desc>Set the NR width.</p>
+        <p class=desc>The change takes effect immediately.</p>
+	<p class=func><span class=keyword>getPowerThreshold</span>();</p>
+	<p class=desc>Get the power threshold. Used to limit the effects of the musical
+                      note reduction code.
+	</p>
+	<p class=func><span class=keyword>setPowerThreshold</span>(<strong>float32_t</strong> value);</p>
+	<p class=desc>Set the power threshold.</p>
+        <p class=desc>The change takes effect immediately.</p>
+	<p class=func><span class=keyword>getTaxFactor</span>();</p>
+	<p class=desc>Get the noise output smoothing factor.</p>
+	<p class=func><span class=keyword>setTaxFactor</span>(<strong>float32_t</strong> value);</p>
+	<p class=desc>Set the noise output smoothing factor. Typical values are around 0.8.</p>
+        <p class=desc>Call <span class=keyword>setup()</span> for the change to take effect.</p>
+	<p class=func><span class=keyword>getTapFactor</span>();</p>
+	<p class=desc>Get the speech probability smoothing factor.</p>
+	<p class=func><span class=keyword>setTapFactor</span>(<strong>float32_t</strong> value);</p>
+	<p class=desc>Set the speech probability smoothing factor. Typical values are around 0.9.</p>
+	<p class=desc>Call <span class=keyword>setup()</span> for the change to take effect.</p>
+	<h3>Examples</h3>
+        <p class=exam>File &gt; Examples &gt; OpenAudio_ArduinoLibrary &gt; SpectralDenoise.ino
+	</p>
+	<h3>Notes</h3>
+	<p> The defaults work OK, but it is worth experimenting with the adjustable
+                parameters for your specific situation. Try adjusting NRAlpha, NRWidth and Asnr.
+	</p>
+	<p> The default FFT size is 256. You may wish to make this larger, which will allow
+                a finer granularity of 'buckets' to potentially improve the noise reduction, but,
+                will cost both processor time and memory overheads.
+	</p>
+	<p> The maximum FFT size is set by the underlying <strong>FFT_OA</strong> code, which at
+            time of writing limits the maximum to 2048.
+        </p>
+	<p> The code is written to account for the <strong>sample_rate_Hz</strong> passed in with
+            the audio settings, <strong>but</strong>, this has not been tested. If you do test,
+            either with a higher or lower sample rate, please report back and consider fixing
+            this documentation.
+	</p>
+	<h3>References</h3>
+	<p>The best reference on how the Spectral code was designed and works can be found on the
+		<a href="https://github.com/df8oe/UHSDR/wiki/Noise-reduction"> UHSDR wiki </a>
+	</p>
+</script>
+</div>
 
 <div>
 <script type="text/x-red" data-help-name="AudioFilter90Deg_F32">
