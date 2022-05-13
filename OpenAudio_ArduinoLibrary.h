@@ -54,3 +54,4 @@
 #include "RadioFMDetector_F32.h"
 #include "radioNoiseBlanker_F32.h"
 #include "synth_sin_cos_f32.h"
+#include "USB_Audio_F32.h"
