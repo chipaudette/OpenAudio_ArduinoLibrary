@@ -29,7 +29,7 @@
 
 #include "AudioAlignLR_F32.h"
 
-void AudioAlignLR_F32::update(void)  {   static uint32_t nnn = 0;
+void AudioAlignLR_F32::update(void)  {
    audio_block_f32_t *block_L,*block_R;
    audio_block_f32_t *block2_L,*block2_R;
    audio_block_f32_t *blockOutTestSignal;
@@ -64,18 +64,15 @@ void AudioAlignLR_F32::update(void)  {   static uint32_t nnn = 0;
         return;
         }
 
-   if(currentTPinfo.TPsignalHardware == TP_SIGNAL_CODEC)
-      {
-      blockOutTestSignal = AudioStream_F32::allocate_f32();
-        if (!blockOutTestSignal)
-           {
-           AudioStream_F32::release(block_L);
-           AudioStream_F32::release(block_R);
-           AudioStream_F32::release(block2_L);
-           AudioStream_F32::release(block2_R);
-           return;
-           }
-      }
+   blockOutTestSignal = AudioStream_F32::allocate_f32();
+     if(currentTPinfo.TPsignalHardware==TP_SIGNAL_CODEC  &&  !blockOutTestSignal)
+        {
+        AudioStream_F32::release(block_L);
+        AudioStream_F32::release(block_R);
+        AudioStream_F32::release(block2_L);
+        AudioStream_F32::release(block2_R);
+        return;
+        }
 
    // Input data is now in block_L and block_R.  Filter from there to
    // block2_L and block2_R
@@ -211,8 +208,8 @@ void AudioAlignLR_F32::update(void)  {   static uint32_t nnn = 0;
             }
          }
       AudioStream_F32::transmit(blockOutTestSignal, 2); // NOTE: Goes to third output
-      AudioStream_F32::release(blockOutTestSignal);
       }
+   AudioStream_F32::release(blockOutTestSignal);
 
    currentTPinfo.nMeas++;
    // Serial.println(micros() - t0);     // for timing
