@@ -352,7 +352,7 @@ void AudioAnalyzeFFT4096_IQEM_F32::update(void)  {
 
 
     // Apply the window function, if any, to the time series.  Half size window buffer.
-    if(wNum!=NULL && pWindow)
+    if(wNum>NO_WINDOW  &&  pWindow)    // fixed syntax 14May2022 RSL
       {
       for (int i=0; i < 2048; i++)  {
          *(pFFT_buffer + 2*i) *= *(pWindow + i);      // real
