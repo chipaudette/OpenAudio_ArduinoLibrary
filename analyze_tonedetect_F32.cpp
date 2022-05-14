@@ -112,7 +112,7 @@ AudioAnalyzeToneDetect_F32::operator bool()  {
     q2 = out2;
     len = length;
     __enable_irq();
-
+    power = q1*q1 + q2*q2 - q1*q2*coef;
     trigger = (float)len * thresh;
     trigger *= trigger;
     //Serial.println("bool: power, trigger = "); Serial.print(power, 6); Serial.print(", "); Serial.println(trigger, 6);
