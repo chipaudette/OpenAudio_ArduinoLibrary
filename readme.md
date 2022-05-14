@@ -22,6 +22,11 @@ ready to be used for T3.x and T4.x.  There are some restrictions, particularly t
 
 **Tympan Project** Many of the classes in this library were put together as part of the [Tympan Project.](https://github.com/Tympan)  That is oriented towards open-source hearing aid and hearing aid development tools. It has its own [Tympan Design Tool](https://tympan.github.io/Tympan_Audio_Design_Tool/) as well as some custom Teensy-based hardware. Additionally, there are a few classes in this library that use terminology and variables that are specific to audiology.  It is intended that these, in time, be replaced by similar classes with more conventional descriptors.  And, of course, if your interest is in hearing aids, you should spend time at the Tympan project!
 
+Notes
+-----
+
+1 - The USB_Audio_F32.h  includes all the functions needed to use USB audio for input and output.  However, it is not in the OpenAudio_ArduinoLibrary.h as would be expected.  To use this class, add "#include USB_Audio_F32.h" to the INO file and before compiling, go to the IDE Tools>USB Type and set the radio button to "Audio."  This should then compile without error.  Also, using this class requires some amount of I16 audio memory, such as a line in the top of the INO, "AudioMemory(10);"
+
 Installation
 ------------
 
