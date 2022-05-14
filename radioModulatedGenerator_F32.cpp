@@ -34,12 +34,14 @@ void radioModulatedGenerator_F32::update(void) {
   float32_t a, b, deltaPhase, phaseC, amSig;
 
   // Input 0 is for amplitude modulation.
+  inAmpl = NULL;
   if(doAM) {
     inAmpl = AudioStream_F32::receiveReadOnly_f32(0);
     if (!inAmpl)  return;
     }
 
   // Input 1 is for phase or frequency modulation.
+  inPhaseFreq = NULL;
   if(doPM || doFM)  {
     inPhaseFreq = AudioStream_F32::receiveReadOnly_f32(1);
     if (!inPhaseFreq) {
@@ -55,6 +57,7 @@ void radioModulatedGenerator_F32::update(void) {
      return;
   }
 
+  outBlockQ = NULL;
   if(bothIQ)  {
      outBlockQ = AudioStream_F32::allocate_f32();
      if (!outBlockQ) {
