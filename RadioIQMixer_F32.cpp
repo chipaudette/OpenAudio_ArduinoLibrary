@@ -38,14 +38,18 @@ void RadioIQMixer_F32::update(void) {
   if (!blockIn0)
      return;
 
-  if(twoChannel)  {
-     blockIn1 = AudioStream_F32::receiveWritable_f32(1);
-     if (!blockIn1) {
-        AudioStream_F32::release(blockIn0);
-        if(errorPrintIQM)  Serial.println("IQMIXER-ERR: No 1 input memory");
-        return;
-     }
-  }
+  if(twoChannel)
+    {
+    blockIn1 = AudioStream_F32::receiveWritable_f32(1);
+    if (!blockIn1)
+       {
+       AudioStream_F32::release(blockIn0);
+       if(errorPrintIQM)  Serial.println("IQMIXER-ERR: No 1 input memory");
+       return;
+       }
+    }
+  else
+    blockIn1 = NULL;
 
   // Try to get a pair of blocks for the IQ output
   blockOut_i = AudioStream_F32::allocate_f32();
