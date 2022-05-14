@@ -76,7 +76,6 @@ void setup(void) {
 
 void loop(void)  {
   static bool doPrint=true;
-  float *pPwr;
 
   // Print output, once
   if( FFT4096iqEM1.available() && jj++>2 && doPrint )  {
