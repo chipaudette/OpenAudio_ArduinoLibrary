@@ -36,7 +36,7 @@ class AudioConvert_I16toF32 : public AudioStream_F32 //receive Int and transmits
     
     static void convertAudio_I16toF32(audio_block_t *in, audio_block_f32_t *out, int len) {
       //WEA Method.  Should look at CMSIS arm_q15_to_float instead: https://www.keil.com/pack/doc/CMSIS/DSP/html/group__q15__to__x.html#gaf8b0d2324de273fc430b0e61ad4e9eb2
-      const float MAX_INT = 32678.0;
+      const float MAX_INT = 32768.0;
       for (int i = 0; i < len; i++) out->data[i] = (float)(in->data[i]);
       arm_scale_f32(out->data, 1.0/MAX_INT, out->data, out->length); //divide by 32678 to get -1.0 to +1.0
     }    
