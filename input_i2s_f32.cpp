@@ -40,7 +40,7 @@
 #include <arm_math.h>
 
 //DMAMEM __attribute__((aligned(32))) 
-static uint32_t i2s_rx_buffer[AUDIO_BLOCK_SAMPLES]; //good for 16-bit audio samples coming in from teh AIC.  32-bit transfers will need this to be bigger.
+static uint64_t i2s_rx_buffer[AUDIO_BLOCK_SAMPLES]; // Two 32-bit transfers per sample.
 audio_block_f32_t * AudioInputI2S_F32::block_left_f32 = NULL;
 audio_block_f32_t * AudioInputI2S_F32::block_right_f32 = NULL;
 uint16_t AudioInputI2S_F32::block_offset = 0;
@@ -60,7 +60,7 @@ int AudioInputI2S_F32::audio_block_samples = AUDIO_BLOCK_SAMPLES;
 //#define I2S_BUFFER_TO_USE_BYTES (AudioOutputI2S_F32::audio_block_samples*2*sizeof(i2s_rx_buffer[0]))
 
 void AudioInputI2S_F32::begin(void) {
-	bool transferUsing32bit = false;
+	bool transferUsing32bit = true; // be official, although this is not cared about
 	begin(transferUsing32bit);
 }
 
@@ -78,19 +78,19 @@ void AudioInputI2S_F32::begin(bool transferUsing32bit) {
 
 #if defined(KINETISK)
 	CORE_PIN13_CONFIG = PORT_PCR_MUX(4); // pin 13, PTC5, I2S0_RXD0
-	dma.TCD->SADDR = (void *)((uint32_t)&I2S0_RDR0 + 2);  //From Teensy Audio Library...but why "+ 2"  (Chip 2020-10-31)
+	dma.TCD->SADDR = (void *)((uint32_t)&I2S0_RDR0 + 0); // take the full 32 bit (not just upper half)
 	dma.TCD->SOFF = 0;
-	dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
-	dma.TCD->NBYTES_MLNO = 2;
+	dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(2) | DMA_TCD_ATTR_DSIZE(2);
+	dma.TCD->NBYTES_MLNO = 4;
 	dma.TCD->SLAST = 0;
 	dma.TCD->DADDR = i2s_rx_buffer;
-	dma.TCD->DOFF = 2;
+	dma.TCD->DOFF = 4;
 	//dma.TCD->CITER_ELINKNO = sizeof(i2s_rx_buffer) / 2;  //original from Teensy Audio Library
-	dma.TCD->CITER_ELINKNO = I2S_BUFFER_TO_USE_BYTES / 2;
+	dma.TCD->CITER_ELINKNO = I2S_BUFFER_TO_USE_BYTES / 4;
 	//dma.TCD->DLASTSGA = -sizeof(i2s_rx_buffer);  //original from Teensy Audio Library
 	dma.TCD->DLASTSGA = -I2S_BUFFER_TO_USE_BYTES;
 	//dma.TCD->BITER_ELINKNO = sizeof(i2s_rx_buffer) / 2;  //original from Teensy Audio Library
-	dma.TCD->BITER_ELINKNO = I2S_BUFFER_TO_USE_BYTES / 2;
+	dma.TCD->BITER_ELINKNO = I2S_BUFFER_TO_USE_BYTES / 4;
 	dma.TCD->CSR = DMA_TCD_CSR_INTHALF | DMA_TCD_CSR_INTMAJOR;
 	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_I2S0_RX);
 
@@ -101,19 +101,19 @@ void AudioInputI2S_F32::begin(bool transferUsing32bit) {
 	CORE_PIN8_CONFIG  = 3;  //1:RX_DATA0
 	IOMUXC_SAI1_RX_DATA0_SELECT_INPUT = 2;
 	
-	dma.TCD->SADDR = (void *)((uint32_t)&I2S1_RDR0 + 2);
+	dma.TCD->SADDR = (void *)((uint32_t)&I2S1_RDR0 + 0);
 	dma.TCD->SOFF = 0;
-	dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
-	dma.TCD->NBYTES_MLNO = 2;
+	dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(2) | DMA_TCD_ATTR_DSIZE(2);
+	dma.TCD->NBYTES_MLNO = 4;
 	dma.TCD->SLAST = 0;
 	dma.TCD->DADDR = i2s_rx_buffer;
-	dma.TCD->DOFF = 2;
+	dma.TCD->DOFF = 4;
 	//dma.TCD->CITER_ELINKNO = sizeof(i2s_rx_buffer) / 2; //original from Teensy Audio Library
-	dma.TCD->CITER_ELINKNO = I2S_BUFFER_TO_USE_BYTES / 2;
+	dma.TCD->CITER_ELINKNO = I2S_BUFFER_TO_USE_BYTES / 4;
 	//dma.TCD->DLASTSGA = -sizeof(i2s_rx_buffer); //original from Teensy Audio Library
 	dma.TCD->DLASTSGA = -I2S_BUFFER_TO_USE_BYTES;
 	//dma.TCD->BITER_ELINKNO = sizeof(i2s_rx_buffer) / 2; //original from Teensy Audio Library
-	dma.TCD->BITER_ELINKNO = I2S_BUFFER_TO_USE_BYTES / 2;
+	dma.TCD->BITER_ELINKNO = I2S_BUFFER_TO_USE_BYTES / 4;
 	dma.TCD->CSR = DMA_TCD_CSR_INTHALF | DMA_TCD_CSR_INTMAJOR;
 	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_SAI1_RX);
 
@@ -265,7 +265,7 @@ void AudioInputI2S_F32::begin(bool transferUsing32bit) {
 void AudioInputI2S_F32::isr(void)
 {
 	uint32_t daddr, offset;
-	const int16_t *src, *end;
+	const int32_t *src, *end;
 	//int16_t *dest_left, *dest_right;
 	//audio_block_t *left, *right;
 	float32_t *dest_left_f32, *dest_right_f32;
@@ -283,16 +283,16 @@ void AudioInputI2S_F32::isr(void)
 		// need to remove data from the second half
 		//src = (int16_t *)&i2s_rx_buffer[AUDIO_BLOCK_SAMPLES/2]; //original Teensy Audio Library
 		//end = (int16_t *)&i2s_rx_buffer[AUDIO_BLOCK_SAMPLES]; //original Teensy Audio Library
-		src = (int16_t *)&i2s_rx_buffer[audio_block_samples/2];
-		end = (int16_t *)&i2s_rx_buffer[audio_block_samples];			
+		src = (int32_t *)&i2s_rx_buffer[audio_block_samples/2];
+		end = (int32_t *)&i2s_rx_buffer[audio_block_samples];			
 		update_counter++; //let's increment the counter here to ensure that we get every ISR resulting in audio
 		if (AudioInputI2S_F32::update_responsibility) AudioStream_F32::update_all();
 	} else {
 		// DMA is receiving to the second half of the buffer
 		// need to remove data from the first half
-		src = (int16_t *)&i2s_rx_buffer[0];
+		src = (int32_t *)&i2s_rx_buffer[0];
 		//end = (int16_t *)&i2s_rx_buffer[AUDIO_BLOCK_SAMPLES/2]; //original Teensy Audio Library
-		end = (int16_t *)&i2s_rx_buffer[audio_block_samples/2];
+		end = (int32_t *)&i2s_rx_buffer[audio_block_samples/2];
 	}
 	left_f32 = AudioInputI2S_F32::block_left_f32;
 	right_f32 = AudioInputI2S_F32::block_right_f32;
@@ -480,8 +480,8 @@ void AudioInputI2S_F32::scale_i32_to_f32( float32_t *p_i32, float32_t *p_f32, in
 	 if (!out_f32) return;
 	 
 	//scale the float values so that the maximum possible audio values span -1.0 to + 1.0
-	//scale_i32_to_f32(out_f32->data, out_f32->data, audio_block_samples);
-	scale_i16_to_f32(out_f32->data, out_f32->data, audio_block_samples);
+	scale_i32_to_f32(out_f32->data, out_f32->data, audio_block_samples);
+	//scale_i16_to_f32(out_f32->data, out_f32->data, audio_block_samples);
 
 	//prepare to transmit by setting the update_counter (which helps tell if data is skipped or out-of-order)
 	out_f32->id = update_counter;
@@ -564,16 +564,16 @@ void AudioInputI2Sslave_F32::begin(void)
 #if defined(KINETISK)
 	CORE_PIN13_CONFIG = PORT_PCR_MUX(4); // pin 13, PTC5, I2S0_RXD0
 
-	dma.TCD->SADDR = (void *)((uint32_t)&I2S0_RDR0 + 2);
+	dma.TCD->SADDR = (void *)((uint32_t)&I2S0_RDR0 + 0);
 	dma.TCD->SOFF = 0;
-	dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
-	dma.TCD->NBYTES_MLNO = 2;
+	dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(2) | DMA_TCD_ATTR_DSIZE(2);
+	dma.TCD->NBYTES_MLNO = 4;
 	dma.TCD->SLAST = 0;
 	dma.TCD->DADDR = i2s_rx_buffer;
-	dma.TCD->DOFF = 2;
-	dma.TCD->CITER_ELINKNO = sizeof(i2s_rx_buffer) / 2;
+	dma.TCD->DOFF = 4;
+	dma.TCD->CITER_ELINKNO = sizeof(i2s_rx_buffer) / 4;
 	dma.TCD->DLASTSGA = -sizeof(i2s_rx_buffer);
-	dma.TCD->BITER_ELINKNO = sizeof(i2s_rx_buffer) / 2;
+	dma.TCD->BITER_ELINKNO = sizeof(i2s_rx_buffer) / 4;
 	dma.TCD->CSR = DMA_TCD_CSR_INTHALF | DMA_TCD_CSR_INTMAJOR;
 
 	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_I2S0_RX);
