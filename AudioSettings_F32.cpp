@@ -1,5 +1,5 @@
 
-
+#include <Arduino.h>
 #include "AudioSettings_F32.h"
 #include "AudioStream_F32.h"
 
