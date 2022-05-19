@@ -29,7 +29,8 @@
 #if defined(__IMXRT1062__)
 
 #include "async_input_spdif3_F32.h"
-#include "output_spdif3_F32.h"
+// Changed F32 on next to f32  RSL 19May22
+#include "output_spdif3_f32.h"
 
 #include "biquad.h"
 #include <utility/imxrt_hw.h>
@@ -102,21 +103,21 @@ AsyncAudioInputSPDIF3_F32::AsyncAudioInputSPDIF3_F32(const AudioSettings_F32 &se
 FLASHMEM
 void AsyncAudioInputSPDIF3_F32::begin()
 {
-	
+
 	AudioOutputSPDIF3_F32::config_spdif3(sample_rate_Hz);
-		
+
 	dma.begin(true); // Allocate the DMA channel first
 	const uint32_t noByteMinorLoop=2*4;
 	dma.TCD->SOFF = 4;
 	dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(2) | DMA_TCD_ATTR_DSIZE(2);
-	dma.TCD->NBYTES_MLNO = DMA_TCD_NBYTES_MLOFFYES_NBYTES(noByteMinorLoop) | DMA_TCD_NBYTES_SMLOE | 
+	dma.TCD->NBYTES_MLNO = DMA_TCD_NBYTES_MLOFFYES_NBYTES(noByteMinorLoop) | DMA_TCD_NBYTES_SMLOE |
 						DMA_TCD_NBYTES_MLOFFYES_MLOFF(-8);
 	dma.TCD->SLAST = -8;
 	dma.TCD->DOFF = 4;
 	dma.TCD->CITER_ELINKNO = sizeof(spdif_rx_buffer) / noByteMinorLoop;
 	dma.TCD->DLASTSGA = -sizeof(spdif_rx_buffer);
 	dma.TCD->BITER_ELINKNO = sizeof(spdif_rx_buffer) / noByteMinorLoop;
-	dma.TCD->CSR = DMA_TCD_CSR_INTHALF | DMA_TCD_CSR_INTMAJOR;	
+	dma.TCD->CSR = DMA_TCD_CSR_INTHALF | DMA_TCD_CSR_INTMAJOR;
 	dma.TCD->SADDR = (void *)((uint32_t)&SPDIF_SRL);
 	dma.TCD->DADDR = spdif_rx_buffer;
 	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_SPDIF_RX);
@@ -132,7 +133,7 @@ void AsyncAudioInputSPDIF3_F32::begin()
 	_bufferLPFilter.pState=new float[2];
 	getCoefficients(_bufferLPFilter.pCoeffs, BiquadType::LOW_PASS, 0., 5., sample_rate_Hz/AUDIO_BLOCK_SAMPLES, 0.5);
 	SPDIF_SCR &=(~SPDIF_SCR_RXFIFO_OFF_ON);	//receive fifo is turned on again
-	
+
 	SPDIF_SRCD = 0;
 	SPDIF_SCR |= SPDIF_SCR_DMA_RX_EN;
 	CORE_PIN15_CONFIG = 3;
@@ -149,7 +150,7 @@ void AsyncAudioInputSPDIF3_F32::resample(float32_t* data_left, float32_t* data_r
 	}
 	int32_t bOffset=buffer_offset;
 	int32_t resOffset=resample_offset;
-		
+
 	uint16_t inputBufferStop = bOffset >= resOffset ? bOffset-resOffset : bufferLength-resOffset;
 	if (inputBufferStop==0){
 		return;
@@ -161,9 +162,9 @@ void AsyncAudioInputSPDIF3_F32::resample(float32_t* data_left, float32_t* data_r
 	float resampledBufferL[AUDIO_BLOCK_SAMPLES];
 	float resampledBufferR[AUDIO_BLOCK_SAMPLES];
 	_resampler.resample(&bufferL[resOffset],&bufferR[resOffset], inputBufferStop, processedLength, resampledBufferL, resampledBufferR, outputLength, outputCount);
-		
+
 	resOffset=(resOffset+processedLength)%bufferLength;
-	block_offset=outputCount;	
+	block_offset=outputCount;
 
 	if (bOffset > resOffset && block_offset< AUDIO_BLOCK_SAMPLES){
 		inputBufferStop= bOffset-resOffset;
@@ -176,7 +177,7 @@ void AsyncAudioInputSPDIF3_F32::resample(float32_t* data_left, float32_t* data_r
 	quantizer[1]->quantize(resampledBufferR, data_right, block_offset);
 	__disable_irq();
 	resample_offset=resOffset;
-	__enable_irq();		
+	__enable_irq();
 }
 
 void AsyncAudioInputSPDIF3_F32::isr(void)
@@ -205,7 +206,7 @@ void AsyncAudioInputSPDIF3_F32::isr(void)
 		#endif
 		float *destR = &(bufferR[buffer_offset]);
 		float *destL = &(bufferL[buffer_offset]);
-		do {			
+		do {
 			int32_t n=(*src) & 0x800000 ? (*src)|0xFF800000  : (*src) & 0xFFFFFF;
 			*destL++ = (float)(n)*toFloatAudio;
 			++src;
@@ -229,7 +230,7 @@ double AsyncAudioInputSPDIF3_F32::getNewValidInputFrequ(){
 		const double freqMeas=(double)(SPDIF_SRFM & 0xFFFFFF)*f;
 		if (_lastValidInputFrequ != freqMeas){//frequency not stable yet;
 			_lastValidInputFrequ=freqMeas;
-			return -1.;	
+			return -1.;
 		}
 		return _lastValidInputFrequ;
 	}
@@ -248,7 +249,7 @@ void AsyncAudioInputSPDIF3_F32::configure(){
 		_resampler.reset();
 		return;
 	}
-		
+
 #ifdef DEBUG_SPDIF_IN
 	const bool bOverf=bufferOverflow;
 	bufferOverflow=false;
@@ -268,7 +269,7 @@ void AsyncAudioInputSPDIF3_F32::configure(){
 		const double frequDiff=inputF/_inputFrequency-1.;
 		if (abs(frequDiff) > 0.01 || !_resampler.initialized()){
 			//the new sample frequency differs from the last one -> configure the _resampler again
-			_inputFrequency=inputF;		
+			_inputFrequency=inputF;
 			_targetLatencyS=max(0.001,(noSamplerPerIsr*3./2./_inputFrequency));
 			_maxLatency=max(2.*_blockDuration, 2*noSamplerPerIsr/_inputFrequency);
 			const int32_t targetLatency=round(_targetLatencyS*inputF);
@@ -284,8 +285,8 @@ void AsyncAudioInputSPDIF3_F32::configure(){
 			Serial.print("relative frequ diff: ");
 			Serial.println(frequDiff, 8);
 			Serial.print("configure _resampler with frequency ");
-			Serial.println(inputF,8);			
-	#endif			
+			Serial.println(inputF,8);
+	#endif
 		}
 	}
 }
@@ -297,14 +298,14 @@ void AsyncAudioInputSPDIF3_F32::monitorResampleBuffer(){
 	__disable_irq();
 	const double dmaOffset=(micros()-microsLast)*1e-6;	//[seconds]
 	double bTime = resample_offset <= buffer_offset ? (buffer_offset-resample_offset-_resampler.getXPos())/_lastValidInputFrequ+dmaOffset : (bufferLength-resample_offset +buffer_offset-_resampler.getXPos())/_lastValidInputFrequ+dmaOffset;	//[seconds]
-	
+
 	double diff = bTime- (_blockDuration+ _targetLatencyS);	//seconds
 
 	biquad_cascade_df2T<double, arm_biquad_cascade_df2T_instance_f32, float>(&_bufferLPFilter, &diff, &diff, 1);
-	
+
 	bool settled=_resampler.addToSampleDiff(diff);
-	
-	if (bTime > _maxLatency || bTime-dmaOffset<= _blockDuration || settled) {	
+
+	if (bTime > _maxLatency || bTime-dmaOffset<= _blockDuration || settled) {
 		double distance=(_blockDuration+_targetLatencyS-dmaOffset)*_lastValidInputFrequ+_resampler.getXPos();
 		diff=0.;
 		if (distance > bufferLength-noSamplerPerIsr){
@@ -320,7 +321,7 @@ void AsyncAudioInputSPDIF3_F32::monitorResampleBuffer(){
 		_resampler.addToPos(resample_offsetF-resample_offset);
 		while (resample_offset<0){
 			resample_offset+=bufferLength;
-		}	
+		}
 #ifdef DEBUG_SPDIF_IN
 		double bTimeFixed = resample_offset <= buffer_offset ? (buffer_offset-resample_offset-_resampler.getXPos())/_lastValidInputFrequ+dmaOffset : (bufferLength-resample_offset +buffer_offset-_resampler.getXPos())/_lastValidInputFrequ+dmaOffset;	//[seconds]
 #endif
@@ -341,9 +342,9 @@ void AsyncAudioInputSPDIF3_F32::monitorResampleBuffer(){
 
 #endif
 		preload(&_bufferLPFilter, (float)diff);
-		_resampler.fixStep();		
+		_resampler.fixStep();
 	}
-	else {		
+	else {
 		__enable_irq();
 	}
 	_bufferedTime=_targetLatencyS+diff;
@@ -366,9 +367,9 @@ void AsyncAudioInputSPDIF3_F32::update(void)
 		int32_t block_offset;
 		resample(block_left->data, block_right->data,block_offset);
 		if(block_offset < AUDIO_BLOCK_SAMPLES){
-			memset(block_left->data+block_offset, 0, (AUDIO_BLOCK_SAMPLES-block_offset)*sizeof(float32_t)); 
-			memset(block_right->data+block_offset, 0, (AUDIO_BLOCK_SAMPLES-block_offset)*sizeof(float32_t)); 
-#ifdef DEBUG_SPDIF_IN	
+			memset(block_left->data+block_offset, 0, (AUDIO_BLOCK_SAMPLES-block_offset)*sizeof(float32_t));
+			memset(block_right->data+block_offset, 0, (AUDIO_BLOCK_SAMPLES-block_offset)*sizeof(float32_t));
+#ifdef DEBUG_SPDIF_IN
 			Serial.print("filled only ");
 			Serial.print(block_offset);
 			Serial.println(" samples.");
@@ -379,10 +380,10 @@ void AsyncAudioInputSPDIF3_F32::update(void)
 		block_left=nullptr;
 		transmit(block_right, 1);
 		release(block_right);
-		block_right=nullptr;	
+		block_right=nullptr;
 	}
 #ifdef DEBUG_SPDIF_IN
-	else {		
+	else {
 		Serial.println("Not enough blocks available. Too few audio memory?");
 	}
 #endif

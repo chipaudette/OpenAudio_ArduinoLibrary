@@ -400,8 +400,13 @@ span.mainfunction {color: #993300; font-weight: bolder}
         {"type":"IFFT_Overlapped_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"blockwiseIFFT","inputs":"NaN","output":"0","category":"analyze-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"NaN"}},
         {"type":"AudioInputI2S_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"audioInI2S","inputs":"0","output":"0","category":"input-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
         {"type":"AudioOutputI2S_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"audioOutI2S","inputs":"2","output":"0","category":"output-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"0"}},
+
+	    {"type":"AudioInputSPDIF3_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"spdif3","inputs":0,"outputs":2,"category":"input-function","color":"#E6E0F8","icon":"arrow-in.png"}},
+		{"type":"AsyncAudioInputSPDIF3_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"spdif_async","inputs":0,"outputs":2,"category":"input-function","color":"#E6E0F8","icon":"arrow-in.png"}},
         {"type":"AudioInputUSB_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"audioInUSB","inputs":"0","output":"0","category":"input-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
         {"type":"AudioOutputUSB_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"audioOutUSB","inputs":"2","output":"0","category":"output-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"0"}},
+	    {"type":"AudioOutputSPDIF3_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"spdif3Out","inputs":2,"outputs":0,"category":"output-function","color":"#E6E0F8","icon":"arrow-in.png"}},
+
         {"type":"AudioPlayQueue_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"playQueue","inputs":"0","output":"0","category":"play-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"AudioRecordQueue_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"recordQueue","inputs":"1","output":"0","category":"record-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"0"}},
         {"type":"AudioSynthNoisePink_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"noisePink","inputs":"0","output":"0","category":"synth-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
@@ -1963,6 +1968,7 @@ look ahead delay, as well.</p>
         <input type="text" id="node-input-name" placeholder="Name">
     </div>
 </script>
+
 <script type="text/x-red" data-help-name="AudioInputI2S_F32">
     <h3>Summary</h3>
     <div class=tooltipinfo>
@@ -2015,6 +2021,142 @@ look ahead delay, as well.</p>
         <input type="text" id="node-input-name" placeholder="Name">
     </div>
 </script>
+
+
+
+
+
+
+<script type="text/x-red" data-help-name="AudioInputSPDIF3_F32">
+	<h3>Summary</h3>
+	<div class=tooltipinfo>
+	<p>Receive S/PDIF digital audio, at the rate of the external digital audio source.</p>
+	<p><span style="color:red">This input is incompatible with most other inputs and outputs</span>
+		which run at a speed controlled by Teensy's internal sample rate.</p>
+	</div>
+	<h3>Boards Supported</h3>
+	<ul>
+	<li>Teensy 4.0
+	<li>Teensy 4.1
+	</ul>
+	<h3>Audio Connections</h3>
+	<table class=doc align=center cellpadding=3>
+		<tr class=top><th>Port</th><th>Purpose</th></tr>
+		<tr class=odd><td align=center>Out 0</td><td>Left Channel</td></tr>
+		<tr class=odd><td align=center>Out 1</td><td>Right Channel</td></tr>
+	</table>
+	<h3>Functions</h3>
+	<p class=func><span class=keyword>pllLocked</span>();</p>
+	<p class=desc>Returns true if the S/PDIF phase locked loop is tracking
+		the sample rate of incoming digital audio data.
+	</p>
+	<p class=func><span class=keyword>sampleRate</span>();</p>
+	<p class=desc>Returns the sample rate of incoming data, if the PLL has locked,
+		or returns 0 if the audio sample rate is unknown.
+	</p>
+	<h3>Hardware</h3>
+	<p>
+	<table class=doc align=center cellpadding=3>
+		<tr class=top><th>T4.x<br>Pin</th><th>Signal</th><th>Direction</th></tr>
+		<tr class=odd><td align=center>15</td><td>S/PDIF Data</td><td>Output</td></tr>
+	</table>
+	</p>
+	<h3>Examples</h3>
+	<!--<p class=exam>File &gt; Examples &gt; Audio &gt; HardwareTesting &gt; PassThroughAsyncSpdif
+	</p>-->
+	<h3>Notes</h3>
+	<p>This input tries to force the entire audio library to run at the
+		sample rate of the incoming data.  It usually can not be combined
+		with most other inputs and outputs which run at specific speeds.</p>
+</script>
+<script type="text/x-red" data-template-name="AudioInputSPDIF3_F32">
+	<div class="form-row">
+		<label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+		<input type="text" id="node-input-name" placeholder="Name">
+	</div>
+</script>
+
+<script type="text/x-red" data-help-name="AsyncAudioInputSPDIF3_F32">
+	<h3>Summary</h3>
+	<div class=tooltipinfo>
+	<p>Receive S/PDIF digital audio and resample to Teensy's audio sample rate.</p>
+	<p>Asynchronous resampling contributed by <a href="https://github.com/alex6679">Alex Walch</a>.</p>
+	</div>
+	<h3>Boards Supported</h3>
+	<ul>
+	<li>Teensy 4.0
+	<li>Teensy 4.1
+	</ul>
+	<h3>Audio Connections</h3>
+	<table class=doc align=center cellpadding=3>
+		<tr class=top><th>Port</th><th>Purpose</th></tr>
+		<tr class=odd><td align=center>Out 0</td><td>Left Channel</td></tr>
+		<tr class=odd><td align=center>Out 1</td><td>Right Channel</td></tr>
+	</table>
+	<h3>Functions</h3>
+	<p class=func><span class=keyword>getBufferedTime</span>();</p>
+	<p class=desc>Returns the buffered time in seconds. The buffered time is the duration of the incoming samples which are not resampled yet. The step width of the resampling algorithm is constantly slightly adjusted to keep the buffered time closely to the target latency. The difference between the target latency and the buffered time is typically smaller than 1 microsecond.
+	</p>
+	<!--<p class=func><span class=keyword>getInputFrequency</span>();</p>
+	<p class=desc>TODO: documentation needed here
+	</p>-->
+	<p class=func><span class=keyword>isLocked</span>();</p>
+	<p class=desc>Returns true if the S/PDIF phase locked loop is tracking
+		the sample rate of incoming digital audio data.
+	</p>
+	<p class=func><span class=keyword>getInputFrequency</span>();</p>
+	<p class=desc>Returns the sample rate of incoming data, if the PLL has locked, or returns 0 if the audio sample rate is unknown.
+	</p>
+	<p class=func><span class=keyword>getTargetLantency</span>();</p>
+	<p class=desc>Returns the target latency in seconds. The latency is the time from the moment a sample is received by the Teensy SPDIF hardware receiver until it is transmitted by the asrc intput. The audio samples arrive at the asrc input in chunks of 32 samples per channel. The target latency consists of these 32 samples + some buffer that is needed to compensate for timing variations.
+	</p>
+	<p class=func><span class=keyword>getAttenuation</span>();</p>
+	<p class=desc>Returns the actual achieved attenuation of the
+    anti-aliasing filter. If the input sampling rate is smaller or equal
+    to 44.1kHz, no low pass filtering is needed and zero is returned.</p>
+	<p class=func><span class=keyword>getHalfFilterLength</span>();</p>
+	<p class=desc>Returns the half length of the resampling filter. Its complete length is 2*(the returned value)+1.
+	</p>
+	<h3>Hardware</h3>
+	<p>
+	<table class=doc align=center cellpadding=3>
+		<tr class=top><th>T4.x<br>Pin</th><th>Signal</th><th>Direction</th></tr>
+		<tr class=odd><td align=center>15</td><td>S/PDIF Data</td><td>Output</td></tr>
+	</table>
+	</p>
+	<h3>Examples</h3>
+	<p class=exam>File &gt; Examples &gt; Audio &gt; HardwareTesting &gt; PassThroughAsyncSpdif
+	</p>
+	<h3>Notes</h3>
+	<p>AsyncAudioInputSPDIF3 is not able to clock the audio pipline (never has the 'update_responsibility'). At least 1 other input or output must be used to cause the entire Audio library to update.
+	</p>
+
+	<p>AsyncAudioInputSPDIF3 can optionally take parameters to alter its resampling behavior.
+	</p>
+	<p><span class=keyword>AsyncAudioInputSPDIF3_F32</span>  spdif_async1(<i>dither</i>, <i>noiseshaping</i>, <i>attenuation</i>, <i>minHalfFilterLength</i>, <i>maxHalfFilterLength</i>);
+	</p>
+	<p class=desc><i>dither</i>: triangular shaped dither is added at the transition from 32bit float to 16bit integer if true (default: true)
+	</p>
+	<p class=desc><i>noiseshaping</i>: noise shaping is applied at the aforementioned transition if true (default: true)
+	</p>
+	<p class=desc><i>attenuation</i>: target attenuation of the anti-aliasing filter (default: 100dB). The attenuation is not reached if a filter longer than 161 is needed.
+	</p>
+	<p class=desc><i>minHalfFilterLength</i>: half of the guaranteed resampling filter (internally restricted to 80, default: 20). The filter might be longer if needed to achieve the requested attenuation.
+	</p>
+	<p class=desc><i>maxHalfFilterLength</i>: Restricts the maximum length of the resampling filter. The maximum half filter length is 80. This parameter can be used to further restrict the length in order to limit the processor usage.
+	</p>
+	<p>The windowed (Kaiser window) sinc-function is used as resample filter (i.e. to interpolate the incoming signal). The longer the filter, the better the quality of the resampled signal. However, a longer filter has a higher group delay and increases the processor usage. The sinc- filter also serves as anti-aliasing filter if the input sample rate is larger than 44.1kHz. The filter length is automatically increased at high input sample rates to reach the specified attenuation. However its half length is restricted to 80. 32bit floating point arithmetic is used at the resampling stage and the resampled signal is transformed to 16 bit integers afterwards. Here it is possible to apply triangular shaped dither and noise shaping to increase the perceived signal-to-noise-ratio.</p>
+</script>
+<script type="text/x-red" data-template-name="AsyncAudioInputSPDIF3_F32">
+	<div class="form-row">
+		<label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+		<input type="text" id="node-input-name" placeholder="Name">
+	</div>
+</script>
+
+
+
+
 
 <script type="text/x-red" data-help-name="AudioOutputI2S_F32">
     <h3>Summary</h3>
@@ -2073,6 +2215,58 @@ look ahead delay, as well.</p>
         <input type="text" id="node-input-name" placeholder="Name">
     </div>
 </script>
+
+
+<script type="text/x-red" data-help-name="AudioOutputSPDIF3_F32">
+	<h3>Summary</h3>
+	<div class=tooltipinfo>
+	<p>Transmit 16 bit stereo audio as Digital S/PDIF by use of the
+	 native S/PDIF port.</p>
+	</div>
+	<h3>Boards Supported</h3>
+	<ul>
+	<li>Teensy 4.0
+	<li>Teensy 4.1
+	</ul>
+	<h3>Audio Connections</h3>
+	<table class=doc align=center cellpadding=3>
+		<tr class=top><th>Port</th><th>Purpose</th></tr>
+		<tr class=odd><td align=center>In 0</td><td>Left Channel</td></tr>
+		<tr class=odd><td align=center>In 1</td><td>Right Channel</td></tr>
+	</table>
+	<h3>Functions</h3>
+	<p>This object has no functions to call from the Arduino sketch.  It
+		simply streams data from its 2 input ports S/PDIF encoded digital
+		audio on pin 14 (Teensy 4.x).</p>
+	<h3>Hardware</h3>
+	<p>The S/PDIF output signal can be used to drive an optical TOSLINK
+		cable, or a standard (usually orange) RCA jack.</p>
+	<table class=doc align=center cellpadding=3>
+		<tr class=top><th>Teensy<br>4.x Pin</th><th>Signal</th><th>Direction</th></tr>
+		<tr class=odd><td align=center>14</td><td>S/PDIF</td><td>Output</td></tr>
+	</table>
+	<h3>Examples</h3>
+	<p>The AudioOutputSPDIF object can be used in place of the AudioOutputI2S object,
+	<p>used in nearly all the examples.  The WavFilePlayer shows how to substitute
+		output objects for different hardware types.
+	</p>
+	<p class=exam>File &gt; Examples &gt; Audio &gt; WavFilePlayer
+	</p>
+	<h3>Credits</h3>
+	<p><a href="https://github.com/FrankBoesing" target="_blank">Frank Boesing</a>
+		developed the AudioOutputSPDIF3 code.
+	<h3>Notes</h3>
+	<p>Native S/PDIF hardware is used, which is more efficient that use of I2S ports.</p>
+	</p>
+</script>
+<script type="text/x-red" data-template-name="AudioOutputSPDIF3_F32">
+	<div class="form-row">
+		<label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+		<input type="text" id="node-input-name" placeholder="Name">
+	</div>
+</script>
+
+
 
 
 <script type="text/x-red" data-help-name="AudioAlignLR_F32">

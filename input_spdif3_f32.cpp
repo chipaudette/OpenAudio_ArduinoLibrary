@@ -29,8 +29,9 @@
 
 #if defined(__IMXRT1052__) || defined(__IMXRT1062__)
 #include <Arduino.h>
-#include "input_spdif3_F32.h"
-#include "output_spdif3_F32.h"
+// Changed F32 on next two to f32  RSL 19May22
+#include "input_spdif3_f32.h"
+#include "output_spdif3_f32.h"
 #include "utility/imxrt_hw.h"
 
 // sign extend and scale
@@ -162,7 +163,7 @@ void AudioInputSPDIF3_F32::isr(void)
 				src++;
 
 			} while (src < end);
-		}		
+		}
 	}
 	else if (right != NULL) {
 		offset = AudioInputSPDIF3_F32::block_offset;
@@ -189,7 +190,7 @@ void AudioInputSPDIF3_F32::isr(void)
 				*dest_right++ = i24_to_f32(*src++);
 
 			} while (src < end);
-		}		
+		}
 	}
 
 }
