@@ -1537,9 +1537,8 @@ look ahead delay, as well.</p>
 <script type="text/x-red" data-help-name="AudioFilterBiquad_F32">
     <h3>Summary</h3>
     <div class=tooltipinfo>
-    <p>Biquadratic cascaded filter, useful for all sorts of filtering.
-        Up to 4 stages may be cascaded.
-    </p>
+    <p>Biquadratic cascaded IIR filters, useful for all sorts of
+    frequency filtering. Up to 4 stages may be cascaded. </p>
     <p align=center><img src="img/biquad.png"></p>
     </div>
     <h3>Audio Connections</h3>
@@ -1549,6 +1548,11 @@ look ahead delay, as well.</p>
         <tr class=odd><td align=center>Out 0</td><td>Filtered Signal Output</td></tr>
     </table>
     <h3>Functions</h3>
+    <p class=func><span class=keyword>begin</span>();</p>
+    <p class=desc> This <b>required</b> function initializes
+        the BiQuad instance using the ARM DSP Math Library. There are no
+        calling parameters.
+    </p>
     <p class=func><span class=keyword>setLowpass</span>(stage, frequency, Q);</p>
     <p class=desc>Configure one stage of the filter (0 to 3) with low pass
         response, with the specified corner frequency and Q shape.  If Q is
@@ -1596,9 +1600,7 @@ look ahead delay, as well.</p>
     <p class=desc>Configure one stage of the filter (0 to 3) with an arbitrary
         filter response.  The array of coefficients is in order: B0, B1, B2, A1, A2.
         Each coefficient must be less than 2.0 and greater than -2.0.  The array
-        should be type double.  Alternately, it may be type int, where 1.0 is
-        represented with 1073741824 (2<sup>30</sup>).
-    </p>
+        should be type double. </p>
     <p class=func><span class=keyword><strong>double* </strong>getCoefficients</span>();</p>
     <p class=desc>Returns a pointer to the array of double precision coefficients. For
     up to four stages, each stage is arranged in order B0, B1, B2, A1, A2.  This is a
@@ -1607,17 +1609,25 @@ look ahead delay, as well.</p>
     <p class=exam>File &gt; Examples &gt; Audio &gt; Effects &gt; Filter
     </p>
     <h3>Notes</h3>
-    <p>Filters can with gain must have their input signals attenuated, so the
-        signal does not exceed 1.0.
+    <p>Each instance of the Biquad filter class can have 0 to 4 cascaded biquad filters,
+    with each independent.  These can mix filter types, such as Low Pass and High Pass
+    or they can be multiples of the same type.  Note that, in general, cascading identical
+    Biquad IIR filters will not be the most useful. Check the Internet for discussions
+    of cascading filters to achieve specific responses, such as Butterworth
+    or Chebychev.
     </p>
-    <p>This object implements up to 4 cascaded stages.  Unconfigured stages will
-        not pass any signal.
+    <p>This object implements up to 4 cascaded stages. The four biquads per instance
+    can each be used, or not used, and the unused
+    ones will be treated as pass throughs.
     </p>
-    <p>Biquad filters with low corner frequency (under about 400 Hz) can run into
-        trouble with limited numerical precision, causing the filter to perform
-        poorly.  For very low corner frequency, the State Variable (Chamberlin)
-        filter should be used.
-    </p>
+    <p>These IIR filters do not provide flat time delay with frequency as provided
+    by symmetrical FIR filters.  If this is important, the extra complexity of the FIR
+    type may be justified.</p>
+   <p>These IIR filters generally do not have the degrees of freedom that FIR filters easily provide.
+   That means the response shapes are generally more constrained.  This can be overcome
+   by adding many more biquad sections, with properly chosen frequencies and Qs, but
+   then it becomes easier to just use the FIR.  Thus, most applications where the Biquad IIR
+   is appropriate will fit into this 4-filter object.</p>
 </script>
 <script type="text/x-red" data-template-name="AudioFilterBiquad_F32">
     <div class="form-row">
@@ -1669,6 +1679,7 @@ look ahead delay, as well.</p>
         a non-symetrical response, make sure the data is in reverse time order.
     </p>
     <h3>Notes</h3>
+
     <p>FIR filters requires more CPU time than Biquad (IIR), but they can
         implement filters with better phase response.
     </p>
@@ -1986,36 +1997,17 @@ look ahead delay, as well.</p>
     <p>Audio from
         master mode I2S may be used in the same project as ADC, DAC and
         PWM signals, because all remain in sync to Teensy's timing</p>
-    <!--
+
     <h3>Examples</h3>
-    <p class=exam>File &gt; Examples &gt; Audio &gt; HardwareTesting &gt; PassThroughStereo
-    </p>
-    <p class=exam>File &gt; Examples &gt; Audio &gt; Recorder
-    </p>
-    <p class=exam>File &gt; Examples &gt; Audio &gt; Analysis &gt; PeakMeterStereo
-    </p>
-    <p class=exam>File &gt; Examples &gt; Audio &gt; Analysis &gt; FFT
-    </p>
-    <p class=exam>File &gt; Examples &gt; Audio &gt; Analysis &gt; SpectrumAnalyzerBasic
-    </p>
-    <p class=exam>File &gt; Examples &gt; Audio &gt; Effects &gt; Chorus
-    </p>
-    <p class=exam>File &gt; Examples &gt; Audio &gt; Effects &gt; Flange
-    </p>
-    <p class=exam>File &gt; Examples &gt; Audio &gt; Effects &gt; Filter
-    </p>
-    <p class=exam>File &gt; Examples &gt; Audio &gt; Effects &gt; Filter_FIR
-    </p>
-    -->
+    <p Most examples use the Audio card  with I2S transfer.</p>
+
     <h3>Notes</h3>
     <p>Only one I2S input and one I2S output object may be used.  Master
-        and slave modes may not be mixed (both must be of the same type).
-    </p>
-    <p>Being an "_F32" object, audio is passed into this class using F32 memory
-    that was allocated using an AudioMemory_F32() call in your sketch's setup()
-    routine.  But, internally, this class still uses some Int16 data handling,
-    so be sure to also include an AudioMemory() call in addition to AudioMemory_F32()
-    to allocate the Int16 memory.</p>
+    and slave modes may not be mixed (both must be of the same type).</p>
+    <p>As of May 2022, the I2S input and output objects can handle 24 or 32-bit
+    data transfer, if that is supported by the audio hardware device.
+    No class functions are needed.  It is "automagic".</p>
+
 </script>
 <script type="text/x-red" data-template-name="AudioInputI2S_F32">
     <div class="form-row">
