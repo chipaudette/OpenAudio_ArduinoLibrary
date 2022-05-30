@@ -32,6 +32,7 @@
  *	The F32 conversion is under the MIT License.  Use at your own risk.
  */
 // Updated OpenAudio F32 with this version from Chip Audette's Tympan Library Jan 2021 RSL
+// Removed old commented out code.  RSL 30 May 2022
 
 #ifndef output_i2s_f32_h_
 #define output_i2s_f32_h_
@@ -39,7 +40,6 @@
 #include <Arduino.h>
 #include <arm_math.h>
 #include "AudioStream_F32.h"
-//include "AudioStream.h"
 #include "DMAChannel.h"
 
 class AudioOutputI2S_F32 : public AudioStream_F32
@@ -64,10 +64,7 @@ public:
 	virtual void update(void);
 	void begin(void);
 	void begin(bool);
-	void sub_begin_i32(void);
-	void sub_begin_i16(void);
 	friend class AudioInputI2S_F32;
-
 	friend class AudioInputI2S_F32;
 	#if defined(__IMXRT1062__)
 	friend class AudioOutputI2SQuad_F32;
@@ -89,8 +86,6 @@ protected:
 	static void config_i2s(bool);
 	static void config_i2s(float);
 	static void config_i2s(bool, float);
-	//static void config_i2s_i16(void,float);
-	//static void config_i2s_i32(void,float);
 	static audio_block_f32_t *block_left_1st;
 	static audio_block_f32_t *block_right_1st;
 	static bool update_responsibility;

@@ -1,6 +1,6 @@
 /*
  *  *****  input_i2s_f32.h  ******
- * 
+ *
  *  Audio Library for Teensy 3.X
  * Copyright (c) 2014, Paul Stoffregen, paul@pjrc.com
  *
@@ -26,20 +26,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
- /* 
+ /*
  *  Extended by Chip Audette, OpenAudio, May 2019
  *  Converted to F32 and to variable audio block length
  *	The F32 conversion is under the MIT License.  Use at your own risk.
  */
 // Updated OpenAudio F32 with this version from Chip Audette's Tympan Library Jan 2021 RSL
+// Removed unused pieces. RSL 30 May 2022
 
 #ifndef _input_i2s_f32_h_
 #define _input_i2s_f32_h_
 
 #include <Arduino.h>
-#include <arm_math.h> 
+#include <arm_math.h>
 #include "AudioStream_F32.h"
-#include "AudioStream.h"   //Do we really need this?? (Chip, 2020-10-31)
+// #include "AudioStream.h"   // included AudioStream_F32.h > Audio.h > AudioStream.h
 #include "DMAChannel.h"
 
 class AudioInputI2S_F32 : public AudioStream_F32
@@ -47,24 +48,24 @@ class AudioInputI2S_F32 : public AudioStream_F32
 //GUI: inputs:0, outputs:2  //this line used for automatic generation of GUI nodes
 public:
 	AudioInputI2S_F32(void) : AudioStream_F32(0, NULL) { begin(); } //uses default AUDIO_SAMPLE_RATE and BLOCK_SIZE_SAMPLES from AudioStream.h
-	AudioInputI2S_F32(const AudioSettings_F32 &settings) : AudioStream_F32(0, NULL) { 
+	AudioInputI2S_F32(const AudioSettings_F32 &settings) : AudioStream_F32(0, NULL) {
 		sample_rate_Hz = settings.sample_rate_Hz;
 		audio_block_samples = settings.audio_block_samples;
-		begin(); 
+		begin();
 	}
-	
+
 	virtual void update(void);
 	static void scale_i16_to_f32( float32_t *p_i16, float32_t *p_f32, int len) ;
 	static void scale_i24_to_f32( float32_t *p_i24, float32_t *p_f32, int len) ;
 	static void scale_i32_to_f32( float32_t *p_i32, float32_t *p_f32, int len);
 	void begin(void);
 	void begin(bool);
-	void sub_begin_i32(void);
-	//void sub_begin_i16(void);
+	// void sub_begin_i32(void);  // These 2 are prototypes without functions  RSL May 22
+	// void sub_begin_i16(void);
 	int get_isOutOfMemory(void) { return flag_out_of_memory; }
 	void clear_isOutOfMemory(void) { flag_out_of_memory = 0; }
 	//friend class AudioOutputI2S_F32;
-protected:	
+protected:
 	AudioInputI2S_F32(int dummy): AudioStream_F32(0, NULL) {} // to be used only inside AudioInputI2Sslave !!
 	static bool update_responsibility;
 	static DMAChannel dma;
