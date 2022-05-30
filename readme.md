@@ -26,6 +26,12 @@ Notes
 -----
 
 1 - The USB_Audio_F32.h  includes all the functions needed to use USB audio for input and output.  However, it is not in the OpenAudio_ArduinoLibrary.h as would be expected.  To use this class, add "#include USB_Audio_F32.h" to the INO file and before compiling, go to the IDE Tools>USB Type and set the radio button to "Audio."  This should then compile without error.  Also, using this class requires some amount of I16 audio memory, such as a line in the top of the INO, "AudioMemory(10);"
+2 - This library generally supports changing sample rates within the range of the Codec hardware being used.
+See Examples/PassthroughF32/PassthroughF32.ino.  In addition, be aware that classes that need speed scaling such as waveform generators and filters must be modified
+individually using built-in functions such as
+AudioSynthWaveformSine_F32::setSampleRate_Hz(float &fs_Hz). Also, see
+https://forum.pjrc.com/threads/38753-Discussion-about-a-simple-way-to-change-the-sample-rate
+for discussion of both T3.x and T4.x I2S sample rates.
 
 Installation
 ------------
