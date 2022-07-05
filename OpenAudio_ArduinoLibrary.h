@@ -56,6 +56,9 @@
 #include "AudioFilterEqualizer_F32.h"
 #include "AudioFilterFIRGeneral_F32.h"
 #include "RadioFMDetector_F32.h"
+#include "radioBFSKmodulator_F32.h"
+#include "RadioFMDiscriminator_F32.h"
 #include "radioNoiseBlanker_F32.h"
 #include "synth_sin_cos_f32.h"
+#include "UART_F32.h"
 // #include "USB_Audio_F32.h" Include this separately if needed. Then in IDE Tools>USB Type>Audio
