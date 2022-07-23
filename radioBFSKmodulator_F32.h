@@ -204,9 +204,9 @@ public:
    // Low pass filter on frequency control line.  Set to NULL to omitfilter.
    void setLPF(float32_t* _FIRdata, float32_t* _FIRcoeff, uint16_t _numCoeffs) {
       FIRdata = _FIRdata;
-	   if(_FIRCoeff == NULL || _numCoeffs == 0)
+	   if(_FIRcoeff == NULL || _numCoeffs == 0)
 	      {
-         FIRCoeff = NULL;
+         FIRcoeff = NULL;
          numCoeffs = 0;
          return;
          }
