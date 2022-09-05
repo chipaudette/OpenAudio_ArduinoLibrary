@@ -421,6 +421,8 @@ span.mainfunction {color: #993300; font-weight: bolder}
         {"type":"UART_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"UART","inputs":"1","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"0"}},
 
 
+        {"type":"radioFT8Modulator_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"FT8Mod","inputs":"0","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
+
 
 
         {"type":"RadioIQMixer_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"I-QMixer","inputs":"2","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
@@ -3363,7 +3365,7 @@ The actual packets are taken
     <p class=desc>Empties the FIFO transmit buffer.</p>
 
     <p class=func><span class=keyword>clearBuffer</span>();</p>
-    <p class=desc>Returns a bool value true if another data word can be sent. </p>
+    <p class=desc>Clears the send buffer. Does not stop a character being sent. No return value.</p>
 
     <p class=func><span class=keyword>amplitude</span>(<strong>float32_t</strong> a);</p>
     <p class=desc>Sets a,  the zero-to-peak amplitude of the transmit signal.
@@ -3405,6 +3407,102 @@ The actual packets are taken
 
 
 
+<script type="text/x-red" data-help-name="radioFT8Modulator_F32">
+	<!-- ============   radioFT8Modulator_F32    ========= -->
+    <h3>Summary</h3>
+    <div class=tooltipinfo>
+    <p>Generates and transmits the eight-tone frequency shift keyed waveform
+    for the WSJT mode called FT8.
+    The data is provided by an ASCII string.  A subset of possible FT8
+    messages is supported.  All elements of the FT8 waveform are provided
+    including spectral confinement.
+     </p>
+    </div>
+
+    <h3>Audio Connections</h3>
+    <table class=doc align=center cellpadding=3>
+        <tr class=top><th>Port</th><th>Purpose</th></tr>
+        <tr class=odd><td align=center>Out 0</td><td>FT8 transmit audio or I-F</td></tr>
+    </table>
+
+    <h3>Functions</h3>
+
+    <p class=func><span class=keyword>setSampleRate_Hz</span>
+    (<strong>const float32_t</strong> &fs_Hz);</p>
+    <p class=desc>The two values are 48000.0 and 96000.0. </p>
+
+    <p class=func><span class=keyword>ft8Initialize</span>();</p>
+    <p class=desc>This computes several filters that are needed.
+    IMPORTANT: Before calling this initialize function, set the audio sampling rate.</p>
+
+    <p class=func><span class=keyword>FT8TransmitBusy</span>();</p>
+    <p class=desc>Returns <strong>bool</strong> true if transmission is still active (a 12.96 second period).
+    Returns false if new data can be loaded.</p>
+
+    <p class=func><span class=keyword>sendData</span>
+    (<strong>char*</strong> data, <strong>int16_t</strong> i3, <strong>int16_t</strong> n3,
+     <strong>int16_t</strong> specialCase);</p>
+    <p class=desc>  This defines the data to be sent and also triggers the starting time.
+    The parameter data takes a string, such as
+    "K1ABC W9XYZ RR73".  The descriptors, i3 and n3 are needed to define all possible FT8 messages.
+    Because of the current message capability (standard QSO and free text)
+    the i3 and n3 are not needed. The specialCase are:
+    specialCase==0 is not special at all. It converts the message to
+    tones and transmits the 81 tones in FT8 format.
+    specialCase==1 allows running of the message-to-tone conversion without
+    starting the transmission of tones.  Results are in tones[].
+    specialCase==2 starts the transmission of tones[]
+    without doing a message-to-tone conversion as part of the function call. </p>
+
+    <p class=func><span class=keyword>amplitude</span>(<strong>float32_t</strong> a);</p>
+    <p class=desc>Sets a,  the zero-to-peak amplitude of the transmit signal.
+    No return value.</p>
+
+    <p class=func><span class=keyword>frequency</span>(<strong>float32_t</strong> f);</p>
+    <p class=desc>Sets f, the base, lowest, frequency of the FT8 waveform.
+    The occupied bandwidth is a few Hz below f and about 50 Hz above f.
+    No return value.</p>
+
+    <p class=func><span class=keyword>cancelTransmit</span>();</p>
+    <p class=desc>Cancels the current transmission, following the current 128 sample period,
+    if active.  This, of course, does not control PTT.  No return value.</p>
+
+
+    <p class=func><span class=keyword>setSampleRate_Hz</span>(<strong>float32_t</strong> sampleRate_Hz)</p>
+    <p class=desc>Enter sample rate, as float32_t.
+    It applies to this class only.
+    </p>
+
+    <p class=func><span class=keyword>getPayload</span>()</p>
+    <p class=desc>Returns pointer to an array of 10 uint8_t holding the 77 bit payload.
+    </p>
+
+    <p class=func><span class=keyword>getTones</span>()</p>
+    <p class=desc>Returns pointer to an array of 81 uint8_t holding the
+    tones to be transmitted (0, 7).
+    </p>
+
+    <h3>Examples</h3>
+    <p class=exam>File &gt; Examples &gt; OpenAudio_ArduinoLibrary &gt; FT8Transmit
+    </p>
+
+    <h3>Notes</h3>
+    <p>See the library file radioFT8Modulator.h for much more information,
+    references, sample data, and most importantly, credits to the many contributors
+    upon which these FT8 library classes are based.</p>
+
+    <p> This class does not provide true (absolute) clock timing. The sendData() function
+    should be called when it is time for a new 15-sec period transmission.
+    Audio output will start at the next 128 audio sample period. This
+    class does not control push-to-talk (PTT).</p>
+
+</script>
+<script type="text/x-red" data-template-name="radioFT8Modulator_F32">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
 
 <div>
 <script type="text/x-red" data-help-name="radioModulatedGenerator_F32">
