@@ -10,6 +10,7 @@
  * work.  All of that makes this possible.  Bob
  *
  * Copyright (c) 2022 Bob Larkin
+ * Portions Copyright (c) 2018 Kārlis Goba (see below)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -391,10 +392,12 @@ private:
    uint8_t tones[81];            // 79 + 2 for key click reduction
  //  const int rampSize[4] = {0, 8, 9, 16}; // For none plus the 3 sample rates allowed
 
-// -----------------------------------------------------------------------
-// The remainder of this was brazenly borrowed from Karlis Goba's
-// https://github.com/kgoba/ft8_lib/blob/master/ft8/
-// and retains his "todo's," etc.  Thanks to the whole chain of authors.
+/* -----------------------------------------------------------------------
+ * The remainder of this was brazenly borrowed from Karlis Goba's
+ * https://github.com/kgoba/ft8_lib/blob/master/ft8/
+ * and retains his "todo's," etc.  Thanks to the whole chain of authors.
+ * Under same MIT license as above with  ** Copyright (c) 2018 Kārlis Goba **
+ */
 
 // Costas 7x7 tone pattern
 const uint8_t kCostas_map[7] = { 3,1,4,0,6,5,2 };
