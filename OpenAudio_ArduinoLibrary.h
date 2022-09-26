@@ -26,6 +26,7 @@
 #include "input_spdif3_f32.h"
 #include "async_input_spdif3_F32.h"
 #include "output_i2s_f32.h"
+#include "output_i2s2_f32.h"
 #include "output_spdif3_f32.h"
 #include "play_queue_f32.h"
 #include "record_queue_f32.h"
