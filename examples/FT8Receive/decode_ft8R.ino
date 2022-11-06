@@ -7,7 +7,7 @@
  */
 
 /* Thank you to Kārlis Goba, YL3JG, https://github.com/kgoba/ft8_lib
- * and to Charlie Hill, W5BAA, https://github.com/Rotron/Pocket-FT8
+ * and to Charley Hill, W5BAA, https://github.com/Rotron/Pocket-FT8
  * as well as the all the contributors to the Joe Taylor WSJT project.
  * See "The FT4 and FT8 Communication Protocols," Steve Franks, K9AN,
  * Bill Somerville, G4WJS and Joe Taylor, K1JT, QEX July/August 2020
@@ -137,7 +137,7 @@ int ft8_decode(void) {
 		    rtc_string[kk] = '0';
 		 }
       dt = 0.16f*(float)cand.time_offset;
-		
+
       // Revised procedure to support snr measurement.  Now keep the strongest
 	  // of duplicates.  Bob Larkin  Nov 2020.
       if(found)   // Keep the one with bigger score, put into [
@@ -187,7 +187,7 @@ int ft8_decode(void) {
 	        Serial.print(rtc_string);
 	        Serial.print("msg: ");
 	        Serial.print(message);
-#endif			
+#endif
             strcpy(decoded[num_decoded], message);
             new_decoded[num_decoded].sync_score = cand.score;
             new_decoded[num_decoded].freq_hz = (int)freq_hz;

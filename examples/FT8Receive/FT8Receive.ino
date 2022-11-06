@@ -3,7 +3,7 @@
 // amateur radio.
 
 /*
- * Huge thanks to Charlie Hill, W5BAA, for his Pocket FT8 work, much of which
+ * Huge thanks to Charley Hill, W5BAA, for his Pocket FT8 work, much of which
  * is the basis for this INO: https://github.com/Rotron/Pocket-FT8
  * That work started from the "FT8 Decoding Library" by
  * Karlis Goba: https://github.com/kgoba/ft8_lib and thank you to both
@@ -298,7 +298,7 @@ void loop(void)  {
 #endif
       }
 
-   if(rcvFT8State!=FT8_RCV_IDLE  && demod1.getFFTCount() >= 184) 
+   if(rcvFT8State!=FT8_RCV_IDLE  && demod1.getFFTCount() >= 184)
       {
       rcvFT8State = FT8_RCV_DECODE;
 #ifdef DEBUG1

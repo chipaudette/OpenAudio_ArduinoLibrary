@@ -7,7 +7,7 @@
  */
 
 /* Thank you to Kārlis Goba, YL3JG, https://github.com/kgoba/ft8_lib
- * and to Charlie Hill, W5BAA, https://github.com/Rotron/Pocket-FT8
+ * and to Charley Hill, W5BAA, https://github.com/Rotron/Pocket-FT8
  * as well as the all the contributors to the Joe Taylor WSJT project.
  * See "The FT4 and FT8 Communication Protocols," Steve Franks, K9AN,
  * Bill Somerville, G4WJS and Joe Taylor, K1JT, QEX July/August 2020

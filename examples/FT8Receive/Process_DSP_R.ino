@@ -5,7 +5,7 @@
  * Bob Larkin W7PUA, September 2022.
  *
  */
-/* Thank you to Charlie Hill, W5BAA, https://github.com/Rotron/Pocket-FT8
+/* Thank you to Charley Hill, W5BAA, https://github.com/Rotron/Pocket-FT8
  * for the conversion to Teensy operation, as well as
  * to Kārlis Goba, YL3JG, https://github.com/kgoba/ft8_lib.
  * Thanks to all the contributors to the Joe Taylor WSJT project.
@@ -41,7 +41,7 @@ SOFTWARE.
  * increase the range here.  The library function radioFT8Demodulator_F32 is filtered
  * to pass all frequencies up to, at least 2800 Hz.
  */
- 
+
 // Following are used inside extract_power()
 float32_t fft_buffer[2048];
 float  fftOutput[2048];
@@ -57,7 +57,7 @@ arm_rfft_fast_instance_f32 Sfft;
    uint16_t  noiseBufferWrite = 0;   // Array index
    bool      noiseMeasured = false;     // <<<<<<GLOBAL
    uint8_t   noisePower8 = 0;         // half dB per noise estimate GLOBAL
-   
+
 void init_DSP(void) {
    arm_rfft_fast_init_f32(&Sfft, 2048);
    for (int i = 0; i < FFT_SIZE; ++i)
@@ -81,7 +81,7 @@ float ft_blackman_i(int i, int N) {
 void extract_power( int offset) {
    float32_t y[8];
    float32_t noiseCoeff[3];
-   
+
    /* Format of export_fft_power[] array:
     368 bytes of power for even time for 0.32 sec sample  DESCRIBE BETTER <<<<<<<<<<<<<<<<<<<<<<
     368 bytes of power for odd  time for 0.32 sec sample
@@ -105,7 +105,7 @@ void extract_power( int offset) {
    // Variables for estimating noise level for SNR
    powerSum = 0.0f;
    powerMax = 0.0f;
-   
+
    for(int i=1; i<1024; i++)
       {
 	  if(i>=128 && i<768)   // Omit the first 400 Hz and last 800 Hz
@@ -121,7 +121,7 @@ void extract_power( int offset) {
       fft_buffer[i] = 136.0f + 20.0f*log10f( 0.0000001f + fftOutput[i] );
       }
    fft_buffer[0] = 0.000001;  // Fake DC term
-   
+
    /* Noise needs to be estimated to determine snr. Two cases:
     * runningMax/runningSum < 100  This is weak signal case for which
 	*                              the runningSum must be used alone.
@@ -138,7 +138,7 @@ void extract_power( int offset) {
    //fitCurve (int order, int nPoints, float32_t py[], int nCoeffs, float32_t *coeffs)
    fitCurve(2, 8, y, 3, noiseCoeff);
    float32_t y9 = noiseCoeff[2] + 9.0f*noiseCoeff[1] + 81.0f*noiseCoeff[0];
-   
+
    if(runningMax > 100.0f*0.00156f*runningSum  &&  y9 > 2.0f*noiseCoeff[2]  && !noiseMeasured)
       {
       // This measurement occurs once every 15 sec, but may be just before
@@ -149,14 +149,14 @@ void extract_power( int offset) {
 	  noisePeakAveRatio = runningMax/(0.00156*runningSum);
 #ifdef DEBUG_N
       Serial.println("Noise measurement between transmit time periods:");
-	  Serial.print("   rSum, rMax= ");  Serial.print(0.00156*runningSum, 5); 
-      Serial.print("  ");  Serial.print(runningMax, 5); 
+	  Serial.print("   rSum, rMax= ");  Serial.print(0.00156*runningSum, 5);
+      Serial.print("  ");  Serial.print(runningMax, 5);
       Serial.print(" Ratio= "); Serial.print(noisePeakAveRatio, 3);
       Serial.print(" Int noise= ");
       Serial.println(noisePwrDBIntH);   //  dB increments
 #endif
       }
-   
+
    // Loop over two frequency bin offsets.  This first picks up 367 even
    // numbered fft_buffer[] followed by 367 odd numbered bins.  This is
    // a frequency shift of 3.125 Hz.  With windowing, the bandwidth
@@ -176,7 +176,7 @@ void extract_power( int offset) {
    }           // End extract_power()
 
 // ===============================================================
-// CURVE FIT 
+// CURVE FIT
 
 /*
   curveFitting - Library for fitting curves to given
@@ -226,12 +226,12 @@ int trianglize(float32_t **m, int n)
   }
   return sign;
 }
- 
+
 float32_t det(float32_t *in, int n)
 {
   float32_t *m[n];
   m[0] = in;
- 
+
   for (int i = 1; i < n; i++)
     m[i] = m[i - 1] + n;
   int sign = trianglize(m, n);
@@ -265,11 +265,11 @@ int fitCurve (int order, int nPoints, float32_t py[], int nCoeffs, float32_t *co
   float32_t denom; //denominator for Cramer's rule, determinant of LHS linear equation
   float32_t x, y;
   float32_t px[nPoints]; //Generate X values, from 0 to n
-  
+
   for (i=0; i<nPoints; i++){
 	px[i] = i;
   }
-  
+
   for (i=0; i<nPoints; i++) {//Generate matrix elements
     x = px[i];
     y = py[i];
@@ -287,7 +287,7 @@ int fitCurve (int order, int nPoints, float32_t py[], int nCoeffs, float32_t *co
       masterMat[i*nCoeffs+j] = S[i+j];
     }
   }
-  
+
   float32_t mat[nCoeffs*nCoeffs]; //Temp matrix as det() method alters the matrix given
   cpyArray(masterMat, mat, nCoeffs);
   denom = det(mat, nCoeffs);

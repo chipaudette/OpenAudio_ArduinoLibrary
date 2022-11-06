@@ -33,7 +33,7 @@
  * and FT8 Communications Protocols," by Steve Franke, K9AN, Bill Somerville,
  * G4WJS and Joe Taylor, K1JT, QEX July/August 2020, pp7-17.  I was guided
  * in the right direction for this implementation by Farhan, VU2ESE
- * and Charlie, W5BAA. This led to a pair of excellent Raspberry Pi sources,
+ * and Charley, W5BAA. This led to a pair of excellent Raspberry Pi sources,
  * https://github.com/kgoba/ft8_lib and
  * https://github.com/WB2CBA/W5BAA-FT8-POCKET-TERMINAL
  * An FT8 derivative of the first web site, using the Raspberry Pi,
@@ -76,7 +76,7 @@
  * 5. Update time required for a T4.x is    uSec.
  */
 
-// The Charlie Hill W5BAA_INTERFACE is from the Pocket-FT9 project and
+// The Charley Hill W5BAA_INTERFACE is from the Pocket-FT9 project and
 // transfers data as 128 int's.  It is included as a compile time
 // option to allow testing with the Pocket-FT8 Teensy software.
 // The default interface transfers the collected data as a pointer to
