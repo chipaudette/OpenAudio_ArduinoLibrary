@@ -3494,6 +3494,10 @@ The actual packets are taken
     Audio output will start at the next 128 audio sample period. This
     class does not control push-to-talk (PTT).</p>
 
+    <p>This runs on T4.x only.  The library class could run on T3.6, say, but the
+    end-of-receive-period processing would require many compromises to run
+    there.  The reasonable path is to just use T4.0 or T4.1.</p>
+
 </script>
 <script type="text/x-red" data-template-name="radioFT8Modulator_F32">
     <div class="form-row">
@@ -3579,6 +3583,10 @@ The actual packets are taken
     <p> This class does not provide true (absolute) clock timing.
     The startDataCollect() function
     should be called when it is time for a new 15-sec receive period.</p>
+
+    <p>This runs on T4.x only.  The library class could run on T3.6, say, but the
+    end-of-receive-period processing would require many compromises to run
+    there.  The reasonable path is to just use T4.0 or T4.1.</p>
 
     <p>The receive example, along with the corresponding transmit examples
     for radioFT8Modulator_F32, are complete basic capabilities, but
