@@ -420,10 +420,8 @@ span.mainfunction {color: #993300; font-weight: bolder}
         {"type":"radioBFSKModulator_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"BFSKMod","inputs":"0","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"UART_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"UART","inputs":"1","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"0"}},
 
-
         {"type":"radioFT8Modulator_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"FT8Mod","inputs":"0","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
-
-
+        {"type":"radioFT8Demodulator_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"FT8Demod","inputs":"1","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"0"}},
 
         {"type":"RadioIQMixer_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"I-QMixer","inputs":"2","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
         {"type":"AudioControlSGTL5000","data":{"defaults":{"name":{"value":"new"}},"shortName":"sgtl5000","inputs":0,"outputs":0,"category":"control-function","color":"#E6E0F8","icon":"arrow-in.png"}},
@@ -3406,7 +3404,6 @@ The actual packets are taken
 </script>
 
 
-
 <script type="text/x-red" data-help-name="radioFT8Modulator_F32">
 	<!-- ============   radioFT8Modulator_F32    ========= -->
     <h3>Summary</h3>
@@ -3483,8 +3480,9 @@ The actual packets are taken
     </p>
 
     <h3>Examples</h3>
-    <p class=exam>File &gt; Examples &gt; OpenAudio_ArduinoLibrary &gt; FT8Transmit
-    </p>
+    <p class=exam>File &gt; Examples &gt; OpenAudio_ArduinoLibrary &gt; FT8Transmit</p>
+    <p class=exam>File &gt; Examples &gt; OpenAudio_ArduinoLibrary &gt; FT8Transmit7</p>
+    <p class=exam>File &gt; Examples &gt; OpenAudio_ArduinoLibrary &gt; FT8Transmit7HP</p>
 
     <h3>Notes</h3>
     <p>See the library file radioFT8Modulator.h for much more information,
@@ -3498,6 +3496,100 @@ The actual packets are taken
 
 </script>
 <script type="text/x-red" data-template-name="radioFT8Modulator_F32">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+
+<script type="text/x-red" data-help-name="radioFT8Demodulator_F32">
+	<!-- ============   radioFT8Demodulator_F32    ========= -->
+    <h3>Summary</h3>
+    <div class=tooltipinfo>
+    <p>Receives audio, containing multiple FT8 signals, and bundles them
+    up into 2048 sample float arrays, ready for an FFT. The system audio
+    sample rate is decimated to 6400 Hz and high rejection filtering is
+    provided with a final audio upper limit at 2800 Hz.
+    The full data array is updated and available every 0.16 second
+    to support 50% overlap for FFT windowing.  The class also includes a
+    broad-band power detector for noise measurement.
+     </p>
+    </div>
+
+    <h3>Audio Connections</h3>
+    <table class=doc align=center cellpadding=3>
+        <tr class=top><th>Port</th><th>Purpose</th></tr>
+        <tr class=odd><td align=center>In 0</td><td>FT8 receive audio</td></tr>
+    </table>
+
+    <h3>Functions</h3>
+
+    <p class=func><span class=keyword>setSampleRate_Hz</span>
+    (<strong>const float32_t</strong> &fs_Hz);</p>
+    <p class=desc>The two values are 48000.0 and 96000.0. </p>
+
+    <p class=func><span class=keyword>initialize</span>();</p>
+    <p class=desc>This computes several filters that are needed.</p>
+
+    <p class=func><span class=keyword>getDataPtr</span>()</p>
+    <p class=desc>Returns pointer to an array of 2048 float32_t (aka float)
+    holding latest received audio data.  To support windowed FFT's,
+    this data provides 50% overlap.  This means that, even though the
+    2048 data points require 0.32 seconds to acquire, a new set of data is
+    available every 0.16 seconds.  </p>
+
+    <p class=func><span class=keyword>startDataCollect</span>();</p>
+    <p class=desc>Begins a 14.7 second data collection period with 194
+    2048 float data arrays being made available.
+    No return value.</p>
+
+    <p class=func><span class=keyword>cancelDataCollect</span>();</p>
+    <p class=desc>Cancels the 14.7 second data collection period.
+    No return value.</p>
+
+    <p class=func><span class=keyword>receivingData</span>();</p>
+    <p class=desc>Returns <strong>bool</strong> true if the 14.7 data collection
+    is in progress.</p>
+
+    <p class=func><span class=keyword>powerAvailable</span>();</p>
+    <p class=desc>See the next function.  Returns <strong>bool</strong>
+    true if the power measurement is available. </p>
+
+    <p class=func><span class=keyword>readPower</span>();</p>
+    <p class=desc>Returns the dB power level <strong>once</strong>
+    per 128 samples at the 6.4kHz rate.
+    This can be used to provide a noise level measurement when signals are not
+    being transmitted.  See the receive example listed below.</p>
+
+    <p>Note that there are other fuctions available to support the W5BAA 128-int
+    data transfer. The details are in the radioFT8Demodulator_F32.h file.
+    Use of those functions requires compiling with "#define W5BAA_INTERFACE" in
+    the .h file.</p>
+
+    <h3>Examples</h3>
+    <p class=exam>File &gt; Examples &gt; OpenAudio_ArduinoLibrary &gt; FT8Receive
+    </p>
+
+    <h3>Notes</h3>
+    <p>See the library file radioFT8Demodulator.h for much more information,
+    references, sample data, and most importantly, credits to the many contributors
+    upon which these FT8 library classes are based.</p>
+
+    <p> This class does not provide true (absolute) clock timing.
+    The startDataCollect() function
+    should be called when it is time for a new 15-sec receive period.</p>
+
+    <p>The receive example, along with the corresponding transmit examples
+    for radioFT8Modulator_F32, are complete basic capabilities, but
+    do not serve as a ham radio controller.  The
+    <a href="https://github.com/WB2CBA/W5BAA-FT8-POCKET-TERMINAL"
+    target="_blank">W5BAA Pocket project</a>
+    https://github.com/WB2CBA/W5BAA-FT8-POCKET-TERMINAL
+    is an example of a complete control app.  It does not use this library.</p>
+
+</script>
+<script type="text/x-red" data-template-name="radioFT8Demodulator_F32">
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">

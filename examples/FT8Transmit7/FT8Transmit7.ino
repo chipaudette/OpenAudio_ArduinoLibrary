@@ -1,15 +1,38 @@
 /*
- *  New FT8Transmit.ino    RSL 29 Aug 2022
+ *  New FT8Transmit7.ino    Bob Larkin 23 Oct 2022
  *
- * Generates a subset of possible FT8 messages.
+ * Generates 7 FT8 signals along with added white Gaussian noise.
  * S/N is controlled accurately.  Uses Teensy Floating Point
- * OpenAudio_TeensyLibrary.
+ * OpenAudio_TeensyLibrary.  S/N is set according to frequency:
+ *   700  -22 dB
+ *   850  -21 dB
+ *  1000  -20 dB
+ *  1150  -19 dB
+ *  1300  -18 dB
+ *  1450  -17 dB
+ *  1600  -16 dB
+ * The S/N is also indicated in the signal-report field.
+ * All seven signals are generated every 15 seconds.
+ *
+ * Time zeroing can be done by a USB-serial command =<CR>
+ * or even easier is to just apply power 2-seconds before any 15 second
+ * PC reading.  The LED on the Teensy 4.x blinks at the start of
+ * each 15 second period.  All 15 second periods are used for transmit
+ * from this test  generator.
+ *
+ * Required hardware is a Teensy 4.0 (or 4.1) along with the 4.x audio
+ * adapter.  Output on the adapter board is either the left or right channel.
+ * Once programmed, a PC is no longer needed to run the Teensy.  See
+ * https://www.pjrc.com/store/teensy40.html for board info and ordering.
+ *
+ * This INO is an example in the Teensy Floating Point (F32) library,
+ * https://github.com/chipaudette/OpenAudio_ArduinoLibrary.  That library,
+ * along with the Arduino IDE and the Teensyduino additions are
+ * needed to compile and link this INO.
+ *
  * See radioFT8Modulator_F32 for information on the implementation.
  * This INO is in the public domain.
  *
- * Rev 3 Oct 2022  Start up in msg 0, s/n = 0.0 dB. Allowed changes to
- *                 initial SNR  RSL
- * Rev 10 Oct 2022 Added LED pulse every 15 sec. RSL
  */
 
 #include "Arduino.h"
@@ -22,18 +45,28 @@ const float sample_rate_Hz = 48000.0f;
 const int   audio_block_samples = 128;
 AudioSettings_F32 audio_settings(sample_rate_Hz, audio_block_samples);
 
-AudioSynthGaussian_F32       GaussianWhiteNoise1(audio_settings); //xy=101,148
-RadioFT8Modulator_F32        FT8Mod1;                             //xy=117,277
-AudioMixer4_F32              mixer4_1;                            //xy=282,218
-AudioFilterFIRGeneral_F32    filterFIRgeneral1(audio_settings);   //xy=452,181
-AudioOutputI2S_F32           audioOutI2S1(audio_settings);        //xy=532,243
-AudioAnalyzeRMS_F32          rms1;                                //xy=625,180
-AudioConnection_F32          patchCord1(GaussianWhiteNoise1, 0, mixer4_1, 0);
-AudioConnection_F32          patchCord2(FT8Mod1, 0, mixer4_1, 1);
-AudioConnection_F32          patchCord5(mixer4_1, filterFIRgeneral1);
-AudioConnection_F32          patchCord3(filterFIRgeneral1, 0, audioOutI2S1, 0);
-AudioConnection_F32          patchCord4(filterFIRgeneral1, 0, audioOutI2S1, 1);
-AudioConnection_F32          patchCord6(filterFIRgeneral1, rms1);
+AudioSynthGaussian_F32       GaussianWhiteNoise1(audio_settings);
+RadioFT8Modulator_F32        FT8Mod1;
+RadioFT8Modulator_F32        FT8Mod2;
+RadioFT8Modulator_F32        FT8Mod3;
+RadioFT8Modulator_F32        FT8Mod4;
+RadioFT8Modulator_F32        FT8Mod5;
+RadioFT8Modulator_F32        FT8Mod6;
+RadioFT8Modulator_F32        FT8Mod7;
+AudioMixer8_F32              mixer8_1;
+AudioFilterFIRGeneral_F32    filterFIRgeneral1(audio_settings);
+AudioOutputI2S_F32           audioOutI2S1(audio_settings);
+AudioConnection_F32          patchCord1(GaussianWhiteNoise1, 0, mixer8_1, 0);
+AudioConnection_F32          patchCord2(FT8Mod1, 0, mixer8_1, 1);
+AudioConnection_F32          patchCord3(FT8Mod2, 0, mixer8_1, 2);
+AudioConnection_F32          patchCord4(FT8Mod3, 0, mixer8_1, 3);
+AudioConnection_F32          patchCord5(FT8Mod4, 0, mixer8_1, 4);
+AudioConnection_F32          patchCord6(FT8Mod5, 0, mixer8_1, 5);
+AudioConnection_F32          patchCord7(FT8Mod6, 0, mixer8_1, 6);
+AudioConnection_F32          patchCord8(FT8Mod7, 0, mixer8_1, 7);
+AudioConnection_F32          patchCord9(mixer8_1, filterFIRgeneral1);
+AudioConnection_F32          patchCordA(filterFIRgeneral1, 0, audioOutI2S1, 0);
+AudioConnection_F32          patchCordB(filterFIRgeneral1, 0, audioOutI2S1, 1);
 AudioControlSGTL5000         sgtl5000_1;                          //xy=357,318
 
 // NOTE - This FIR filter has more taps than needed for a generator.  The goal for
@@ -148,33 +181,26 @@ static float32_t filter2500BP[597] = {
  0.0001984728f, 0.0001855962f, 0.0001564562f, 0.0001169578f, 0.0000736751f, 0.0000329934f,
  0.0000003593f,-0.0000202947f,-0.0005125820f};
 
-// Messages 0 to 7
+// Messages 0 to 7, 0 is not used
 const char* inputString[] = {
-        "CQ LL3JG",
-        "CQ LL3JG KO26",
-        "L0UAA LL3JG KO26",
-        "L0UAA LL3JG +02",
-        "L0UAA LL3JG RRR",
-        "K1ABC W9XYZ RR73",
-        "TNX BOB 73 GL",
-        "ABCDEFG123456"};
-int32_t sendNext = -1;
-float32_t pStateArray[1322];  // 2*597+128
-float32_t  t60, t60Last;
-uint32_t t60Base;
-bool displayClock = false;
-bool displayPower = false;
-bool sendEvery15Sec = true;
-bool doing15SecSend = false;
-float32_t snrDB = 10.0f;        // <-- Set initial SNR here
+        "ABCDEFG123456",
+        "A1AA B1BB -22",
+        "A1AA B1BB -21",
+        "A1AA B1BB -20",
+        "A1AA B1BB -19",
+        "A1AA B1BB -18",
+        "A1AA B1BB -17",
+        "A1AA B1BB -16"};
+
+float32_t pStateArray[1322];  // 2*597+128 for FIR filter
 const int ledPin = 13;         // Blink LED every 15 sec
+uint32_t tMillis;
+uint32_t tMillisOffset = 0UL;
 
 void setup(void) {
    Serial.begin(9600);    delay(500);
-   Serial.println("FT8Transmit.ino  Ver 0.1  29 Aug 2022 W7PUA");
-   Serial.println("Use '?' to list commands and '=' to zero FT8 clock.");
-   Serial.println("Use 0 to 7 to set message.");
-
+   Serial.println("FT8Transmit7.ino  Ver 0.1  23 Oct 2022 W7PUA");
+   Serial.println("Use '=' to zero FT8 clock.");
    AudioMemory_F32(20, audio_settings);
    AudioMemory(30);
    FT8Mod1.setSampleRate_Hz(48000.0f);
@@ -185,216 +211,137 @@ void setup(void) {
    // 4.589 as a power ratio. The filter is very close to a 2500 Hz BW
    // so this is close to the WSJT defined S/N.  Show on WSJT-X as -1.8 dB S/N.
    // (Power as used here means the RMS object output squared.)
-   FT8Mod1.amplitude(powf(10.0f, 0.05f*(snrDB-26.617)));
+   FT8Mod1.amplitude(powf(10.0f, 0.05f*(-22-26.617)));  // snr = -22 dB
+
+   FT8Mod2.setSampleRate_Hz(48000.0f);
+   FT8Mod2.ft8Initialize();
+   FT8Mod2.frequency(850.0f);
+   FT8Mod2.amplitude(powf(10.0f, 0.05f*(-21-26.617)));  // snr = -21 dB
+
+   FT8Mod3.setSampleRate_Hz(48000.0f);
+   FT8Mod3.ft8Initialize();
+   FT8Mod3.frequency(1000.0f);
+   FT8Mod3.amplitude(powf(10.0f, 0.05f*(-20-26.617)));  // snr = -20 dB
+
+   FT8Mod4.setSampleRate_Hz(48000.0f);
+   FT8Mod4.ft8Initialize();
+   FT8Mod4.frequency(1150.0f);
+   FT8Mod4.amplitude(powf(10.0f, 0.05f*(-19-26.617)));  // snr = -19 dB
+
+   FT8Mod5.setSampleRate_Hz(48000.0f);
+   FT8Mod5.ft8Initialize();
+   FT8Mod5.frequency(1300.0f);
+   FT8Mod5.amplitude(powf(10.0f, 0.05f*(-18-26.617)));  // snr = -18 dB
+
+   FT8Mod6.setSampleRate_Hz(48000.0f);
+   FT8Mod6.ft8Initialize();
+   FT8Mod6.frequency(1450.0f);
+   FT8Mod6.amplitude(powf(10.0f, 0.05f*(-17-26.617)));  // snr = -17 dB
+
+   FT8Mod7.setSampleRate_Hz(48000.0f);
+   FT8Mod7.ft8Initialize();
+   FT8Mod7.frequency(1600.0f);
+   FT8Mod7.amplitude(powf(10.0f, 0.05f*(-16-26.617)));  // snr = -16 dB
+
    filterFIRgeneral1.LoadCoeffs(597, filter2500BP, pStateArray);
-
    GaussianWhiteNoise1.amplitude(0.1f);  // Do not change from 0.1f unless breaking the cal is wanted.
-
    sgtl5000_1.enable();
-
    delay(5);
-   t60 = 0.000f;     // Reset clock
-   t60Last = t60;
-   t60Base = millis();
+   // This is intended as running in the Teensy unattended.
+   // For this, the clock will just use the millisec() clock.
 
-   sendNext = 0;  // Rev 3 Oct 2022
+   tMillis = millis();
    }
 
 void loop()  {
+
    int16_t inCmd;
    if( Serial.available() )
       {
       inCmd = Serial.read();
-      if(inCmd=='0')
+      if(inCmd=='=')  //Set local clock to zero
          {
-         sendNext = 0;
-         Serial.print("Next FT8:");
-         Serial.println((char*) inputString[0]);
-         }
-      else if(inCmd=='1')
-         {
-         sendNext = 1;
-         Serial.print("Next FT8:");
-         Serial.println((char*) inputString[1]);
-         }
-      else if(inCmd=='2')
-         {
-         sendNext = 2;
-         Serial.print("Next FT8:");
-         Serial.println((char*) inputString[2]);
-         }
-      else if(inCmd=='3')
-         {
-         sendNext = 3;
-         Serial.print("Next FT8:");
-         Serial.println((char*) inputString[3]);
-         }
-      else if(inCmd=='4')
-         {
-         sendNext = 4;
-         Serial.print("Next FT8:");
-         Serial.println((char*) inputString[4]);
-         }
-      else if(inCmd=='5')
-         {
-         sendNext = 5;
-         Serial.print("Next FT8:");
-         Serial.println((char*) inputString[5]);
-         }
-      else if(inCmd=='6')
-         {
-         sendNext = 6;
-         Serial.print("Next FT8:");
-         Serial.println((char*) inputString[6]);
-         }
-      else if(inCmd=='7')
-         {
-         sendNext = 7;
-         Serial.print("Next FT8:");
-         Serial.println((char*) inputString[7]);
-         }
-      else if(inCmd=='w' || inCmd=='W')  // S/N Up 1 dB
-         {
-         snrDB += 1.0f;
-         FT8Mod1.amplitude(powf(10.0f, 0.05f*(snrDB-26.617)));   //0.04668 is amplitude for 0dB S/N
-         Serial.print("SNR Up 1 dB to "); Serial.println(snrDB, 3);
-         if(snrDB>23.5f)
-            Serial.println("WARNING: S/N > 23 dB may cause DAC overload.");
-         }
-
-      else if(inCmd=='a' || inCmd=='A')  // S/N Down 1 dB
-         {
-         snrDB -= 1.0f;
-         FT8Mod1.amplitude(powf(10.0f, 0.05f*(snrDB-26.617)));   //0.04668 is amplitude for 0dB S/N
-         Serial.print("SNR Down 1 dB to "); Serial.println(snrDB, 3);
-         }
-
-      else if(inCmd=='t' || inCmd=='T')  // Toggle Continuous and Trigger
-         {
-         sendEvery15Sec = !sendEvery15Sec;
-         if(sendEvery15Sec)
-            Serial.println("Send every 15 sec");
-         else
-            Serial.println("Send triggered on Number");
-         }
-      else if(inCmd=='d' || inCmd=='D')  // Toggle dB Power
-         {
-         displayPower = !displayPower;
-         if(displayPower)
-            Serial.println("Display dB Power every sec");
-         else
-            Serial.println("No Display Power");
-         }
-      else if(inCmd=='=')  //Set minute clock to zero
-         {
-         t60 = 0;
-         t60Base = millis();
-         t60Last = t60;
+         tMillis = millis();
+         tMillisOffset = 0UL;
          Serial.println("Clock Zero'd");
          }
       else if(inCmd=='p' || inCmd=='P')  // Increase clock 0.1 sec
          {
-         t60 += 0.100;
-         t60Base -= 100;
+         tMillisOffset += 100UL;
          Serial.println("Increase clock 0.1 sec");
          }
       else if(inCmd=='l' || inCmd=='L')  // Decrease clock 0.1 sec
          {
-         t60 -= 0.100;
-         t60Base += 100;
+         tMillisOffset -= 100UL;
          Serial.println("Decrease clock 0.1 sec");
          }
       else if(inCmd=='-')  // Increase clock 1 sec
          {
-         t60 += 1.000;
-         t60Last = t60;
-         t60Base -= 1000;
+         tMillisOffset += 1000UL;
          Serial.println("Increase clock 1 sec");
          }
       else if(inCmd==',')  // Decrease clock 1 sec
          {
-         t60 -= 1.000;
-         t60Last = t60;
-         t60Base -= 1000;
+         tMillisOffset -= 1000UL;
          Serial.println("Decrease clock 1 sec");
-         }
-      else if(inCmd=='c' || inCmd=='C')  // Toggle clock display
-         {
-         displayClock = !displayClock;
          }
       else if(inCmd=='?')
          {
-         Serial.println("0, 1,...7  Select message 0 to 7");
-         Serial.println("w, W       Increase S/N by 1 dB");
-         Serial.println("a, A       Decrease S/N by 1 dB");
-         Serial.println("t, T       Toggle Repeat every 15 sec or Trigger on msg entry");
-         Serial.println("d, D       Toggle dB total power display, On or Off");
-         Serial.println("=          Set local FT-8 clock to 0 (60 sec range).");
+         Serial.println("=          Set local FT-8 clock to 0");
          Serial.println("p, P       Increase local FT8 clock by 0.1 sec");
          Serial.println("l, L       Decrease local FT8 clock by 0.1 sec");
          Serial.println("-          Increase local FT8 clock by 1 sec");
          Serial.println(",          Decrease local FT8 clock by 1 sec");
-         Serial.println("c, C       Toggle Clock Display On or Off.");
          Serial.println("?          Help Display (this message)");
          }
       else if(inCmd>35)   // Ignore anything below '#'
          Serial.println("Cmd ???");
       }   //  End, if Serial Available
 
-      // Update clock
-      t60 = 0.001f*(float32_t)(millis() - t60Base);
-      if(t60 >= 60.000f)
+      // Send every 15 sec
+      if( !FT8Mod7.FT8TransmitBusy() && ((millis() + tMillisOffset) - tMillis ) >= 15000UL )
          {
-         t60 -= 60.000f;     // Seconds
-         t60Base += 60000;   // milliSeconds
-         t60Last = t60;
-         if(displayClock)
-            {
-            Serial.print("Seconds: "); Serial.println(t60, 3);
-            }
-         }
-      if(t60-t60Last >= 1.000f)
-         {
-         if(displayClock)
-            {
-            Serial.print("Seconds: "); Serial.println(t60, 3);
-            }
-         if( rms1.available() && displayPower )
-            {
-            Serial.print("Power, dB = ");
-            Serial.println(20.0*rms1.read(), 2);
-            }
-         t60Last += 1.000f;
-         }
-
-      // Look for immediate triggered send
-      if(sendNext>=0 && !sendEvery15Sec)
-         {
+         tMillis += 15000UL;
+         mixer8_1.gain(0, 1.0f);  // Noise
+         mixer8_1.gain(1, 1.0f);
+         mixer8_1.gain(2, 1.0f);
+         mixer8_1.gain(3, 1.0f);
+         mixer8_1.gain(4, 1.0f);
+         mixer8_1.gain(5, 1.0f);
+         mixer8_1.gain(6, 1.0f);
+         mixer8_1.gain(7, 1.0f);
          FT8Mod1.cancelTransmit();
-         FT8Mod1.sendData((char*) inputString[sendNext], 1, 0, 0);
-         sendNext = -1;
-         Serial.println("Immediate Triggered Send");
-         }
+         FT8Mod1.sendData((char*) inputString[1], 1, 0, 0);
+         FT8Mod2.cancelTransmit();
+         FT8Mod2.sendData((char*) inputString[2], 1, 0, 0);
+         FT8Mod3.cancelTransmit();
+         FT8Mod3.sendData((char*) inputString[3], 1, 0, 0);
+         FT8Mod4.cancelTransmit();
+         FT8Mod4.sendData((char*) inputString[4], 1, 0, 0);
+         FT8Mod5.cancelTransmit();
+         FT8Mod5.sendData((char*) inputString[5], 1, 0, 0);
+         FT8Mod6.cancelTransmit();
+         FT8Mod6.sendData((char*) inputString[6], 1, 0, 0);
+         FT8Mod7.cancelTransmit();
+         FT8Mod7.sendData((char*) inputString[7], 1, 0, 0);
 
-      // Look for send every 15 sec
-      if(!FT8Mod1.FT8TransmitBusy() && timing15() && sendNext>=0 && sendEvery15Sec)
-         {
-         FT8Mod1.cancelTransmit();
-         FT8Mod1.sendData((char*) inputString[sendNext], 1, 0, 0);
          Serial.println("Send every 15 sec");
-         doing15SecSend = true;
 
          digitalWrite(ledPin, HIGH);   // set the LED on
          delay(100);
          digitalWrite(ledPin, LOW);   // set the LED on
          }
-   }      // End. loop
 
-// Return true if time for new transmission
-bool timing15(void)  {
-   if(t60>=0.0f  && t60<1.0f)   return true;
-   if(t60>=15.0f && t60<16.0f)  return true;
-   if(t60>=30.0f && t60<31.0f)  return true;
-   if(t60>=45.0f && t60<46.0f)  return true;
-   return false;
-   }
+      // Turn off
+    if( !FT8Mod7.FT8TransmitBusy() && (millis() + tMillisOffset) - tMillis >= 13000UL )
+         {
+         // mixer8_1.gain(0, 0.0f);  // Noise
+         mixer8_1.gain(1, 0.0f);
+         mixer8_1.gain(2, 0.0f);
+         mixer8_1.gain(3, 0.0f);
+         mixer8_1.gain(4, 0.0f);
+         mixer8_1.gain(5, 0.0f);
+         mixer8_1.gain(6, 0.0f);
+         mixer8_1.gain(7, 0.0f);
+         }
+      }      // End. loop
