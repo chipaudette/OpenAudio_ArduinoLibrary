@@ -420,8 +420,8 @@ span.mainfunction {color: #993300; font-weight: bolder}
         {"type":"radioBFSKModulator_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"BFSKMod","inputs":"0","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"UART_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"UART","inputs":"1","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"0"}},
 
-        {"type":"radioFT8Modulator_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"FT8Mod","inputs":"0","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
-        {"type":"radioFT8Demodulator_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"FT8Demod","inputs":"1","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"0"}},
+        {"type":"RadioFT8Modulator_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"FT8Mod","inputs":"0","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
+        {"type":"RadioFT8Demodulator_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"FT8Demod","inputs":"1","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"0"}},
 
         {"type":"RadioIQMixer_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"I-QMixer","inputs":"2","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
         {"type":"AudioControlSGTL5000","data":{"defaults":{"name":{"value":"new"}},"shortName":"sgtl5000","inputs":0,"outputs":0,"category":"control-function","color":"#E6E0F8","icon":"arrow-in.png"}},
@@ -3404,8 +3404,8 @@ The actual packets are taken
 </script>
 
 
-<script type="text/x-red" data-help-name="radioFT8Modulator_F32">
-	<!-- ============   radioFT8Modulator_F32    ========= -->
+<script type="text/x-red" data-help-name="RadioFT8Modulator_F32">
+	<!-- ============   RadioFT8Modulator_F32    ========= -->
     <h3>Summary</h3>
     <div class=tooltipinfo>
     <p>Generates and transmits the eight-tone frequency shift keyed waveform
@@ -3499,7 +3499,7 @@ The actual packets are taken
     there.  The reasonable path is to just use T4.0 or T4.1.</p>
 
 </script>
-<script type="text/x-red" data-template-name="radioFT8Modulator_F32">
+<script type="text/x-red" data-template-name="RadioFT8Modulator_F32">
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
@@ -3507,8 +3507,8 @@ The actual packets are taken
 </script>
 
 
-<script type="text/x-red" data-help-name="radioFT8Demodulator_F32">
-	<!-- ============   radioFT8Demodulator_F32    ========= -->
+<script type="text/x-red" data-help-name="RadioFT8Demodulator_F32">
+	<!-- ============   RadioFT8Demodulator_F32    ========= -->
     <h3>Summary</h3>
     <div class=tooltipinfo>
     <p>Receives audio, containing multiple FT8 signals, and bundles them
@@ -3597,7 +3597,7 @@ The actual packets are taken
     is an example of a complete control app.  It does not use this library.</p>
 
 </script>
-<script type="text/x-red" data-template-name="radioFT8Demodulator_F32">
+<script type="text/x-red" data-template-name="RadioFT8Demodulator_F32">
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
