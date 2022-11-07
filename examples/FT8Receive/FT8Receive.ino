@@ -71,10 +71,12 @@ const float32_t sample_rate_Hz = 48000.0f;
 const int       audio_block_samples = 128;
 AudioSettings_F32 audio_settings(sample_rate_Hz, audio_block_samples);
 
+// NOTE Changed class name to start with capital "R"  RSL 7 Nov 2022
+
 AudioInputI2S_F32        audioInI2S1(audio_settings);    //xy=100,150
 AudioEffectGain_F32      gain1;          //xy=250,150
 AudioAnalyzePeak_F32     peak1;          //xy=400,250
-radioFT8Demodulator_F32  demod1;         //xy=400,150
+RadioFT8Demodulator_F32  demod1;         //xy=400,150
 AudioConnection_F32      patchCord1(audioInI2S1, 0, gain1, 0);
 AudioConnection_F32      patchCord2(gain1, demod1);
 AudioConnection_F32      patchCord3(gain1, peak1);

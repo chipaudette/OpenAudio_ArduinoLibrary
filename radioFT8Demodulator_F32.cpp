@@ -35,6 +35,8 @@
  *
  */
 
+ // NOTE Changed class name to start with capital "R"  RSL 7 Nov 2022
+
 // *******************   TEENSY 4.x  ONLY   *******************
 #if defined(__IMXRT1062__)
 
@@ -44,7 +46,7 @@
 // decimate15() is common code for several cases of decimation.
 // Input is 128 word of data, in outFIR1,
 // ready to be decimated by 15 to FT8 6.4 kHz sample rate.
-void radioFT8Demodulator_F32::decimate15(void)  {
+void RadioFT8Demodulator_F32::decimate15(void)  {
    // Stage 1, decimate by 5.
    //    current128Used1 = true  means that outFIR1[] is empty
    //    current128Used1 = false means that outFIR1[] has some content
@@ -165,7 +167,7 @@ void radioFT8Demodulator_F32::decimate15(void)  {
    }
 
 // Note: Suppports block size of 128 only.  Very "built in."
-void radioFT8Demodulator_F32::update(void)  {
+void RadioFT8Demodulator_F32::update(void)  {
    audio_block_f32_t *block_in;
    int ii;
 

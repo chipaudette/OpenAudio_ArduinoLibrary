@@ -99,11 +99,13 @@
 #include "AudioStream_F32.h"
 #include "arm_math.h"
 
-class radioFT8Demodulator_F32 : public AudioStream_F32  {
+// NOTE Changed class name to start with capital "R"  RSL 7 Nov 2022
+
+class RadioFT8Demodulator_F32 : public AudioStream_F32  {
 //GUI: inputs:2, outputs:4  //this line used for automatic generation of GUI node
 //GUI: shortName:FFT2048IQ
 public:
-   radioFT8Demodulator_F32() : AudioStream_F32(1, inputQueueArray_f32) {
+   RadioFT8Demodulator_F32() : AudioStream_F32(1, inputQueueArray_f32) {
 
 
       }
