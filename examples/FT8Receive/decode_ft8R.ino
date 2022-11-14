@@ -57,6 +57,7 @@ typedef struct
     int  sync_score;
     int  snr;
     int  distance;
+	float32_t azimuth;           // Added Nov 2022
     } Decode;
 
 Decode new_decoded[20];
@@ -222,6 +223,7 @@ int ft8_decode(void) {
                {
                distance = Target_Distancef(Target_Locator);
                new_decoded[num_decoded].distance = (int)(0.5f + distance);
+			   new_decoded[num_decoded].azimuth = Target_Azimuthf(Target_Locator);
                }
             else
                {
@@ -233,7 +235,7 @@ int ft8_decode(void) {
 		}  // End, duplicate not found
       }  //End of big decode loop
 	  noiseMeasured = false;    // Global flag for Process_DSP_R
-      printFT8Received();
+      //printFT8Received();  // Move to main INO
    return num_decoded;
    }
 
@@ -254,7 +256,8 @@ void printFT8Received(void)  {
         Serial.print(" snr="); Serial.print(new_decoded[kk].snr);
 		if(new_decoded[kk].distance > 0)
 		   {
-		   Serial.print(" km="); Serial.println(new_decoded[kk].distance);
+		   Serial.print(" km="); Serial.print(new_decoded[kk].distance);
+		   Serial.print(" az="); Serial.println(new_decoded[kk].azimuth, 1);
 		   }
 	    else
 		   Serial.println("");

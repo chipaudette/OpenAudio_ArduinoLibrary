@@ -1,6 +1,7 @@
 // FT8Receive.ino  13 Oct 2022  Bob Larkin, W7PUA
 // Simple command-line reception of WSJT FT8 signals for
 // amateur radio.
+// Added azimuth calculation.  Bob 14 Nov 2022
 
 /*
  * Huge thanks to Charley Hill, W5BAA, for his Pocket FT8 work, much of which
@@ -120,7 +121,9 @@ int     master_decoded;
 #define FT8_RCV_IDLE 0
 #define FT8_RCV_DATA_COLLECT 1
 #define FT8_RCV_FIND_POWERS 2
-#define FT8_RCV_DECODE 3
+#define FT8_RCV_READY_DECODE 3
+#define FT8_RCV_DECODE 4
+
 int rcvFT8State = FT8_RCV_IDLE;
 int master_offset, offset_step;
 int Target_Flag = 0;
@@ -304,13 +307,16 @@ void loop(void)  {
       Serial.print("Extract Power, fft count = "); Serial.println( demod1.getFFTCount() );
 #endif
       extract_power(master_offset);    // Do FFT and log powers
-      rcvFT8State = FT8_RCV_DATA_COLLECT;
+	  if(demod1.getFFTCount() >= 184)
+		 rcvFT8State = FT8_RCV_READY_DECODE;
+	  else
+         rcvFT8State = FT8_RCV_DATA_COLLECT;
 #ifdef DEBUG1
       Serial.println("Power array updated");
 #endif
       }
 
-   if(rcvFT8State!=FT8_RCV_IDLE  && demod1.getFFTCount() >= 184)
+   if(rcvFT8State==FT8_RCV_READY_DECODE )
       {
       rcvFT8State = FT8_RCV_DECODE;
 #ifdef DEBUG1
@@ -318,6 +324,7 @@ void loop(void)  {
 #endif
       tu = micros();
       num_decoded_msg = ft8_decode();
+	  printFT8Received();
       rcvFT8State = FT8_RCV_IDLE;
       master_decoded = num_decoded_msg;
 #ifdef DEBUG1

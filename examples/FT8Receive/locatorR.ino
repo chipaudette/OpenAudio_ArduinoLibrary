@@ -6,6 +6,7 @@
 //   locatorR.ino  Bob Larkin 12 Nov 2022
 // Built from the K. Goba double precision files.
 // Data types float precision, funtion unchanged, names have added 'f'
+// Added azimuth calculations  Bob  14 Nov 2022
 
 const float32_t EARTH_RAD = 6371.0f;  //radius in km
 float32_t Latitude, Longitude;
@@ -21,9 +22,26 @@ float32_t Target_Distancef(char target[]) {
 	process_locator(target);
 	Target_Latitude = Latitude;
 	Target_Longitude = Longitude;
-	targetDistance = distancef((float32_t)Station_Latitude, (float32_t)Station_Longitude,
-	                           (float32_t)Target_Latitude, (float32_t)Target_Longitude);
+	targetDistance = distancef(Station_Latitude, Station_Longitude,
+	                            Target_Latitude, Target_Longitude);
 	return targetDistance;
+}
+
+// Azimuth added 14 Nov 2022 - This duplicates some of the calculations in distance
+// but the number of targets this is run on is small, so won't restructure.
+float32_t Target_Azimuthf(char target[]) {
+	float32_t targetAz;
+	float d2r = 0.017453292f;
+	process_locator(target);
+	Target_Latitude = Latitude;
+	Target_Longitude = Longitude;
+    float32_t y = sinf(d2r*(Target_Longitude - Station_Longitude)) * cosf(Target_Latitude*d2r);
+    float32_t x = cosf(Station_Latitude*d2r) * sinf(Target_Latitude*d2r) - 
+      sinf(Station_Latitude*d2r) * cosf(Target_Latitude*d2r) * cosf(d2r*(Target_Longitude - Station_Longitude));
+    targetAz = 57.2957795f*atan2f(y, x);
+    if(targetAz<0.0f)
+       targetAz += 360.0f;		
+	return targetAz;
 }
 
 void process_locator(char locator[]) {
