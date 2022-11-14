@@ -251,7 +251,13 @@ void printFT8Received(void)  {
         Serial.print(message2);
         Serial.print(" dt="); Serial.print(new_decoded[kk].dTime); // secs
         Serial.print(" freq="); Serial.print(new_decoded[kk].freq_hz);
-        Serial.print(" snr="); Serial.println(new_decoded[kk].snr);
+        Serial.print(" snr="); Serial.print(new_decoded[kk].snr);
+		if(new_decoded[kk].distance > 0)
+		   {
+		   Serial.print(" km="); Serial.println(new_decoded[kk].distance);
+		   }
+	    else
+		   Serial.println("");
         }
 	Serial.println("");
 	}

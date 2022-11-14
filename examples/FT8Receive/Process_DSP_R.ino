@@ -48,21 +48,20 @@ float  fftOutput[2048];
 float   window[2048];  // Change to 1024 by symmetry  <<<<<<<<<<<<<<<<<<<
 arm_rfft_fast_instance_f32 Sfft;
 
-
-   float32_t powerSum = 0.0f;    // Use these for snr estimate
-   float32_t runningSum = 0.0f;
-   float32_t powerMax = 0.0f;
-   float32_t runningMax = 0.0f;
-   float32_t noiseBuffer[8];     // Circular storage
-   uint16_t  noiseBufferWrite = 0;   // Array index
-   bool      noiseMeasured = false;     // <<<<<<GLOBAL
-   uint8_t   noisePower8 = 0;         // half dB per noise estimate GLOBAL
+float32_t powerSum = 0.0f;    // Use these for snr estimate
+float32_t runningSum = 0.0f;
+float32_t powerMax = 0.0f;
+float32_t runningMax = 0.0f;
+float32_t noiseBuffer[8];     // Circular storage
+uint16_t  noiseBufferWrite = 0;   // Array index
+bool      noiseMeasured = false;     // <<<<<<GLOBAL
+uint8_t   noisePower8 = 0;         // half dB per noise estimate GLOBAL
 
 void init_DSP(void) {
    arm_rfft_fast_init_f32(&Sfft, 2048);
    for (int i = 0; i < FFT_SIZE; ++i)
       window[i] = ft_blackman_i(i, FFT_SIZE);
-   offset_step = 1472;    // (int) HIGH_FREQ_INDEX*4;             /// 1472
+   offset_step = 1472;    // (int) HIGH_FREQ_INDEX*4;
    }
 
 float ft_blackman_i(int i, int N) {

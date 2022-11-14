@@ -9,8 +9,6 @@
 
 const float32_t EARTH_RAD = 6371.0f;  //radius in km
 float32_t Latitude, Longitude;
-float32_t Station_Latitude, Station_Longitude;
-float32_t Target_Latitude, Target_Longitude;
 
 void set_Station_Coordinates(char station[]){
 	process_locator(station);
@@ -63,7 +61,6 @@ float32_t distancef(float32_t lat1, float32_t lon1, float32_t lat2, float32_t lo
 }
 
 // convert degrees to radians (i.e., * PI/180)
-float32_t deg2radf(float32_t deg)
-{
-    return deg * 0.017453292f;
+float32_t deg2radf(float32_t deg)                    {
+    return deg*0.017453292f;
 }

@@ -129,6 +129,8 @@ int Target_Flag = 0;
 char Target_Call[7]; //six character call sign + /0
 char Target_Locator[5]; // four character locator  + /0
 int Target_RSL; // four character RSL  + /0
+float32_t Station_Latitude, Station_Longitude;
+float32_t Target_Latitude, Target_Longitude;
 
 // Define FT8 symbol counts
 int ND = 58;
@@ -158,10 +160,14 @@ uint8_t secLast = 0;
 const int ledPin = 13;
 bool showPower = false;
 uint32_t tp = 0;
- uint32_t tu;
- uint32_t ct=0;
+uint32_t tu;
+uint32_t ct=0;
 
 void setup(void) {
+   strcpy(Station_Call, "W7PUA");
+   strcpy(home_Locator, "CN84");
+   Station_Latitude = mh2latf(home_Locator);
+   Station_Longitude = mh2lonf(home_Locator);
    // set the Time library to use Teensy 4.x's RTC to keep time
    setSyncProvider(getTeensy3Time);
    AudioMemory_F32(50, audio_settings);
