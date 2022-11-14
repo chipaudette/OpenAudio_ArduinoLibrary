@@ -115,7 +115,7 @@ public:
    void initialize(void)  {
       // Initialize 2 FIR instances (ARM DSP Math Library)
       //arm_fir_init_f32 (arm_fir_instance_f32 *S, uint16_t numTaps,
-                   const float32_t *pCoeffs, float32_t *pState, uint32_t blockSize)
+      //          const float32_t *pCoeffs, float32_t *pState, uint32_t blockSize)
       arm_fir_init_f32(&fir_inst1, 55,  &firDecimate1[0], &dec1FIRWork[0], 128UL);
       arm_fir_init_f32(&fir_inst2, 167, &firDecimate2[0], &dec2FIRWork[0], 128UL);
    // CHECK SAMPLE RATE AND SET index  <<<<<<<<<<<<<
@@ -350,7 +350,7 @@ int32_t kkk;
  * Sampling frequency = 96000 Hz
  * 0 Hz - 3200 Hz  ripple = 0.065 dB
  * 9600 Hz - 48000 Hz att = -81.1 dB   */
-const float32_t firDecimate1[55] = {      // constexpr static
+float32_t firDecimate1[55] = {      // constexpr static
  0.000037640f,  0.000248621f,  0.000535682f,  0.001017563f,  0.001647298,
  0.002359693f,  0.003009942f,  0.003388980f,  0.003245855f,  0.002335195,
  0.000482309f, -0.002343975f, -0.005965316f, -0.009953093f, -0.013627779f,
@@ -367,7 +367,7 @@ const float32_t firDecimate1[55] = {      // constexpr static
  * Sampling frequency = 19200 Hz
  * 0 Hz - 2800 Hz ripple = 0.073 dB
  * 3200 Hz - 9600 Hz att = -80.0 dB  */
-const float32_t firDecimate2[167] = {
+float32_t firDecimate2[167] = {
  0.000200074f,  0.000438821f,  0.000648425f,  0.000636175f,  0.000315069f,
 -0.000193500f, -0.000591064f, -0.000600896f, -0.000202482f,  0.000301473f,
  0.000486276f,  0.000152104f, -0.000466930f, -0.000846593f, -0.000601871f,

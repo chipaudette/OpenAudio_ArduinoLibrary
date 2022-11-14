@@ -44,7 +44,7 @@ const int kMax_decoded_messages = 20;
 const int kMax_message_length = 20;
 const int kMin_score = 40;    // Minimum sync score threshold for candidates
 int validate_locator(char locator[]);
-int strindex(char s[],char t[]);
+int strindex(char s[], char t[]);
 
 typedef struct
     {
@@ -220,8 +220,8 @@ int ft8_decode(void) {
             strcpy(Target_Locator, new_decoded[num_decoded].field3);
             if (validate_locator(Target_Locator)  == 1)
                {
-               distance = Target_Distance(Target_Locator);
-               new_decoded[num_decoded].distance = (int)distance;
+               distance = Target_Distancef(Target_Locator);
+               new_decoded[num_decoded].distance = (int)(0.5f + distance);
                }
             else
                {

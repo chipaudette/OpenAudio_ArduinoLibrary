@@ -1,24 +1,16 @@
 /*
- * locator.ino
- *
+ *  Was locator.ino
  *  Created on: Nov 4, 2019
  *      Author: user
  */
+//   locatorR.ino  Bob Larkin 12 Nov 2022
+// Built from the K. Goba double precision files.
+// Data types float precision, funtion unchanged, names have added 'f'
 
-//#include "locator.h"
-//#include <math.h>
-//#include "arm_math.h"
-
-// TODO -  Looks like single precision would be adequate - RSL
-
-const double EARTH_RAD = 6371;  //radius in km
-//void process_locator(char locator[]);
-//double distance(double lat1, double lon1, double lat2, double lon2);
-//double deg2rad(double deg);
-float Latitude, Longitude;
-float Station_Latitude, Station_Longitude;
-float Target_Latitude, Target_Longitude;
-//float Target_Distance(char target[]);
+const float32_t EARTH_RAD = 6371.0f;  //radius in km
+float32_t Latitude, Longitude;
+float32_t Station_Latitude, Station_Longitude;
+float32_t Target_Latitude, Target_Longitude;
 
 void set_Station_Coordinates(char station[]){
 	process_locator(station);
@@ -26,21 +18,21 @@ void set_Station_Coordinates(char station[]){
 	Station_Longitude = Longitude;
 }
 
-float Target_Distance(char target[]) {
-	float targetDistance;
+float32_t Target_Distancef(char target[]) {
+	float32_t targetDistance;
 	process_locator(target);
 	Target_Latitude = Latitude;
 	Target_Longitude = Longitude;
-	targetDistance = (float) distance((double)Station_Latitude,(double)Station_Longitude,
-	                                  (double)Target_Latitude,(double)Target_Longitude);
+	targetDistance = distancef((float32_t)Station_Latitude, (float32_t)Station_Longitude,
+	                           (float32_t)Target_Latitude, (float32_t)Target_Longitude);
 	return targetDistance;
 }
 
 void process_locator(char locator[]) {
 	uint8_t A1, A2, N1, N2;
 	uint8_t A1_value, A2_value, N1_value, N2_value;
-	float Latitude_1, Latitude_2, Latitude_3;
-	float Longitude_1, Longitude_2, Longitude_3;
+	float32_t Latitude_1, Latitude_2, Latitude_3;
+	float32_t Longitude_1, Longitude_2, Longitude_3;
 	A1 = locator[0];
 	A2 = locator[1];
 	N1 = locator[2];
@@ -49,27 +41,29 @@ void process_locator(char locator[]) {
 	A2_value = A2-65;
 	N1_value = N1- 48;
 	N2_value = N2 - 48;
-	Latitude_1 = (float) A2_value * 10;
-	Latitude_2 = (float) N2_value;
-	Latitude_3 = (11.0/24.0 + 1.0/48.0) - 90.0;
+	Latitude_1 = (float32_t) A2_value * 10.0f;
+	Latitude_2 = (float32_t) N2_value;
+	Latitude_3 = (11.0f/24.0f + 1.0f/48.0f) - 90.0f;
 	Latitude = Latitude_1 + Latitude_2 + Latitude_3;
-	Longitude_1 = (float)A1_value * 20.0;
-	Longitude_2 = (float)N1_value * 2.0;
-	Longitude_3 = 11.0/12.0 +  1.0/24.0;
-	Longitude =  Longitude_1  +  Longitude_2 + Longitude_3 - 180.0;
+	Longitude_1 = (float32_t)A1_value * 20.0f;
+	Longitude_2 = (float32_t)N1_value * 2.0f;
+	Longitude_3 = 11.0f/12.0f +  1.0f/24.0f;
+	// global Longitude
+	Longitude =  Longitude_1  +  Longitude_2 + Longitude_3 - 180.0f;
 }
 
 // distance (km) on earth's surface from point 1 to point 2
-double distance(double lat1, double lon1, double lat2, double lon2) {
-    double lat1r = deg2rad(lat1);
-    double lon1r = deg2rad(lon1);
-    double lat2r = deg2rad(lat2);
-    double lon2r = deg2rad(lon2);
-    return acos(sin(lat1r) * sin(lat2r)+cos(lat1r) * cos(lat2r) * cos(lon2r-lon1r)) * EARTH_RAD;
+float32_t distancef(float32_t lat1, float32_t lon1, float32_t lat2, float32_t lon2) {
+    float32_t lat1r = deg2radf(lat1);
+    float32_t lon1r = deg2radf(lon1);
+    float32_t lat2r = deg2radf(lat2);
+    float32_t lon2r = deg2radf(lon2);
+    return acos(sinf(lat1r) * sinf(lat2r) +
+        cosf(lat1r) * cosf(lat2r) * cosf(lon2r-lon1r)) * EARTH_RAD;
 }
 
-// convert degrees to radians
-double deg2rad(double deg)
+// convert degrees to radians (i.e., * PI/180)
+float32_t deg2radf(float32_t deg)
 {
-    return deg * (PI / 180.0);
+    return deg * 0.017453292f;
 }

@@ -63,6 +63,10 @@
 #define ft8_min_freq FT8_FREQ_SPACING * LOW_FREQ_INDEX
 #define ft8_msg_samples 92
 
+// A couple of prototypes to help the compile order
+void init_DSP(void);
+void extract_power(int);
+
 // Alternate interface format.
 // #define W5BAA
 
