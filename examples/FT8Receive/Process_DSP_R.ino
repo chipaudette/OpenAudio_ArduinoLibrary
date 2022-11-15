@@ -42,25 +42,14 @@ SOFTWARE.
  * to pass all frequencies up to, at least 2800 Hz.
  */
 
-// Following are used inside extract_power()
-float32_t fft_buffer[2048];
-float  fftOutput[2048];
-float   window[2048];  // Change to 1024 by symmetry  <<<<<<<<<<<<<<<<<<<
+float32_t   window[1024];  // Holds half of symmetrical curve
 arm_rfft_fast_instance_f32 Sfft;
-
-float32_t powerSum = 0.0f;    // Use these for snr estimate
-float32_t runningSum = 0.0f;
-float32_t powerMax = 0.0f;
-float32_t runningMax = 0.0f;
-float32_t noiseBuffer[8];     // Circular storage
-uint16_t  noiseBufferWrite = 0;   // Array index
-bool      noiseMeasured = false;     // <<<<<<GLOBAL
-uint8_t   noisePower8 = 0;         // half dB per noise estimate GLOBAL
 
 void init_DSP(void) {
    arm_rfft_fast_init_f32(&Sfft, 2048);
-   for (int i = 0; i < FFT_SIZE; ++i)
-      window[i] = ft_blackman_i(i, FFT_SIZE);
+   // The window is symmetric, so create half of it
+   for (int i = 0; i < 1024; ++i)
+     window[i] = ft_blackman_i(i, 2048);
    offset_step = 1472;    // (int) HIGH_FREQ_INDEX*4;
    }
 
@@ -78,25 +67,60 @@ float ft_blackman_i(int i, int N) {
 
 // Compute FFT magnitudes (log power) for each timeslot in the signal
 void extract_power( int offset) {
+   float32_t fft_buffer[2048];
+   float32_t fftOutput[2048];
+   float32_t powerSum = 0.0f;    // Use these for snr estimate
+   float32_t runningSum = 0.0f;
+   float32_t powerMax = 0.0f;
+   float32_t runningMax = 0.0f;
+   float32_t noiseBuffer[8];     // Circular storage
+   uint16_t  noiseBufferWrite = 0;   // Array index
+   uint8_t   noisePower8 = 0;         // half dB per noise estimate GLOBAL
+	
    float32_t y[8];
    float32_t noiseCoeff[3];
 
-   /* Format of export_fft_power[] array:
-    368 bytes of power for even time for 0.32 sec sample  DESCRIBE BETTER <<<<<<<<<<<<<<<<<<<<<<
-    368 bytes of power for odd  time for 0.32 sec sample
-                         ...
-    Repeated about  14.7/(0.08 sec) = 184 times. (Transmitted message length is 12.96 sec)
-    Total bytes 4 * 368 * 92 = 135424
+   /* The FFT's are arranged to have overlap in both time and frequency.
+    * This allows good decoding sensitivity.  It remains difficult to decode a weak
+	* signal that is close in frequency to a strong one.  It also causes multiple
+	* combinations of time and frequency to show the same signal.
+	* 
+	* The 2048 point real FFT yields 1024 power outputs, corresponding to 0 to 3200 Hz.
+	* Only the frequencies up to 2300 Hz are inspected in this implementation.  That
+	* corresponds with outputs 0 to 736.  The windowing of the FFT results in frequency
+	* resolution that is close to double the bin spacing.  So, the power data is grouped
+	* up in 736/2=368 power data points.  It is done twice, using every other bins.
+    * Format of export_fft_power[] array:
+    * 368 bytes of power for even frequencies, 0, 2, 4, ... 366
+    * 368 bytes of power for odd frequencies, 1, 3, 5, ... 367
+    * Repeated 14.72/(0.08 sec) = 184 times.
+	* The transmitted message length is 12.96 sec so the difference allows timing errors
+	* along with the decoding allowing missing symbols.
+    * Total bytes saved for decoding is 2 * 368 * 194 = 135424 for the 14.72 seconds.
+    *
+    * The power byte is log encoded with a half dB MSB.  This can handle a
+    * dynamic range of 256/2 = 128 dB.
+    */
+	
+	// TODO: It would seem easy to offset the frequencies being examined and, without
+	// increasing the data burden, make the range more productive.  For instance, move the
+	// 0 to 2300 up to 300 to 2600 Hz.  Needs investigation.
+	
+	// TODO: The 135424 byte array is using more than a fourth of Teensy 4.x main RAM1.
+	// Might the array be put in RAM2 (and perhaps enlarged somewhat) and re-arranged
+    // in frequency order.  This would allow transfers to RAM1 in, say, 300 Hz overlapping
+	// segments.   This might be 300 to 600 Hz, 500 to 800, 700 to 1000 and so forth.  That
+	// would cut way back on RAM 1 array size.  Problems with this, except complexity??
 
-    The power byte is log encoded with a half dB MSB.  This can handle a
-    dynamic range of 256/2 = 128 dB.
-   */
-
-   for(int i=0; i<2048; i++)
+   // Note: The RadioFT8Demodulator provides at least 2.7 milliseconds, after data is
+   // available, before pData2K is written over.  This needs to be thought of in the design
+   // of the loop() in the main INO.  Long delays are trouble.  The following transfer
+   // of data to fft_buffer is very fast.  After that, pData2K[] is available.
+   for(int i=0; i<1024; i++)
       {
       fft_buffer[i] = window[i]*pData2K[i];  // Protect pData2K from in-place FFT (17 uSec)
+	  fft_buffer[2047 - i] = window[i]*pData2K[2047 - i]; // Symmetrical window
       }
-
    //           (float32_t* pIn, float32_t* pOut, uint8_t ifftFlag)
    arm_rfft_fast_f32(&Sfft, fft_buffer, fftOutput, 0);
    arm_cmplx_mag_squared_f32(fftOutput, fftOutput, 1024);

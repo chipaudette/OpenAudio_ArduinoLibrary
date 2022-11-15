@@ -123,6 +123,12 @@ char Station_Call[11];  // six character call sign + /0
 char home_Locator[11];  // four character locator  + /0
 char Locator[11]; // four character locator  + /0
 uint8_t ft8_hours, ft8_minutes, ft8_seconds;
+//From gen_ft8.cpp, i.e., also used for transmit:
+char Target_Call[7]; //six character call sign + /0
+char Target_Locator[5]; // four character locator  + /0
+int Target_RSL; // four character RSL  + /0
+float32_t Station_Latitude, Station_Longitude;
+float32_t Target_Latitude, Target_Longitude;
 
 // rcvFT8State
 #define FT8_RCV_IDLE 0
@@ -131,20 +137,15 @@ uint8_t ft8_hours, ft8_minutes, ft8_seconds;
 #define FT8_RCV_READY_DECODE 3
 #define FT8_RCV_DECODE 4
 int rcvFT8State = FT8_RCV_IDLE;
-int offset_step;
 
-//From gen_ft8.cpp, i.e., also used for transmit
-char Target_Call[7]; //six character call sign + /0
-char Target_Locator[5]; // four character locator  + /0
-int Target_RSL; // four character RSL  + /0
-float32_t Station_Latitude, Station_Longitude;
-float32_t Target_Latitude, Target_Longitude;
+int offset_step;
 int32_t current_time, start_time;
 int32_t ft8_time, ft8_mod_time, ft8_mod_time_last;
 int32_t tOffset = 0;  // Added Sept 22
 uint8_t secLast = 0;
 const int ledPin = 13;
 bool showPower = false;
+bool noiseMeasured = false;
 uint32_t tp = 0;
 uint32_t tu = 0;
 
@@ -283,6 +284,9 @@ void loop(void)  {
 
    if(rcvFT8State==FT8_RCV_DATA_COLLECT && demod1.available())
       {
+	  // Note: The RadioFT8Demodulator provides at least 2.7 milliseconds, after data is
+      // available, before pData2K is written over. The extract_power() here must stay
+      // on schedule to protect the data.  THis should be OK.
       // Here every 80 mSec for FFT
       rcvFT8State = FT8_RCV_FIND_POWERS;
       // 1472 * 92 = 135424
@@ -317,7 +321,7 @@ void loop(void)  {
       Serial.println(micros() - tu);
 #endif
       }
-   delay(1);
+   delay(1);   // Don't increase
    }   // End loop()
 
 time_t getTeensy3Time()  {

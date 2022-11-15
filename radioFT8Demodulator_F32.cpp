@@ -1,9 +1,11 @@
 /*
- *   radioFT8Demodulator_F32.cpp       Assembled by Bob Larkin   8 Sept 2022
+ *         radioFT8Demodulator_F32.cpp 
+ * Assembled by Bob Larkin   8 Sept 2022
+ * Comments corrected 16 Nov 2022
  *
  *  This class is Teensy 4.x ONLY.
  *
- * Copyright (c) 2021 Bob Larkin
+ * Copyright (c) 2022 Bob Larkin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,11 +30,6 @@
  *   Every 5 audio samples at 96 kHz produce 1 19.2 kHz sample
  *   Every 3 audio samples at 19.2   produce 1  6.4 kHz sample
  *   Every 15*128=1920 audio samples at 96 kHz produce 128 samples at 6.4 kHz
- *
- * Every 120 (for 48 kHz) or 60 (for 96 kHz) blocks produces 1024 data points
- * at 6.4 kHz reduced sample rate.  This 1024 size is sent to the .INO as it
- * is *half* of a 2048 data block, and thus supports 50% overlap FFT's.
- *
  */
 
  // NOTE Changed class name to start with capital "R"  RSL 7 Nov 2022
