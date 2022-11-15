@@ -117,6 +117,10 @@ void encode174(const uint8_t *message, uint8_t *codeword) {
 // [IN] num_bits - number of bits in the sequence
 uint16_t crc(uint8_t *message, int num_bits) {
     // Adapted from https://barrgroup.com/Embedded-Systems/How-To/CRC-Calculation-C-Code
+	
+	// Define CRC parameters
+    uint16_t CRC_POLYNOMIAL = 0X2757;  // CRC-14 polynomial without the leading (MSB) 1
+    int      CRC_WIDTH = 14;
     //constexpr uint16_t  TOPBIT = (1 << (CRC_WIDTH - 1));
     uint16_t  TOPBIT = (1 << (CRC_WIDTH - 1));
     // printf("CRC, %d bits: ", num_bits);

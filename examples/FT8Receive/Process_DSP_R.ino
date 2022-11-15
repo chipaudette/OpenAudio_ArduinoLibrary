@@ -143,16 +143,16 @@ void extract_power( int offset) {
       // This measurement occurs once every 15 sec, but may be just before
 	  // or just after decode.  Either way, the "latest" noise estimate is used.
 	  noiseMeasured = true;     // Reset after decode()
-	  noisePowerEstimateH = 0.2f*(y[0]+y[1]+y[2]+y[3]+y[4]);
-	  noisePwrDBIntH = (int16_t)(10.0f*log10f(noisePowerEstimateH));
-	  noisePeakAveRatio = runningMax/(0.00156*runningSum);
+	  FT8noisePowerEstimateH = 0.2f*(y[0]+y[1]+y[2]+y[3]+y[4]);
+	  FT8noisePwrDBIntH = (int16_t)(10.0f*log10f(FT8noisePowerEstimateH));
+	  FT8noisePeakAveRatio = runningMax/(0.00156*runningSum);
 #ifdef DEBUG_N
       Serial.println("Noise measurement between transmit time periods:");
 	  Serial.print("   rSum, rMax= ");  Serial.print(0.00156*runningSum, 5);
       Serial.print("  ");  Serial.print(runningMax, 5);
-      Serial.print(" Ratio= "); Serial.print(noisePeakAveRatio, 3);
+      Serial.print(" Ratio= "); Serial.print(FT8noisePeakAveRatio, 3);
       Serial.print(" Int noise= ");
-      Serial.println(noisePwrDBIntH);   //  dB increments
+      Serial.println(FT8noisePwrDBIntH);   //  dB increments
 #endif
       }
 

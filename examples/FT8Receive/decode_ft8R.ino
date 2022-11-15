@@ -78,9 +78,9 @@ int ft8_decode(void) {
    char decoded[kMax_decoded_messages][kMax_message_length];
    const float fsk_dev = 6.25f;    // tone spacing in Hz and symbol rate
    Candidate candidate_list[kMax_candidates];
-   float   log174[N];
-   uint8_t plain[N];
-   uint8_t a91[K_BYTES];
+   float   log174[FT8_N];
+   uint8_t plain[FT8_N];
+   uint8_t a91[FT8_K_BYTES];
 
    // Find top candidates by Costas sync score and localize them in time and frequency
    int  num_candidates = find_sync(export_fft_power,
@@ -100,7 +100,7 @@ int ft8_decode(void) {
       if (n_errors > 0)
          continue;
       // Extract payload + CRC (first K bits)
-      pack_bits(plain, K, a91);
+      pack_bits(plain, FT8_K, a91);
       // Extract CRC and check it
       uint16_t chksum = ((a91[9] & 0x07) << 11) | (a91[10] << 3) | (a91[11] >> 5);
       a91[9] &= 0xF8;
@@ -159,16 +159,16 @@ int ft8_decode(void) {
             new_decoded[indexFound].sync_score = cand.score;
             new_decoded[indexFound].freq_hz = (int)freq_hz;
 			new_decoded[indexFound].dTime = dt;
-            if(noisePeakAveRatio < 100.0f) // No big signals
+            if(FT8noisePeakAveRatio < 100.0f) // No big signals
 			   {
                new_decoded[indexFound].snr =
-       		      cand.syncPower - (float32_t)noisePwrDBIntL + 51.0f;
+       		      cand.syncPower - (float32_t)FT8noisePwrDBIntL + 51.0f;
 			   noiseType = 'L';
 			   }
 			else
 			   {
 	           new_decoded[indexFound].snr =
-       		      cand.syncPower - (float32_t)noisePwrDBIntH - 13.0f;
+       		      cand.syncPower - (float32_t)FT8noisePwrDBIntH - 13.0f;
 			   noiseType = 'H';
 			   }
             if(new_decoded[indexFound].snr < -21)
@@ -197,12 +197,12 @@ int ft8_decode(void) {
             strcpy(new_decoded[num_decoded].field2, field2);
             strcpy(new_decoded[num_decoded].field3, field3);
             strcpy(new_decoded[num_decoded].decode_time, rtc_string);
-            if(noisePeakAveRatio < 100.0f) // No big signals for quiet timing
+            if(FT8noisePeakAveRatio < 100.0f) // No big signals for quiet timing
                new_decoded[num_decoded].snr =
-       		      cand.syncPower - (float32_t)noisePwrDBIntL + 51.0f;
+       		      cand.syncPower - (float32_t)FT8noisePwrDBIntL + 51.0f;
 			else
 	           new_decoded[num_decoded].snr =
-       		      cand.syncPower - (float32_t)noisePwrDBIntH - 13.0f;
+       		      cand.syncPower - (float32_t)FT8noisePwrDBIntH - 13.0f;
             if(new_decoded[num_decoded].snr < -21)
 			   new_decoded[num_decoded].snr = -21;   // It is never lower!!
 #ifdef DEBUG_D
@@ -212,9 +212,9 @@ int ft8_decode(void) {
 #endif
 #ifdef DEBUG_N
             Serial.print("syncPower, noiseL, noiseH, ratio { "); Serial.print(cand.syncPower, 1);
-            Serial.print(" "); Serial.print(noisePwrDBIntL);
-            Serial.print(" "); Serial.print(noisePwrDBIntH);
-            Serial.print(" "); Serial.print(noisePeakAveRatio, 1);
+            Serial.print(" "); Serial.print(FT8noisePwrDBIntL);
+            Serial.print(" "); Serial.print(FT8noisePwrDBIntH);
+            Serial.print(" "); Serial.print(FT8noisePeakAveRatio, 1);
             Serial.println(" }");
 #endif
             char Target_Locator[] = "    ";

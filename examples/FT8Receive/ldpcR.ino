@@ -75,18 +75,18 @@ void pack_bits(const uint8_t plain[], int num_bits, uint8_t packed[]) {
 // max_iters is how hard to try.
 // ok == 87 means success.
 void ldpc_decode(float codeword[], int max_iters, uint8_t plain[], int *ok) {
-    float m[M][N];       // ~60 kB
-    float e[M][N];       // ~60 kB
-    int min_errors = M;
+    float m[FT8_M][FT8_N];       // ~60 kB
+    float e[FT8_M][FT8_N];       // ~60 kB
+    int min_errors = FT8_M;
 
-    for (int j = 0; j < M; j++) {
-        for (int i = 0; i < N; i++) {
+    for (int j = 0; j < FT8_M; j++) {
+        for (int i = 0; i < FT8_N; i++) {
             m[j][i] = codeword[i];
             e[j][i] = 0.0f;
         }
     }
     for (int iter = 0; iter < max_iters; iter++) {
-        for (int j = 0; j < M; j++) {
+        for (int j = 0; j < FT8_M; j++) {
             for (int ii1 = 0; ii1 < kNrw[j]; ii1++) {
                 int i1 = kNm[j][ii1] - 1;
                 float a = 1.0f;
@@ -99,7 +99,7 @@ void ldpc_decode(float codeword[], int max_iters, uint8_t plain[], int *ok) {
                 e[j][i1] = logf((1 - a) / (1 + a));
             }
         }
-        for (int i = 0; i < N; i++) {
+        for (int i = 0; i < FT8_N; i++) {
             float l = codeword[i];
             for (int j = 0; j < 3; j++)
                 l += e[kMn[i][j] - 1][i];
@@ -117,7 +117,7 @@ void ldpc_decode(float codeword[], int max_iters, uint8_t plain[], int *ok) {
             }
         }
 
-        for (int i = 0; i < N; i++) {
+        for (int i = 0; i < FT8_N; i++) {
             for (int ji1 = 0; ji1 < 3; ji1++) {
                 int j1 = kMn[i][ji1] - 1;
                 float l = codeword[i];
@@ -143,7 +143,7 @@ void ldpc_decode(float codeword[], int max_iters, uint8_t plain[], int *ok) {
 static int ldpc_check(uint8_t codeword[]) {
     int errors = 0;
 
-    for (int j = 0; j < M; ++j) {
+    for (int j = 0; j < FT8_M; ++j) {
         uint8_t x = 0;
         for (int i = 0; i < kNrw[j]; ++i) {
             x ^= codeword[kNm[j][i] - 1];
@@ -157,28 +157,28 @@ static int ldpc_check(uint8_t codeword[]) {
 
 
 void bp_decode(float codeword[], int max_iters, uint8_t plain[], int *ok) {
-    float tov[N][3];
-    float toc[M][7];
-    int   min_errors = M;
+    float tov[FT8_N][3];
+    float toc[FT8_M][7];
+    int   min_errors = FT8_M;
 
     // initialize messages to checks
-    for (int i = 0; i < M; ++i) {
+    for (int i = 0; i < FT8_M; ++i) {
         for (int j = 0; j < kNrw[i]; ++j) {
             toc[i][j] = codeword[kNm[i][j] - 1];
         }
     }
 
-    for (int i = 0; i < N; ++i) {
+    for (int i = 0; i < FT8_N; ++i) {
         for (int j = 0; j < 3; ++j) {
             tov[i][j] = 0;
         }
     }
 
     for (int iter = 0; iter < max_iters; ++iter) {
-        float   zn[N];
+        float   zn[FT8_N];
 
         // Update bit log likelihood ratios (tov=0 in iter 0)
-        for (int i = 0; i < N; ++i) {
+        for (int i = 0; i < FT8_N; ++i) {
             zn[i] = codeword[i] + tov[i][0] + tov[i][1] + tov[i][2];
             plain[i] = (zn[i] > 0) ? 1 : 0;
         }
@@ -196,7 +196,7 @@ void bp_decode(float codeword[], int max_iters, uint8_t plain[], int *ok) {
         }
 
         // Send messages from bits to check nodes
-        for (int i = 0; i < M; ++i) {
+        for (int i = 0; i < FT8_M; ++i) {
             for (int j = 0; j < kNrw[i]; ++j) {
                 int ibj = kNm[i][j] - 1;
                 toc[i][j] = zn[ibj];
@@ -210,13 +210,13 @@ void bp_decode(float codeword[], int max_iters, uint8_t plain[], int *ok) {
         }
 
         // send messages from check nodes to variable nodes
-        for (int i = 0; i < M; ++i) {
+        for (int i = 0; i < FT8_M; ++i) {
             for (int j = 0; j < kNrw[i]; ++j) {
                 toc[i][j] = fast_tanh(-toc[i][j] / 2);
             }
         }
 
-        for (int i = 0; i < N; ++i) {
+        for (int i = 0; i < FT8_N; ++i) {
             for (int j = 0; j < 3; ++j) {
                 int ichk = kMn[i][j] - 1; // kMn(:,j) are the checks that include bit j
                 float Tmn = 1.0f;

@@ -64,6 +64,16 @@
 #define ft8_min_freq FT8_FREQ_SPACING * LOW_FREQ_INDEX
 #define ft8_msg_samples 92
 
+// Define FT8 symbol counts
+#define FT8_ND  58
+#define FT8_NN  79
+
+// Define the LDPC sizes
+#define FT8_N   174
+#define FT8_K   91
+#define FT8_M   83
+#define FT8_K_BYTES  12
+
 // A couple of prototypes to help the compile order
 void init_DSP(void);
 void extract_power(int);
@@ -87,67 +97,6 @@ AudioConnection_F32      patchCord2(gain1, demod1);
 AudioConnection_F32      patchCord3(gain1, peak1);
 AudioControlSGTL5000     sgtl5000_1;     //xy=100,250
 
-// This is the big file of log powers
-uint8_t export_fft_power[ft8_msg_samples*HIGH_FREQ_INDEX*4] ;
-// Pointer to 2048 float data for FFT array in radioDemodulator_F32
-float32_t* pData2K = NULL;
-
-float32_t noisePowerEstimateL = 0.0f;  //  Works when big signals are absent
-int16_t   noisePwrDBIntL = 0;
-float32_t noisePowerEstimateH = 0.0f;  //  Works for big signals and QRMt
-int16_t   noisePwrDBIntH = 0;
-float32_t noisePeakAveRatio = 0.0f;    // > about 100 for big sigs
-
-// /char Station_Call[11]; //six character call sign + /0
-// /char home_Locator[11];; // four character locator  + /0
-// /char Locator[11]; // four character locator  + /0
-char Station_Call[11];  // six character call sign + /0
-char home_Locator[11];  // four character locator  + /0
-char Locator[11]; // four character locator  + /0
-uint16_t currentFrequency;
-
-// Next 3 lines were uint32_t  Sept 22 change to allow tOffset
-int32_t current_time, start_time, ft8_time, ft8_mod_time, ft8_mod_time_last;
-int32_t days_fraction, hours_fraction, minute_fraction;
-int32_t tOffset = 0;  // Added Sept 22
-uint8_t ft8_hours, ft8_minutes, ft8_seconds;
-int     ft8_flag, FT_8_counter, ft8_marker, decode_flag;
-int     num_decoded_msg;
-int     xmit_flag, ft8_xmit_counter, Transmit_Armned;
-int     DSP_Flag;   // =1 if new data is ready for FFT
-int     master_decoded;
-
-// rcvFT8State
-#define FT8_RCV_IDLE 0
-#define FT8_RCV_DATA_COLLECT 1
-#define FT8_RCV_FIND_POWERS 2
-#define FT8_RCV_READY_DECODE 3
-#define FT8_RCV_DECODE 4
-
-int rcvFT8State = FT8_RCV_IDLE;
-int master_offset, offset_step;
-int Target_Flag = 0;
-
-//From gen_ft8.cpp
-char Target_Call[7]; //six character call sign + /0
-char Target_Locator[5]; // four character locator  + /0
-int Target_RSL; // four character RSL  + /0
-float32_t Station_Latitude, Station_Longitude;
-float32_t Target_Latitude, Target_Longitude;
-
-// Define FT8 symbol counts
-int ND = 58;
-int NS = 21;
-int NN = 79;
-// Define the LDPC sizes
-int N = 174;
-int K = 91;
-int M =  83;
-int K_BYTES = 12;
-// Define CRC parameters
-uint16_t CRC_POLYNOMIAL = 0X2757;  // CRC-14 polynomial without the leading (MSB) 1
-int      CRC_WIDTH = 14;
-
 // Communicate amongst decode functions:
 typedef struct Candidate {
     int16_t      score;
@@ -159,12 +108,45 @@ typedef struct Candidate {
 	float32_t    syncPower;   // Added for Teensy, RSL
 } Candidate;
 
+// This is the big file of log powers
+uint8_t export_fft_power[ft8_msg_samples*HIGH_FREQ_INDEX*4] ;
+// Pointer to 2048 float data for FFT array in radioDemodulator_F32
+float32_t* pData2K = NULL;
+
+float32_t FT8noisePowerEstimateL = 0.0f;  //  Works when big signals are absent
+int16_t   FT8noisePwrDBIntL = 0;
+float32_t FT8noisePowerEstimateH = 0.0f;  //  Works for big signals and QRMt
+int16_t   FT8noisePwrDBIntH = 0;
+float32_t FT8noisePeakAveRatio = 0.0f;    // > about 100 for big sigs
+
+char Station_Call[11];  // six character call sign + /0
+char home_Locator[11];  // four character locator  + /0
+char Locator[11]; // four character locator  + /0
+uint8_t ft8_hours, ft8_minutes, ft8_seconds;
+
+// rcvFT8State
+#define FT8_RCV_IDLE 0
+#define FT8_RCV_DATA_COLLECT 1
+#define FT8_RCV_FIND_POWERS 2
+#define FT8_RCV_READY_DECODE 3
+#define FT8_RCV_DECODE 4
+int rcvFT8State = FT8_RCV_IDLE;
+int offset_step;
+
+//From gen_ft8.cpp, i.e., also used for transmit
+char Target_Call[7]; //six character call sign + /0
+char Target_Locator[5]; // four character locator  + /0
+int Target_RSL; // four character RSL  + /0
+float32_t Station_Latitude, Station_Longitude;
+float32_t Target_Latitude, Target_Longitude;
+int32_t current_time, start_time;
+int32_t ft8_time, ft8_mod_time, ft8_mod_time_last;
+int32_t tOffset = 0;  // Added Sept 22
 uint8_t secLast = 0;
 const int ledPin = 13;
 bool showPower = false;
 uint32_t tp = 0;
-uint32_t tu;
-uint32_t ct=0;
+uint32_t tu = 0;
 
 void setup(void) {
    strcpy(Station_Call, "W7PUA");
@@ -196,7 +178,11 @@ void setup(void) {
    }
 
 void loop(void)  {
-   int16_t inCmd;
+   int16_t inCmd; 
+   int master_offset;
+
+
+
    if( Serial.available() )
       {
       inCmd = Serial.read();
@@ -323,16 +309,14 @@ void loop(void)  {
       Serial.println("FT8 Decode");
 #endif
       tu = micros();
-      num_decoded_msg = ft8_decode();
+      ft8_decode();
 	  printFT8Received();
       rcvFT8State = FT8_RCV_IDLE;
-      master_decoded = num_decoded_msg;
 #ifdef DEBUG1
       Serial.print("ft8_decode Time, uSec = ");
       Serial.println(micros() - tu);
-	#endif
+#endif
       }
-
    delay(1);
    }   // End loop()
 
@@ -342,6 +326,8 @@ time_t getTeensy3Time()  {
 
 // This starts the receiving data collection every 15 sec
 void update_synchronization() {
+   int32_t hours_fraction;
+   
    current_time = millis() + tOffset;
    ft8_time = current_time  - start_time;
    ft8_hours =  (int8_t)(ft8_time/3600000);

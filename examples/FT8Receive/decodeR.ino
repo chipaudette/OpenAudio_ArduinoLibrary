@@ -66,13 +66,13 @@ int find_sync(const uint8_t *power, int num_blocks, int num_bins,           //  
 			npCount++;
 			}
 		}
-	noisePowerEstimateL = np/(float32_t)npCount;
-	noisePwrDBIntL = (int16_t)(0.5f*noisePowerEstimateL);
+	FT8noisePowerEstimateL = np/(float32_t)npCount;
+	FT8noisePwrDBIntL = (int16_t)(0.5f*FT8noisePowerEstimateL);
 
 #if DEBUG_N
     Serial.println("Data for low SNR noise estimate:");
-	Serial.print("    Full Ave Noise = "); Serial.println(noisePowerEstimateL);
-	Serial.print("    Full Ave dB Noise Int = "); Serial.println(noisePwrDBIntL);
+	Serial.print("    Full Ave Noise = "); Serial.println(FT8noisePowerEstimateL);
+	Serial.print("    Full Ave dB Noise Int = "); Serial.println(FT8noisePwrDBIntL);
 	Serial.print("    Noise Sample Count = "); Serial.println(npCount);
 #endif
 	
@@ -83,7 +83,7 @@ int find_sync(const uint8_t *power, int num_blocks, int num_bins,           //  
     for (int alt = 0; alt < 4; ++alt)
         {
 		//                                             92-79+7=20
-        for (int time_offset = -7; time_offset < num_blocks - NN + 7; ++time_offset)  // NN=79
+        for (int time_offset = -7; time_offset < num_blocks - FT8_NN + 7; ++time_offset)  // FT8_NN=79
             {
 			//                         48                         368-8=360
             for (int freq_offset = LOW_FREQ_INDEX; freq_offset < num_bins - 8; ++freq_offset)
@@ -205,9 +205,9 @@ void extract_likelihood(const uint8_t *power, int num_bins,
     const int n_syms = 1;
     // const int n_bits = 3 * n_syms;
     // const int n_tones = (1 << n_bits);
-    for (int k = 0; k < ND; k += n_syms)
+    for (int k = 0; k < FT8_ND; k += n_syms)
         {
-        int sym_idx = (k < ND / 2) ? (k + 7) : (k + 14);
+        int sym_idx = (k < FT8_ND / 2) ? (k + 7) : (k + 14);
         int bit_idx = 3 * k;
         // Pointer to 8 bins of the current symbol
         const uint8_t *ps = power + (ft8_offset + sym_idx * 4 * num_bins);
@@ -216,8 +216,8 @@ void extract_likelihood(const uint8_t *power, int num_bins,
     // Compute the variance of log174
     float sum   = 0;
     float sum2  = 0;
-    float inv_n = 1.0f / N;
-    for (int i = 0; i < N; ++i)
+    float inv_n = 1.0f / FT8_N;
+    for (int i = 0; i < FT8_N; ++i)
         {
         sum  += log174[i];
         sum2 += log174[i] * log174[i];
@@ -226,7 +226,7 @@ void extract_likelihood(const uint8_t *power, int num_bins,
     // Normalize log174 such that sigma = 2.83 (Why? It's in WSJT-X, ft8b.f90)
     // Seems to be 2.83 = sqrt(8). Experimentally sqrt(16) works better.
     float norm_factor = sqrtf(16.0f / variance);
-    for (int i = 0; i < N; ++i)
+    for (int i = 0; i < FT8_N; ++i)
         {
         log174[i] *= norm_factor;
         }
