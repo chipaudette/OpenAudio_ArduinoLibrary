@@ -171,6 +171,10 @@ void setup(void) {
    gain1.setGain(1.0);
    update_synchronization();
    Serial.println("FT8 Receive test");
+#ifdef DEBUG1
+   Serial.print("Power array bytes = ");
+   Serial.println(ft8_msg_samples*HIGH_FREQ_INDEX*4);
+#endif
    if (timeStatus()!= timeSet)
       Serial.println("Unable to sync with the RTC");
    else
