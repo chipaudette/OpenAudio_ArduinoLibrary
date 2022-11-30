@@ -3,7 +3,7 @@
  * Arduino use along with the floating point OpenAudio_ArduinoLibrary.
  * Bob Larkin W7PUA, September 2022.
  *
- */
+ */ 
 
 /* Thank you to Kārlis Goba, YL3JG, https://github.com/kgoba/ft8_lib
  * and to Charley Hill, W5BAA, https://github.com/Rotron/Pocket-FT8
@@ -41,7 +41,7 @@ const uint32_t NTOKENS  = 2063592L;
 const uint16_t MAXGRID4 = 32400L;
 
 // n28 is a 28-bit integer, e.g. n28a or n28b, containing all the
-// call sign bits from a packed message.
+// call sign bits from a packed message.   
 int unpack28(uint32_t n28, uint8_t ip, uint8_t i3, char *result) {
     // Check for special tokens DE, QRZ, CQ, CQ_nnn, CQ_aaaa
     if (n28 < NTOKENS) {
