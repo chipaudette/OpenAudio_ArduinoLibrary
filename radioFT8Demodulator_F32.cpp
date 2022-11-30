@@ -1,5 +1,5 @@
 /*
- *         radioFT8Demodulator_F32.cpp 
+ *         radioFT8Demodulator_F32.cpp
  * Assembled by Bob Larkin   8 Sept 2022
  * Comments corrected 16 Nov 2022
  *
@@ -166,7 +166,6 @@ void RadioFT8Demodulator_F32::decimate15(void)  {
 // Note: Suppports block size of 128 only.  Very "built in."
 void RadioFT8Demodulator_F32::update(void)  {
    audio_block_f32_t *block_in;
-   int ii;
 
    if(!gettingData)
       return;
