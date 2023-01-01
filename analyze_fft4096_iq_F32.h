@@ -92,6 +92,7 @@
  *   no matter how it is scaled, but this factor needs to be considered
  *   when building the INO.
  */
+ // Corrected sumsq[] array size.  RSL 31 Dec 2022
 
 #ifndef analyze_fft4096iq_h_
 #define analyze_fft4096iq_h_
@@ -237,7 +238,8 @@ private:
   float window[4096];
   float *pWin = window;
   float fft_buffer[8192];
-  float sumsq[8192];  // Avoid re-use of output[]
+// Was  float sumsq[8192];  // Avoid re-use of output[]
+  float sumsq[4096];    // 31 Dec 2022
   uint8_t state = 0;
   bool outputflag = false;
   audio_block_f32_t *inputQueueArray[2];

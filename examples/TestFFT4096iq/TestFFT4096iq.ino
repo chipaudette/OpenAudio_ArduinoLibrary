@@ -31,7 +31,7 @@ void setup(void) {
   // The 4096 complex FFT needs 32 F32 memory for real and 32 for imag.
   // Set memory to more than 64, depending on other useage.
   AudioMemory_F32(100);
-  Serial.println("FFT4096IQ Test");
+  Serial.println("FFT4096IQ Test 2");
 
   sine_cos1.amplitude(1.0f); // Initialize Waveform Generator
 
