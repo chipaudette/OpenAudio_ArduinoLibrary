@@ -630,7 +630,7 @@ bool AudioSDPlayer_F32::parse_format(void) {
 
     rate = header[1];
     currentWavData.sample_rate = header[1];    // uint32_t
-    Serial.print("WAV file sample rate = ");  Serial.println(rate);
+    // Serial.print("WAV file sample rate = ");  Serial.println(rate);
 
     // b2m is used to determine playing time.  We base it on the WAV
     // file meta data.  It is allowed to be played at a different rate
@@ -665,7 +665,7 @@ bool AudioSDPlayer_F32::parse_format(void) {
     else {return false;}
 
     bytes2millis = b2m;   // Transfer to global
-    Serial.print("  bytes2millis = "); Serial.println(b2m);
+    // Serial.print("  bytes2Millis = "); Serial.println(b2m);
     // we're not checking the byte rate and block align fields
     // if they're not the expected values, all we could do is
     // return false.  Do any real wav files have unexpected

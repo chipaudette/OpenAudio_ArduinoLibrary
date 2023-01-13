@@ -391,6 +391,7 @@ span.mainfunction {color: #993300; font-weight: bolder}
         {"type":"AudioMathScale_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"mathScale","inputs":"1","output":"0","category":"math-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"AudioMixer4_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"mixer4","inputs":"4","output":"0","category":"mixer-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"AudioMixer8_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"mixer8","inputs":"8","output":"0","category":"mixer-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
+	    {"type":"AudioPlaySdWav_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"playSdWav","inputs":0,"outputs":2,"category":"play-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
         {"type":"AudioSwitch4_OA_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"switch4","inputs":"1","output":"0","category":"mixer-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"4"}},
         {"type":"AudioSwitch8_OA_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"switch8","inputs":"1","output":"0","category":"mixer-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"8"}},
         {"type":"FFT_Overlapped_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"blockwiseFFT","inputs":"NaN","output":"0","category":"analyze-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"NaN"}},
@@ -2556,6 +2557,122 @@ look ahead delay, as well.</p>
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
     </div>
+</script>
+
+
+<script type="text/x-red" data-help-name="AudioPlaySdWav_F32">
+	<h3>Summary</h3>
+	<div class=tooltipinfo>
+	<p>Plays a WAV file, stored on an SD card.</p>
+	</div>
+	<h3>Audio Connections</h3>
+	<table class=doc align=center cellpadding=3>
+		<tr class=top><th>Port</th><th>Purpose</th></tr>
+		<tr class=odd><td align=center>Out 0</td><td>Left Channel Output</td></tr>
+		<tr class=odd><td align=center>Out 1</td><td>Right Channel Output</td></tr>
+	</table>
+	<h3>Functions</h3>
+	<p class=func><span class=keyword>play</span>(filename);</p>
+	<p class=desc>Begin playing a WAV file.  If a file is already playing,
+		it is stopped and this file starts playing from the beginning.
+	    No return value.</p>
+	<p class=func><span class=keyword>stop</span>();</p>
+	<p class=desc>Stop playing.  If not playing, this function has no effect.
+	    No return value.</p>
+
+	<p class=func><span class=keyword>togglePlayPause</span>();</p>
+	<p class=desc>Used to Pause the playing of a file, or to un-Pause
+	   depending on which applies. No return value. </p>
+
+	<p class=func><span class=keyword>isPlaying</span>();</p>
+	<p class=desc>Return true (non-zero) if playing, or false (zero)
+		when not playing.  See the note below about delayed start.</p>
+
+	<p class=func><span class=keyword>isPaused</span>();</p>
+	<p class=desc>Return true (non-zero) if paused (see
+	   togglePlayPause above).
+
+	<p class=func><span class=keyword>isStopped</span>();</p>
+	<p class=desc>Return true (non-zero) if not playing and
+	   not paused.</p>
+
+
+	<p class=func><span class=keyword>setSubMult</span>(subMult* pStruct)
+	</span>();</p>
+	<p class=desc>Used if the WAV file is to be run at a lower sample rate
+	    than the audio sample rate.  The two rates must be related by an integer.
+	    The calling parameter is a pointer to a structure of type subMult.
+	    That is defined as:
+	<pre>
+    struct subMult {
+        uint16_t   rateRatio;   // Should be 1 for no rate change, else an integer
+        uint16_t   numCoeffs;   // FIR filter
+        float32_t* firCoeffs;   // FIR Filter Coeffs
+        float32_t* firBufferL;  // pointer to 127 + numCoeffs float32_t, left ch
+        float32_t* firBufferR;  // pointer to 127 + numCoeffs float32_t, right ch
+        };</pre>
+        The struct is declared in the INO and this function transmits the selected
+        information.  Note  that the FIR filters can be used, even if the rateRatio
+        is 1.  There is no need for this caused by rateRatio = 1, but
+        the filter function may be useful for other reasons.  If the WAV file
+        and the Audio are both using the same sample rate, this function
+        is not needed and the rateRatio defaults to 1 and no FIR filters
+        are involked.  The left and right FIR filters use the same coefficients
+        but need separate firBuffer.  For monaural files, the firBufferR pointer can be
+        a NULL.</p>
+
+	<p class=func><span class=keyword>getCurrentWavData</span>();</p>
+		This returns a pointer to a structure containing data about the
+		WAV file currently selected for play.  The structure is:
+		<pre>
+	struct wavData {
+        uint16_t audio_format;  // Should be 1 for PCM
+        uint16_t num_channels;  // 1 for mono, 2 for stereo
+        uint32_t sample_rate;   // 44100, 48000, etc
+        uint16_t bits;          // Number of bits per sample, should be 16
+        };</pre>
+	</p>
+	<p class=func><span class=keyword>positionMillis</span>();</p>
+	<p class=desc>While playing, return the current time offset, in
+		milliseconds.  When not playing, the return from this function
+		is undefined.
+	</p>
+	<p class=func><span class=keyword>lengthMillis</span>();</p>
+	<p class=desc>Return the total length of the current sound clip,
+		in milliseconds.  When not playing, the return from this function
+		is undefined.
+	</p>
+	<h3>Examples</h3>
+	<p class=exam>File &gt; Examples &gt; Audio &gt; WavFilePlayer
+	<p class=exam>File &gt; Examples &gt; Audio &gt; WavFilePlayer2
+	</p>
+	<h3>Notes</h3>
+	<p>Only 16 bit PCM WAV files are supported.  When mono
+		files are played, both output ports transmit a copy of the
+		single sound.  Of course, stereo WAV files play with the left
+		channel on port 0 and the right channel on port 1.
+	</p>
+	<p>A brief delay after calling play() will usually occur before
+		isPlaying() returns true and positionMillis() returns valid
+		time offset.  WAV files have a header at the beginning of the
+		file, which the audio library must read and parse before
+		playing can begin.
+	</p>
+	<p>While playing, the audio library accesses the SD card automatically.
+		If card access is needed for other purposes, you must
+		<a href="http://www.pjrc.com/teensy/td_libs_AudioProcessorUsage.html"
+		    target="_blank">use AudioNoInterrupts()</a>
+		to prevent AudioPlaySDWav from accessing the SD card while you use it.
+		Disabling the audio library interrupt for too long may cause audible
+		dropouts or glitches.
+	</p>
+
+</script>
+<script type="text/x-red" data-template-name="AudioPlaySdWav_F32">
+	<div class="form-row">
+		<label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+		<input type="text" id="node-input-name" placeholder="Name">
+	</div>
 </script>
 
 <script type="text/x-red" data-help-name="AudioPlayQueue_F32">
