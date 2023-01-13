@@ -166,6 +166,9 @@ void playFile(const char *filename)
 }
 
 void loop() {
+  // Thanks to W9GR for the test files.  These are intended for testing
+  // the CESSB radio transmission system (see CESSB1.ino in the examples)
+  // but work well to provide a voice bandwidth test of WAV file reading.
 #if SUB_MULT==4
   playFile("W9GR12.WAV");  // filenames are always uppercase 8.3 format
 #elif SUB_MULT==1
