@@ -20,6 +20,7 @@
 #include "AudioLMSDenoiseNotch_F32.h"
 #include "AudioMixer_F32.h"
 #include "AudioMultiply_F32.h"
+#include "AudioSDPlayer_F32.h"
 #include "AudioSettings_F32.h"
 #include "AudioSpectralDenoise_F32.h"
 #include "input_i2s_f32.h"
