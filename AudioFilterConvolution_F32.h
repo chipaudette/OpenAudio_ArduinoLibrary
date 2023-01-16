@@ -96,6 +96,7 @@
    * use of this class.
    *
    * Removed #defines that were not needed. Thanks K7MDL. Bob 6 Mar 2022
+   * Added needed part of arm_const_structs.h. Thanks Paul  Bob  16 Jan 2023
    *
    * ************************************************************ */
 
@@ -104,7 +105,10 @@
 
 #include <AudioStream_F32.h>
 #include <arm_math.h>
-#include <arm_const_structs.h>
+#include "arm_common_tables.h"
+
+// #include <arm_const_structs.h> not available for teensy3, so here is needed line
+extern const arm_cfft_instance_f32 arm_cfft_sR_f32_len1024;
 
 #define MAX_NUMCOEF 513
 
