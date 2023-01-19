@@ -83,6 +83,8 @@
 // 2048 F32 float's ready for windowing and FFT's.  Both
 // interfaces includes 50% overlap of the data to correct for window losses.
 
+// Rev 16 Jan 2023 Corrected position of endif for T4.x only  Bob
+
 // #define W5BAA_INTERFACE
 
 #ifndef radioFT8Demodulator_h_
@@ -403,7 +405,10 @@ float32_t firDecimate2[167] = {
 -0.000591064f, -0.000193500f,  0.000315069f,  0.000636175f,  0.000648425f,
  0.000438821f,  0.000200074f};
 
-// endif for Teensy 4.x only and for single read of .h file:
-#endif
 };    // End class def
+
+// endif for Teensy 4.x only:
+#endif
+
+// endif for single read of .h file:
 #endif
