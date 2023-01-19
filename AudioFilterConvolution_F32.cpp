@@ -24,6 +24,7 @@
     6) Optimize the time execution
   *******************************************************************/
   // Revised for OpenAudio_Arduino Teensy F32 library,  8 Feb 2022
+  // Revised 18 January to work for Teensy 3.5 and T3.6.  Bob L
 
 #include "AudioFilterConvolution_F32.h"
 
@@ -48,11 +49,15 @@ void AudioFilterConvolution_F32::impulse(float32_t *FIR_coef)
     {
         FIR_filter_mask[i] = 0.0;
     }
-    arm_cfft_f32( &arm_cfft_sR_f32_len1024, FIR_filter_mask, 0, 1);
+// T3.5 or T3.6
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)
+    arm_cfft_radix4_f32(&fft_instFwd, FIR_filter_mask);
+#elif defined(__IMXRT1062__)
+    arm_cfft_f32(&arm_cfft_sR_f32_len1024, FIR_filter_mask, 0, 1); // T4.x
+#endif
 
     // for 1st time thru, zero out the last sample buffer to 0
-  arm_fill_f32(0, last_sample_buffer_L, 128*4);
-
+    arm_fill_f32(0, last_sample_buffer_L, 128*4);
     state = 0;
     enabled = 1;  //enable audio stream again
 }
@@ -69,7 +74,11 @@ void AudioFilterConvolution_F32::update(void)
         case 0:
             if (passThru ==0) {
                 arm_cmplx_mult_cmplx_f32(FFT_buffer, FIR_filter_mask, iFFT_buffer, FFT_length);   // complex multiplication in Freq domain = convolution in time domain
-                arm_cfft_f32(&arm_cfft_sR_f32_len1024, iFFT_buffer, 1, 1);  // perform complex inverse FFT
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)
+                arm_cfft_radix4_f32(&fft_instRev, iFFT_buffer);
+#elif defined(__IMXRT1062__)
+                arm_cfft_f32(&arm_cfft_sR_f32_len1024, iFFT_buffer, 1, 1);
+#endif
                 k = 0;
                 l = 1024;
                 for (int i = 0; i < 512; i++) {
@@ -135,7 +144,11 @@ void AudioFilterConvolution_F32::update(void)
                     FFT_buffer[k++] = buffer[i];   // imag
                 }
                 // calculations are performed in-place in FFT routines
-                arm_cfft_f32(&arm_cfft_sR_f32_len1024, FFT_buffer, 0, 1);// perform complex FFT
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)
+                arm_cfft_radix4_f32(&fft_instFwd, FFT_buffer);
+#elif defined(__IMXRT1062__)
+                arm_cfft_f32(&arm_cfft_sR_f32_len1024, FFT_buffer, 0, 1); // perform complex FFT
+#endif
              } //end if passTHru
             break;
         }
@@ -264,3 +277,4 @@ void AudioFilterConvolution_F32::initFilter ( float32_t fc, float32_t Astop, int
     enabled = 0;   // set to zero to disable audio processing until impulse has been loaded
     impulse(FIR_Coef);  // generates Filter Mask and enables the audio stream
 }
+

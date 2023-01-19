@@ -96,7 +96,7 @@
    * use of this class.
    *
    * Removed #defines that were not needed. Thanks K7MDL. Bob 6 Mar 2022
-   * Added needed part of arm_const_structs.h. Thanks Paul  Bob  16 Jan 2023
+   * Separated Teensy 3 and 4 parts. Thanks Paul  Bob  16 Jan 2023
    *
    * ************************************************************ */
 
@@ -104,11 +104,12 @@
 #define AudioFilterConvolution_F32_h_
 
 #include <AudioStream_F32.h>
-#include <arm_math.h>
+#include "arm_math.h"
 #include "arm_common_tables.h"
 
-// #include <arm_const_structs.h> not available for teensy3, so here is needed line
-extern const arm_cfft_instance_f32 arm_cfft_sR_f32_len1024;
+#if defined(__IMXRT1062__)
+#include "arm_const_structs.h"
+#endif
 
 #define MAX_NUMCOEF 513
 
@@ -124,13 +125,30 @@ class AudioFilterConvolution_F32 :
  public AudioStream_F32
 {
 public:
-  AudioFilterConvolution_F32(void) : AudioStream_F32(1, inputQueueArray_F32) {
+  AudioFilterConvolution_F32(void) :
+            AudioStream_F32(1, inputQueueArray_F32)
+        {
         fs = AUDIO_SAMPLE_RATE;
-         //block_size = 128;  // Always
+        //block_size = 128;  // Always
+        // INFO: __MK20DX128__ T_LC;  __MKL26Z64__ T3.0;  __MK20DX256__ T3.1 and T3.2
+        //       __MK64FX512__) T3.5; __MK66FX1M0__ T3.6; __IMXRT1062__ T4.0 and T4.1
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)
+        arm_cfft_radix4_init_f32(&fft_instFwd, 1024, 0, 1);
+        arm_cfft_radix4_init_f32(&fft_instRev, 1024, 1, 1);
+        // arm CMSIS library has predefined structures of type arm_cfft_instance_f32
+        // arm_cfft_sR_f32_len1024 is one of the structures
+#endif
         };
-  AudioFilterConvolution_F32(const AudioSettings_F32 &settings) : AudioStream_F32(1, inputQueueArray_F32) {
+
+  AudioFilterConvolution_F32(const AudioSettings_F32 &settings) :
+            AudioStream_F32(1, inputQueueArray_F32)
+        {
         // Performs the first initialize
         fs = settings.sample_rate_Hz;
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)
+        arm_cfft_radix4_init_f32(&fft_instFwd, 1024, 0, 1);
+        arm_cfft_radix4_init_f32(&fft_instRev, 1024, 1, 1);
+#endif
         };
 
   virtual void update(void);
@@ -139,8 +157,6 @@ public:
   void initFilter (float32_t fc, float32_t Astop,
                    int type, float32_t dfc);
   float32_t* getCoeffPtr(void) {return &FIR_Coef[0];}
-
-//#define Alternate filter init
 
 private:
   float32_t fs;
@@ -161,13 +177,20 @@ private:
   float32_t iFFT_buffer[2048] __attribute__((aligned(4)));
   float32_t last_sample_buffer_L[512];
   void impulse(float32_t *coefs);
-
+                                                           int aaa = 0;
   float32_t Izero (float32_t x);
   float32_t m_sinc(int m, float32_t fc);
   void      calc_FIR_coeffs (float32_t * coeffs, int numCoeffs,
                              float32_t fc, float32_t Astop,
                              int type, float32_t dfc,
                              float32_t Fsamprate);
-  };
 
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)
+  arm_cfft_radix4_instance_f32 fft_instFwd, fft_instRev;
+  // #elif defined(__IMXRT1062__)
+  // arm_cfft_instance_f32  arm_cfft_sR_f32_len1024 is built into cmsis
+#endif
+};
+
+// end of read only once
 #endif

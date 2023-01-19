@@ -58,7 +58,7 @@ void setup(void) {
      //convFilt1.initFilter(800.0f, 40.0f, BANDPASS, 1200.0f);
 
      // IK8YFW SSB - Centered at 1500Hz, 60 db SL, 2=BPF, width = 3000Hz
-     //convFilt1.initFilter(1500.0f, 60.0f, BANDPASS, 3000.0f);
+     convFilt1.initFilter(1500.0f, 60.0f, BANDPASS, 3000.0f);
 
      // Band Reject filter, Centered at 6000Hz, 50 db SL, 3=BRF, width = 2000Hz
      //convFilt1.initFilter(6000.0f, 60.0f, BANDREJECT, 2000.0f);
@@ -86,13 +86,12 @@ void setup(void) {
      */
 
      // Alternatively, the passthrough case:
-     convFilt1.passThrough(1);
-     convFilt1.initFilter();
+     //convFilt1.passThrough(1);
 
   // Design for direct FIR.  This sets frequency response.
   // Bin for 4kHz at 44.117kHz sample rate and 400 coeff's is (4000/44117) * (512/2) = 23.2
-//  for(int ii=0; ii<47; ii++)    attenFIR[ii] = 0.0f;
-//  for(int ii=47; ii<256; ii++)  attenFIR[ii] = -150.0f;
+  //  for(int ii=0; ii<47; ii++)    attenFIR[ii] = 0.0f;
+  //  for(int ii=47; ii<256; ii++)  attenFIR[ii] = -150.0f;
   // FIRGeneralNew(float *adb, uint16_t nFIR, float *cf32f, float kdb, float *pStateArray);
   // filterFIRgeneral1.FIRGeneralNew(attenFIR, 512, coeffFIR, 60.0, stateFIR);
 
