@@ -10,7 +10,10 @@
  * commented out.
  *
  *  Public Domain - Teensy
+ * Revised to only allow T3.5, T3.6 or T4.x  Bob L 19 Jan 2023
  */
+
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__) || defined(__IMXRT1062__)
 
 #include "Audio.h"
 #include "OpenAudio_ArduinoLibrary.h"
@@ -117,3 +120,6 @@ void setup(void) {
 
 void loop() {
 }
+
+// End T3.5, T3.6 or T4.x
+#endif

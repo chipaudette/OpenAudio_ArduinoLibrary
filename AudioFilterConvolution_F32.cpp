@@ -25,6 +25,9 @@
   *******************************************************************/
   // Revised for OpenAudio_Arduino Teensy F32 library,  8 Feb 2022
   // Revised 18 January to work for Teensy 3.5 and T3.6.  Bob L
+  // Revised to be sure it will compile (run T3.5, T3.6, T4.x) for any. BobL 19 Jan 2023
+
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__) || defined(__IMXRT1062__)
 
 #include "AudioFilterConvolution_F32.h"
 
@@ -278,3 +281,5 @@ void AudioFilterConvolution_F32::initFilter ( float32_t fc, float32_t Astop, int
     impulse(FIR_Coef);  // generates Filter Mask and enables the audio stream
 }
 
+// End Only T3.5, T3.6 or T4.x
+#endif

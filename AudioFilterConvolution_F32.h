@@ -95,10 +95,13 @@
    * See the example TestConvolutionFilter.ino for more inforation on the
    * use of this class.
    *
+   * NOTE: This filter can be run under Teensy 3.5, 3.6, 4.0, 4.1 ONLY
+   *
    * Removed #defines that were not needed. Thanks K7MDL. Bob 6 Mar 2022
    * Separated Teensy 3 and 4 parts. Thanks Paul  Bob  16 Jan 2023
    *
    * ************************************************************ */
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__) || defined(__IMXRT1062__)
 
 #ifndef AudioFilterConvolution_F32_h_
 #define AudioFilterConvolution_F32_h_
@@ -193,4 +196,7 @@ private:
 };
 
 // end of read only once
+#endif
+
+// End T3.5, T3.6 or T4.x
 #endif
