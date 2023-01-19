@@ -407,16 +407,18 @@ int32_t AsyncAudioInputSPDIF3_F32::getHalfFilterLength() const{
 	return _resampler.getHalfFilterLength();
 }
 
-#endif // __IMXRT1062__
+// Only for T4.x (__IMXRT1062__).
+#endif
 
 
 #if defined(__MK66FX1M0__) || defined(__MK64FX512__) || defined(__MK20DX256__) || defined(__MKL26Z64__)
 // empty code to allow compile (but no sound input) on other Teensy models
 
-#include "async_input_spdif3.h"
-AsyncAudioInputSPDIF3_F32::AsyncAudioInputSPDIF3_F32(bool dither, bool noiseshaping,float attenuation, int32_t minHalfFilterLength, int32_t maxHalfFilterLength):
-	AudioStream(0, NULL), _resampler(attenuation, minHalfFilterLength, maxHalfFilterLength)
-	{ }
+#include "async_input_spdif3_F32.h"
+// Removed next for T3.x compile.  Bob L Jan 2023
+//AsyncAudioInputSPDIF3_F32::AsyncAudioInputSPDIF3_F32(bool dither, bool noiseshaping,float attenuation, int32_t minHalfFilterLength, int32_t maxHalfFilterLength):
+//	AudioStream(0, NULL), _resampler(attenuation, minHalfFilterLength, maxHalfFilterLength)
+//	{ }
 void AsyncAudioInputSPDIF3_F32::begin() { }
 void AsyncAudioInputSPDIF3_F32::update(void) { }
 double AsyncAudioInputSPDIF3_F32::getBufferedTime() const { return 0; }
@@ -427,6 +429,4 @@ double AsyncAudioInputSPDIF3_F32::getAttenuation() const { return 0; }
 int32_t AsyncAudioInputSPDIF3_F32::getHalfFilterLength() const { return 0; }
 AsyncAudioInputSPDIF3_F32::~AsyncAudioInputSPDIF3_F32() { }
 
-
 #endif
-

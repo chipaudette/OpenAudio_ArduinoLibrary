@@ -37,6 +37,9 @@
 
 //#define DEBUG_SPDIF_IN	//activates debug output
 
+// Only for T4.x
+// #if defined(__IMXRT1062__)
+
 class Scaler_F32; // internal
 
 class AsyncAudioInputSPDIF3_F32 : public AudioStream_F32
@@ -55,7 +58,7 @@ public:
 	double getTargetLantency() const;
 	double getAttenuation() const;
 	int32_t getHalfFilterLength() const;
-protected:	
+protected:
 	static DMAChannel dma;
 	static void isr(void);
 private:
@@ -74,12 +77,12 @@ private:
 	Resampler _resampler;
 	Scaler_F32* quantizer[2];
 	arm_biquad_cascade_df2T_instance_f32 _bufferLPFilter;
-	
+
 	volatile double _bufferedTime;
 	volatile double _lastValidInputFrequ;
 	double _inputFrequency=0.;
 	double _targetLatencyS;	//target latency [seconds]
-	const double _blockDuration=AUDIO_BLOCK_SAMPLES/AUDIO_SAMPLE_RATE_EXACT; //[seconds] 
+	const double _blockDuration=AUDIO_BLOCK_SAMPLES/AUDIO_SAMPLE_RATE_EXACT; //[seconds]
 	double _maxLatency=2.*_blockDuration;
 	static float sample_rate_Hz; // configured output sample rate
 
@@ -87,5 +90,8 @@ private:
 	static volatile bool bufferOverflow;
 #endif
 };
+
+// Only for T4.x
+//#endif
 
 #endif
