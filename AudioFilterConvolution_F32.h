@@ -101,6 +101,7 @@
    * Separated Teensy 3 and 4 parts. Thanks Paul  Bob  16 Jan 2023
    *
    * ************************************************************ */
+// Only exists for T3.5 through T4.1:
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__) || defined(__IMXRT1062__)
 
 #ifndef AudioFilterConvolution_F32_h_
