@@ -45,7 +45,7 @@ static void copy_to_fft_buffer(void *destination, const void *source)  {
     }
 
 static void apply_window_to_fft_buffer(void *buffer, const void *window) {
-    float *buf = (float *)buffer; 
+    float *buf = (float *)buffer;
     const float *win = (float *)window;
 
     for(int i=0; i<NFFT; i++)
@@ -87,7 +87,7 @@ void AudioAnalyzeFFT1024_F32::update(void)  {
             if(i>0) {
                float rns = 0.5f*(fft_buffer[2*i] +   fft_buffer[NFFT-2*i]);
                float ins = 0.5f*(fft_buffer[2*i+1] + fft_buffer[NFFT-2*i+1]);
-               float rnd = 0.5f*(fft_buffer[2*i] -   fft_buffer[NFFT-2*i]); 
+               float rnd = 0.5f*(fft_buffer[2*i] -   fft_buffer[NFFT-2*i]);
                float ind = 0.5f*(fft_buffer[2*i+1] - fft_buffer[NFFT-2*i+1]);
 
                float xr = rns + cosN[i]*ins - sinN[i]*rnd;
@@ -106,7 +106,7 @@ void AudioAnalyzeFFT1024_F32::update(void)  {
 
         if (count >= nAverage) {       // Average is finished
         // Set outputflag false here to minimize reads of output[]  data
-        // when it is being updated. 
+        // when it is being updated.
         outputflag = false;
             count = 0;
             float inAf = 1.0f/(float)nAverage;

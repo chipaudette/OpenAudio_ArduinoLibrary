@@ -217,7 +217,7 @@ public:
  		    {
             levelData.pwr0 = powerSum0/(2.975f*(float32_t)countPower0);  // WHY????
             levelData.peak0 = maxMag0;
-             levelData.pwr1 = powerSum1/(float32_t)countPower1;
+            levelData.pwr1 = powerSum1/(float32_t)countPower1;
             levelData.peak1 = maxMag1;
             levelData.countP = countPower0;
 
