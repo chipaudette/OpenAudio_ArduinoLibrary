@@ -417,6 +417,10 @@ span.mainfunction {color: #993300; font-weight: bolder}
         {"type":"radioModulatedGenerator_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"Modulator","inputs":"2","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
         {"type":"radioNoiseBlanker_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"NoiseBlank","inputs":"2","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
 
+
+        {"type":"radioCESSBtransmit_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"CESSB_Mod","inputs":"1","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
+
+
         {"type":"RadioFMDiscriminator_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"FMDiscrim","inputs":"1","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
         {"type":"radioBFSKModulator_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"BFSKMod","inputs":"0","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"UART_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"UART","inputs":"1","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"0"}},
@@ -3449,6 +3453,125 @@ The actual packets are taken
     </div>
 </script>
 
+
+<script type="text/x-red" data-help-name="radioCESSBtransmit_F32">
+<!-- ============   radioCESSBtransmit_F32    ========= -->
+    <h3>Summary</h3>
+    <div class=tooltipinfo>
+    <p>Converts audio into Weaver SSB and then applies Dave Hershberger, W9GR,
+    CESSB controlled clipping and
+    filtering.  This prevents the SSB peaks from exceeding a maximum level.
+    This increases the peak limited average power by 3 or more dB. The output
+    can be converted to conventional SSB by a RadioIQMixer_F32 object.
+     </p>
+    </div>
+    <h3>Audio Connections</h3>
+    <table class=doc align=center cellpadding=3>
+        <tr class=top><th>Port</th><th>Purpose</th></tr>
+        <tr class=odd><td align=center>In 0</td><td>Input Audio Signal</td></tr>
+        <tr class=odd><td align=center>Out 0</td><td>Weaver SSB I Signal</td></tr>
+        <tr class=odd><td align=center>Out 1</td><td>Weaver SSB Q Signal</td></tr>
+    </table>
+    <h3>Functions</h3>
+    <p class=func><span class=keyword>setSampleRate_Hz</span>
+    (<strong>float32_t</strong> fs_Hz bitRate);</p>
+    <p class=desc>Specifically, this sets the sample rate, in samples per second,
+    that is used by CESSB.  It also sets other parameters, such as
+    decimation ratios and filter cutoff frequencies.  Thus this function
+    is <strong>required.</strong>  At this time, the design is centered
+    on 48000 sps, but can be used with other close values such as
+    44100 or 50000.  The plan is to eventually support 96000 sps if users
+    are needing it. There is no default value and the  CESSB objects will not run if
+    this function is not called.</p>
+
+
+    <p class=func><span class=keyword>getLevels</span>(<strong>int</strong> what);</p>
+    <p class=desc>Returns a pointer to a structure of type levels. This allows
+    knowledge of the average and peak levels at both the input and output sides
+    of the SSB clipper and overshoot compensator.  If what==0 the pointer is returned
+    but no updating is done.  That is used to setup the process before data is
+    available.  If what != 0, the contents of the structure are updated and measuring
+    is reset.  The function levelDataCount() below can be used to set the time
+    between updates. The stucture is part of the object and is defined as:
+    <pre>
+  struct levels {
+    float32_t pwr0;   // Average power at input
+    float32_t peak0;  // Peak voltage at input
+    float32_t pwr1;   // Average power at output
+    float32_t peak1;  // Peak voltage at output
+    uint32_t countP;  // Number of averaged samples for pwr0.
+    };
+</pre></p>
+
+    <p class=func><span class=keyword>levelDataCount</span>();</p>
+    <p class=desc>Returns an uint32_t with the number of averaged samples
+    of the input power.  See getLevels() above.  The number of output
+    samples may differ by an integer factor because of decimation inside
+    the object.</p>
+
+    <p class=func><span class=keyword>setGains</span>(
+        <strong>float32_t</strong> gainIn,
+        <strong>float32_t</strong> gainCompensate,
+        <strong>float32_t</strong> gainOut);</p>
+    <p class=desc> These are the controls for the CESSB class.  gainIn sets
+    the amount of clipping by setting the input level to the clipper.
+    gainCompensate sets the amount of correction applied to prevent
+    overshoot.  A value of 2.0 or slightly less is normally used.  gainOut is
+    for convenience and sets the drive level to the next block.  </p>
+
+
+    <p class=func><span class=keyword>setSideband</span>(<strong>bool</strong> sbReverse);</p>
+    <p class=desc>The LSB/USB selection depends on the processing of the
+    IQ outputs of this class.  But, what we can do here is to reverse the
+    selection by reversing the phase of one of the Weaver LO's. </p>
+
+    <h3>Examples</h3>
+    <p class=exam>File &gt; Examples &gt; OpenAudio_ArduinoLibrary &gt;  CESSB
+    </p>
+
+    <h3>Notes</h3>
+    <p>The technical description, implementation and test results are in references
+    listed in the include file for this class,
+    <a href="https://github.com/chipaudette/OpenAudio_ArduinoLibrary/blob/master/radioCESSBtransmit_F32.h"
+    target="_blank">available from Github</a>
+    These should be used to understand the details of CESSB.  The notes at the top of
+    that include file has information relating to this Teensy Audio implementation, as well.
+    </p>
+
+    <p>The first activity for CESSB is to limit or clip the amplitude of the SSB signal.  Internally
+    this always occurs when the envelope of the SSB signal exceeds 1.0.  This is all done
+    with floating point arithmetic so values may exceed 1.0.  The input level where this occurs
+    depends on the setting for gainIn, described above.  The maximum level seen ahead of the clipper
+    is measured by getLevels() as described above.  One way to control the input to the CESSB block
+    is with
+    <a href="http://www.janbob.com/electron/OpenAudio_Design_Tool/index.html?info=AudioEffectCompressor2_F32"
+    target="_blank">Compressor2 Library block.</a>  Note that Compressor2
+    is not a clipper, but is rather an automatic gain control that uses look-ahead
+    processing to allow gradual gain changes.
+    </p>
+
+    <p>The output of the CESSB processing is two sampled data signals representing
+    Weaver SSB.  This uses the in-phase and quadratuere components of the SSB signal
+    that has been converted to frequencies of -1350 to +1350 Hz.  Wow, if that seems
+    confusing, take a look at the CESSB example and see how this can be translated
+    into either an Upper Sideband (USB) or a Lower Sideband (LSB) signal.  Implemented
+    in DSP, the Weaver Method of SSB generation has some interesting and good features.
+    It is worth considering as an alternative to the phasing method, with or without CESSB.
+    By lowering the input level, this CESSB block can be used as a Weaver Method SSB
+    generator.</p>
+
+    <p>CESSB as implemented here is intended for voice input, and also filters the voice
+    to a communications bandwidth of around 2700 Hz.</p>
+
+</script>
+<script type="text/x-red" data-template-name="radioBFSKModulator_F32">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+
 <script type="text/x-red" data-help-name="radioBFSKModulator_F32">
     <h3>Summary</h3>
     <div class=tooltipinfo>
@@ -3811,11 +3934,12 @@ Times: T3.6 update() block of 128 is about 53 microseconds, AM Single output.
 <!-- ============   RadioIQMixer_F32    ========= -->
     <h3>Summary</h3>
     <div class=tooltipinfo>
-    <p>This quadrature mixer block for both transmit and receive.
-    A basic building block is a pair of mixers with the
+    <p>This quadrature mixer block is for both transmit and receive.
+    It is a basic building block with a pair of mixers along with a sin/cose
     LO  going to the mixers at the same frequency, but differing in phase
     by 90 degrees (programmable).  The LO's are included
-    in the block, but there are no post-mixing filters.  </p>
+    in the block, but there are no post-mixing filters. Hardware
+    phase and amplitude error correction is included. </p>
     </div>
     <h3>Boards Supported</h3>
     <ul>
@@ -3836,32 +3960,41 @@ Times: T3.6 update() block of 128 is about 53 microseconds, AM Single output.
     <h3>Functions</h3>
 
     <p class=func><span class=keyword>frequency</span>(<strong>float</strong> fr);</p>
-    <p class=desc></p>
-    <p>Sets Mixer LO frequency in Hz</p>
+    <p class=desc>Sets Mixer LO frequency in Hz.  The default is 1000 Hz.</p>
 
     <p class=func><span class=keyword>iqmPhaseS</span>(<strong>float</strong> ps);</p>
-    <p class=desc>This phase comes in the range (0, 2PI) keeping with C math functions.
+    <p class=desc>This phase comes in the range (0, 2PI radians) keeping with C math functions.
     This function allows multiple mixers to be phase coordinated (stop
-    interrupts when setting).  </p>
+    interrupts when setting).</p>
 
     <p class=func><span class=keyword>phaseS_C_r</span>(<strong>float</strong> pc);</p>
     <p class=desc> Sets the number of radians that the cosine LO leads the
-    sine LO.  The default is PI/2 radians. This is used to correct hardware phase unbalance.</p>
+    sine LO.  The default is PI/2 radians. This is used to correct hardware phase unbalance.
+    Not changeable if doSimple==true. </p>
 
     <p class=func><span class=keyword>amplitudeC</span>(<strong>float</strong> g);</p>
     <p class=desc>  Sets the gain, g, for the I channel.
-    The Q channel is always 1.0. This is used to correct hardware amplitude unbalance.</p>
+    The Q channel is always 1.0. This is used to correct hardware amplitude unbalance.
+    Not changeable if doSimple==true.  The default is g=1.0.</p>
 
 
-    <p class=func><span class=keyword>void useTwoChannel</span>(<strong>bool</strong> twoCh);</p>
+    <p class=func><span class=keyword>void useTwoChannel</span>(<strong>float32_t</strong> gainOut);</p>
     <p class=desc>
     Channel 0 (left) is the in-phase input I for twoCh true of false. Channel 1 (right) is Q for
     complex 2-channel input (twoCh==true) and not used for twoChannel==false.  Caution, never
-    use twoCh=false with two inputs.
+    use twoCh=false with two inputs.  The default is twoCh==false.
      </p>
 
+    <p class=func><span class=keyword>setGainOut</span>(<strong>float</strong> g);</p>
+    <p class=desc>  Sets the gain, g, for both the I and Q channels.
+    The default value is 1.0.  It is available for either doSimple or not doSimple.  The reason for this
+    function is that, is that the I and Q mixers have a gain of 0.5 for either sideband output. This function
+    can bring the net gain of the object to unity by setting gainOut to 2.0f.  It can
+    also be used as a general gain control.
+    </p>
+
     <p class=func><span class=keyword>useSimple</span>(<strong>bool</strong> simple);</p>
-    <p class=desc>Faster if true, but no phase/amplitude adjustment.</p>
+    <p class=desc>Faster if true, but no phase/amplitude adjustment. Default is doSimple = true.</p>
 
     <h3>Examples</h3>
     <p class=exam>File &gt; Examples &gt; OpenAudio_ArduinoLibrary &gt;  ReceiverPart1
@@ -3873,13 +4006,16 @@ Times: T3.6 update() block of 128 is about 53 microseconds, AM Single output.
     <p class=exam>File &gt; Examples &gt; OpenAudio_ArduinoLibrary &gt;  ReceiverSSB
     </p>
 
+    <p class=exam>File &gt; Examples &gt; OpenAudio_ArduinoLibrary &gt;  CESSB
+    </p>
+
     <h3>Notes</h3>
     <p>There is provision for varying
     the phase between the sine and cosine oscillators.  The relative  gain in the
-    I and Q channels is also programmable.  This allows for flaws in the
+    I and Q channels is also programmable.  This can be used to correct for errors in the
     response of real hardware.</p>
 
-    <P>The output levels are 0.5 times the input level </P>
+    <P>The output levels are 0.5 times the input level, for each sideband. </P>
 
     <p>Time: T3.6, For an update of a 128 sample block, doSimple=1, 46 microseconds;
     T4.0, For an update of a 128 sample block, doSimple=1, 20 microseconds</p>
