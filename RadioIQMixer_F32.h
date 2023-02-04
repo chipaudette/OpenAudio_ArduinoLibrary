@@ -21,7 +21,8 @@
 *
 * The amplitudeC(a) allows balancing of I and Q channels.
  *
- * The output levels are 0.5 times the input level.
+ * The output levels are 0.5 times the input level, unless adjusted by
+ * gainOut(g).
  *
  * Status:  Tested in doSimple==1
  *          Tested in FineFreqShift_OA.ino, T3.6 and T4.0
@@ -37,12 +38,15 @@
  *   void useSimple(bool s)        Faster if 1, but no phase/amplitude adjustment
  *   void setSampleRate_Hz(float32_t fs_Hz)  Allows dynamic sample rate change for this function
  *   void useTwoChannel(bool 2Ch)  Uses 2 input cannels, I & Q, if true.  Apr 2021
+ *   void setGainOut(float32_t gainO) Sets gain after mixers.  Often a value of 2.0 makes the
+ *                                 block lossless.  For both doSimple and not doSimple.
  *
- * Time: T3.6 For an update of a 128 sample block, doSimple=1, 46 microseconds
- *       T4.0 For an update of a 128 sample block, doSimple=1, 20 microseconds
+ * Time: T3.6 For an update of a 128 sample block, doSimple=true, 46 microseconds
+ *       T4.0 For an update of a 128 sample block, doSimple=true, 20 microseconds
  *
  * Rev Apr2021 Allowed for 2-channel I-Q input.  Defaults to 1 Channel. "real."
  * Rev 30Jan23 Corrected setSampleRate_Hz(sr) to do so! RSL
+ * Rev 2 Feb 2023  Added gainOut, with or without doSimple. RSL
  */
 
 #ifndef _radioIQMixer_f32_h
@@ -123,6 +127,10 @@ public:
         return;
     }
 
+    void setGainOut(float32_t _gainO)  {  // Rev 2023
+		gainOut = _gainO;
+	}
+
     void setSampleRate_Hz(float32_t fs_Hz) {
 		sample_rate_Hz = fs_Hz;   // Added 30Jan23 RSL
         // Check freq range
@@ -145,11 +153,10 @@ private:
     float32_t amplitude_pk = 1.0f;
     float32_t sample_rate_Hz = AUDIO_SAMPLE_RATE_EXACT;
     float32_t phaseIncrement = 512.00f * freq /sample_rate_Hz;
+    float32_t gainOut = 1.0f;
     uint16_t block_size = AUDIO_BLOCK_SAMPLES;
     uint16_t errorPrintIQM = 0;   // Normally off
     bool      doSimple = true;
     bool      twoChannel = false;  // Activates 2 channels for I-Q input
 };
-
 #endif
-

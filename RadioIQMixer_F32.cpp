@@ -73,6 +73,7 @@ void RadioIQMixer_F32::update(void) {
   }
 
     // doSimple has amplitude (-1, 1) and sin/cos differ by 90.00 degrees.
+    // Also no block gain, gainOut. Rev 2023
     if (doSimple) {
        for (i=0; i < block_size; i++) {
           phaseS += phaseIncrement;
@@ -93,9 +94,9 @@ void RadioIQMixer_F32::update(void) {
           b = sinTable512_f32[index+1];
           /* deltaPhase will be the same as used for sin  */
           if(twoChannel)
-             blockOut_q->data[i] = blockIn1->data[i]*(a + (b-a)*deltaPhase);
+             blockOut_q->data[i] = gainOut * blockIn1->data[i]*(a + (b-a)*deltaPhase);
           else
-             blockOut_q->data[i] = blockIn0->data[i]*(a + (b-a)*deltaPhase);
+             blockOut_q->data[i] = gainOut * blockIn0->data[i]*(a + (b-a)*deltaPhase);
        }
     }
     else {   // Do a more flexible update, i.e., not doSimple
@@ -109,7 +110,7 @@ void RadioIQMixer_F32::update(void) {
           b = sinTable512_f32[index+1];
           // We now have a sine value, so multiply with the input data and save
           // Linear interpolate sine and multiply with the input and amplitude (about 1.0)
-          blockOut_i->data[i] = amplitude_pk * blockIn0->data[i] * (a + (b-a)*deltaPhase);
+          blockOut_i->data[i] = gainOut * amplitude_pk * blockIn0->data[i] * (a + (b-a)*deltaPhase);
 
           /* Shift forward phaseS_C  and get cos. First, the calculation of index of the table */
           phaseC = phaseS + phaseS_C;
@@ -121,11 +122,12 @@ void RadioIQMixer_F32::update(void) {
           b = sinTable512_f32[index+1];
           // Same as sin, but leave amplitude of LO at +/- 1.0
           if(twoChannel)
-             blockOut_q->data[i] = blockIn1->data[i]*(a + (b-a)*deltaPhase);
+             blockOut_q->data[i] = gainOut * blockIn1->data[i]*(a + (b-a)*deltaPhase);
           else
-             blockOut_q->data[i] = blockIn0->data[i]*(a + (b-a)*deltaPhase);
+             blockOut_q->data[i] = gainOut * blockIn0->data[i]*(a + (b-a)*deltaPhase);
         }
     }
+
     AudioStream_F32::release(blockIn0);   // Done with this
     if(twoChannel)
        AudioStream_F32::release(blockIn1);
