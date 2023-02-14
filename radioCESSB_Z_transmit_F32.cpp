@@ -228,6 +228,17 @@ void radioCESSB_Z_transmit_F32::update(void)  {
       countPower1++;
       }
 
+   // Optional corrections to compensate for external hardware errors
+   if(useIQCorrection)
+      {
+	  for(int k=0; k<nC; k++)
+	     {
+         workingDataI[k] *= gainI;
+         workingDataI[k] += crossIQ*workingDataQ[k];
+         workingDataQ[k] += crossQI*workingDataI[k];
+	     }
+      }
+
    // Finally interpolate to 48 or 96 ksps. Data is in workingDataI[k]
    // and is 64 samples for audio 48 ksps.
    for(int k=0; k<nC; k++)   // Audio sampling at 48 ksps:  0 to 63

@@ -254,6 +254,16 @@ public:
         gainOut = gOut;
 	    }
 
+    // Small corrections at the output end of this object can patch up hardware flaws.
+    // _gI should be close to 1.0, _gXIQ and _gXQI should be close to 0.0.
+    void setIQCorrections(bool _useCor, float32_t _gI, float32_t _gXIQ, float32_t _gXQI)
+        {
+        useIQCorrection = _useCor;
+        gainI = _gI;
+        crossIQ = _gXIQ;
+        crossQI = _gXQI;
+	    }
+
     // The LSB/USB selection depends on the processing of the IQ signals
     // inside this class.  It may get flipped with later processing.
     void setSideband(bool _sbReverse)
@@ -278,6 +288,11 @@ private:
     int16_t nC = 64;  // 64 or 32
     uint16_t  block_length = 128;
     bool sidebandReverse = false;
+
+    bool useIQCorrection = false;
+    float32_t gainI = 1.0f;
+    float32_t crossIQ = 0.0f;
+    float32_t crossQI = 0.0f;
 
     float32_t pStateDecimate[128 + 65 - 1];    // Goes with CMSIS decimate function
     arm_fir_decimate_instance_f32 decimateInst;
