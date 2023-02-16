@@ -419,6 +419,7 @@ span.mainfunction {color: #993300; font-weight: bolder}
 
 
         {"type":"radioCESSBtransmit_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"CESSB_Mod","inputs":"1","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
+        {"type":"radioCESSB_Z_transmit_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"CESSB_Z_Mod","inputs":"1","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
 
 
         {"type":"RadioFMDiscriminator_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"FMDiscrim","inputs":"1","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
@@ -3538,6 +3539,11 @@ The actual packets are taken
     that include file has information relating to this Teensy Audio implementation, as well.
     </p>
 
+    <p>This class may not be suitable for directly driving external I-Q hardware
+    mixers.  The limited LO-RF isolation of those mixers can introduce a midband tone
+    that will be transmitted.  To work around this problem, use the companion
+    class radioCESSB_Z_transmit_F32 that uses the phasing method of SSB generation.</p>
+
     <p>The first activity for CESSB is to limit or clip the amplitude of the SSB signal.  Internally
     this always occurs when the envelope of the SSB signal exceeds 1.0.  This is all done
     with floating point arithmetic so values may exceed 1.0.  The input level where this occurs
@@ -3564,7 +3570,150 @@ The actual packets are taken
     to a communications bandwidth of around 2700 Hz.</p>
 
 </script>
-<script type="text/x-red" data-template-name="radioBFSKModulator_F32">
+<script type="text/x-red" data-template-name="radioCESSBtransmit_F32">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+
+<script type="text/x-red" data-help-name="radioCESSB_Z_transmit_F32">
+<!-- ============   radioCESSB_Z_transmit_F32    ========= -->
+    <h3>Summary</h3>
+    <div class=tooltipinfo>
+    <p>Converts audio into SSB and then applies Dave Hershberger, W9GR,
+    CESSB controlled clipping and
+    filtering.  This prevents the SSB peaks from exceeding a maximum level.
+    This increases the peak limited average power by 3 or more dB. The output
+    can be up converted by a RadioIQMixer_F32 object or sent via DAC's as
+    I-Q baseband, ready for quadrature mixer transmit.
+     </p>
+    </div>
+    <h3>Audio Connections</h3>
+    <table class=doc align=center cellpadding=3>
+        <tr class=top><th>Port</th><th>Purpose</th></tr>
+        <tr class=odd><td align=center>In 0</td><td>Input Audio Signal</td></tr>
+        <tr class=odd><td align=center>Out 0</td><td>Baseband SSB I Signal</td></tr>
+        <tr class=odd><td align=center>Out 1</td><td>Baseband SSB Q Signal</td></tr>
+    </table>
+    <h3>Functions</h3>
+    <p class=func><span class=keyword>setSampleRate_Hz</span>
+    (<strong>float32_t</strong> fs_Hz bitRate);</p>
+    <p class=desc>Specifically, this sets the sample rate, in samples per second,
+    that is used by CESSB.  It also sets other parameters, such as
+    decimation ratios and filter cutoff frequencies.  Thus this function
+    is <strong>required.</strong>  At this time, the design is centered
+    on 48000 sps, but can be used with other close values such as
+    44100 or 50000.  The plan is to eventually support 96000 sps if users
+    are needing it. There is no default value and the  CESSB objects will not run if
+    this function is not called.</p>
+
+
+    <p class=func><span class=keyword>getLevels</span>(<strong>int</strong> what);</p>
+    <p class=desc>Returns a pointer to a structure of type levels. This allows
+    knowledge of the average and peak levels at both the input and output sides
+    of the SSB clipper and overshoot compensator.  If what==0 the pointer is returned
+    but no updating is done.  That is used to setup the process before data is
+    available.  If what != 0, the contents of the structure are updated and measuring
+    is reset.  The function levelDataCount() below can be used to set the time
+    between updates. The stucture is part of the object and is defined as:
+    <pre>
+  struct levels {
+    float32_t pwr0;   // Average power at input
+    float32_t peak0;  // Peak voltage at input
+    float32_t pwr1;   // Average power at output
+    float32_t peak1;  // Peak voltage at output
+    uint32_t countP;  // Number of averaged samples for pwr0.
+    };
+</pre></p>
+
+    <p class=func><span class=keyword>levelDataCount</span>();</p>
+    <p class=desc>Returns an uint32_t with the number of averaged samples
+    of the input power.  See getLevels() above.  The number of output
+    samples may differ by an integer factor because of decimation inside
+    the object.</p>
+
+    <p class=func><span class=keyword>setGains</span>(
+        <strong>float32_t</strong> gainIn,
+        <strong>float32_t</strong> gainCompensate,
+        <strong>float32_t</strong> gainOut);</p>
+    <p class=desc> These are the controls for the CESSB class.  gainIn sets
+    the amount of clipping by setting the input level to the clipper.
+    gainCompensate sets the amount of correction applied to prevent
+    overshoot.  A value of 1.4 is normally used.  gainOut is
+    for convenience and sets the drive level to the next block.  </p>
+
+
+    <p class=func><span class=keyword>setSideband</span>(<strong>bool</strong> sbReverse);</p>
+    <p class=desc>The LSB/USB selection depends on the processing of the
+    IQ outputs of this class.  But, what we can do here is to reverse the
+    selection by reversing the phase of the Q signal. </p>
+
+
+    <p class=func><span class=keyword>setIQCorrections</span>
+      (<strong>bool</strong> useIQCorrection, <strong>float32_t</strong> gainI,
+      <strong>float32_t</strong> crossIQ,<strong>float32_t</strong> crossQI);</p>
+    <p class=desc>This allows small corrections at the output end of the
+    CESSB object, to patch up hardware flaws. The variable useIQCorrection should be
+    <strong>true</strong> to use the corrections. gainI corrects for gain errors between
+    the I and Q channels and should be close to 1.0.
+    The variables, crossIQ and crossQI correct for phase errors and should
+    be close to 0.0.   There is interaction between the 3 variables, but
+    converging adjustment to null the unwanted sideband is doable.  Either crossIQ or crossQI
+    should end up as 0.0.  If use IQCorrection is false, there is no processor
+    load for corrections.</p>
+
+
+    <h3>Examples</h3>
+    <p class=exam>File &gt; Examples &gt; OpenAudio_ArduinoLibrary &gt;  CESSB_ZeroIF
+    </p>
+
+    <h3>Notes</h3>
+    <p>The technical description, implementation and test results are in references
+    listed in the include file for this class,
+    <a href="https://github.com/chipaudette/OpenAudio_ArduinoLibrary/blob/master/radioCESSBtransmit_F32.h"
+    target="_blank">available from Github</a>
+    These should be used to understand the details of CESSB.  The notes at the top of
+    that include file has information relating to this Teensy Audio implementation, as well.
+    </p>
+
+    <p>The first activity for CESSB is to limit or clip the amplitude of the SSB signal.  Internally
+    this always occurs when the envelope of the SSB signal exceeds 1.0.  This is all done
+    with floating point arithmetic so values may exceed 1.0.  The input level where this occurs
+    depends on the setting for gainIn, described above.  The maximum level seen ahead of the clipper
+    is measured by getLevels() as described above.  One way to control the input to the CESSB block
+    is with
+    <a href="http://www.janbob.com/electron/OpenAudio_Design_Tool/index.html?info=AudioEffectCompressor2_F32"
+    target="_blank">Compressor2 Library block.</a>  Note that Compressor2
+    is not a clipper, but is rather an automatic gain control that uses look-ahead
+    processing to allow gradual gain changes.
+    </p>
+
+    <p>The output of the CESSB processing is the in-phase and quadratuere components
+    (I-Q) of the SSB signal that  has the suppressed carrier at zero frequency.
+    This can be translated to higher frequencies, either by a RadioIQMixer_F32
+    object, or by feeding through a pair of DAC's to quadrature hardware mixers. This
+    produces either an Upper Sideband (USB) or a Lower Sideband (LSB) signal.  The sideband
+    can be selected in various ways, including the function for this class, setSideband()
+    described above.</p>
+
+    <p>Note the companion class, RadioCESSBtransmit_F32, that uses the Weaver-method
+    as is done used
+    in the referenced Hershberger documents.  The performance of the two classes is
+    very similar.  This version removes concerns about mid-band spurious tone generation
+    when used with hardware mixers.</p>
+
+    <p>CESSB as implemented here is intended for voice input, and also filters the voice
+    to a communications bandwidth of around 2800 Hz.</p>
+
+    <p>The Hilbert filter used with this class will provide high opposite
+    sideband rejection down to about 150 Hz.  It is using 201 coefficients at a sample
+    rate of 12000.  Still, for some situations it may be desireable to use an IIR
+    high pass filter on the input audio.</p>
+
+</script>
+<script type="text/x-red" data-template-name="radioCESSB_Z_transmit_F32">
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
