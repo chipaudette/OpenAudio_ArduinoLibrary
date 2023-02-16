@@ -2,7 +2,7 @@
  * AudioFilter90Deg_F32.h
  * 22 March 2020     Bob Larkin
  * Parts are based on Open Audio FIR filter by Chip Audette:
- * 
+ *
  * Chip Audette (OpenAudio) Feb 2017
  *    - Building from AudioFilterFIR from Teensy Audio Library
  *     (AudioFilterFIR credited to Pete (El Supremo))
@@ -26,7 +26,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
- 
+
 /*
  * This consists of two uncoupled paths that almost have the same amplitude gain
  * but differ in phase by exactly 90 degrees.   See AudioFilter90Deg_F32.cpp
@@ -34,10 +34,10 @@
  * as that produces an easily achievable integer sample period delay.  In
  * float, the ARM FIR library routine will handle odd numbers.\, so no zero padding
  * is needed.
- * 
+ *
  * No default Hilbert Transform is provided, as it is highly application dependent.
- * The number of coefficients is an odd number with a maximum of 250.  The Iowa
- * Hills program can design a Hilbert Transform filter. Use begin(*pCoeff, nCoeff) 
+ * The number of coefficients is an odd number with a maximum of 251.  The Iowa
+ * Hills program can design a Hilbert Transform filter. Use begin(*pCoeff, nCoeff)
  * in the .INO to initialize this block.
  *
  * Status: Tested T3.6 and T4.0.  No known bugs.
@@ -46,7 +46,7 @@
  *         pCoeff = pointer to array of F32 Hilbert Transform coefficients
  *         nCoeff = uint16_t number of Hilbert transform coefficients
  *   showError(e);  Turns error printing in update() on (e=1) and off (e=0). For debug.
- * Examples:    
+ * Examples:
  *   ReceiverPart1.ino
  *   ReceiverPart2.ino
  * Time: Depends on size of Hilbert FIR. Time for main body of update() including
@@ -56,6 +56,8 @@
  *    251 tap Hilbert (including 0's) 646 microseconds
  *   Same 121 tap Hilbert on T4.0 is 57 microseconds per update()
  *   Same 251 tap Hilbert on T4.0 is 114 microseconds per update()
+ *
+ * Rev 7 Feb 23 - Corrected type cast and comments.  RSL
  */
 
 #ifndef _filter_90deg_f32_h
@@ -98,7 +100,7 @@ public:
 
         // For the equalizing delay in q, if n_coeffs==19, n_delay=9
         // Max of 251 coeffs needs a delay of 125 sample periods.
-        n_delay = (uint8_t)((n_coeffs-1)/2);
+        n_delay = (uint16_t)((n_coeffs-1)/2);
         in_index = n_delay;
         out_index = 0;
         for (uint16_t i=0;  i<256; i++){
