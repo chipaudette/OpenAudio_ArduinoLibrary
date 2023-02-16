@@ -75,7 +75,8 @@ void radioCESSBtransmit_F32::update(void)  {
       }
 
 /* A +/- pulse to test timing of various delays.  PULSE TEST
- * This replaces any input from the audio stream
+ * This replaces any input from the audio stream,
+ * and levels shown are for gainIn==1.0.
    for(int kk=0; kk<128; kk++)
       {
       uint16_t y=(ny & 1023);

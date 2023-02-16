@@ -6,66 +6,8 @@
  * Chip Audette (OpenAudio) Feb 2017
  * and of course, to PJRC for the Teensy and Teensy Audio Library
  *
- * The development of the Controlled Envelope Single Side Band (CESSB)
- * was done by Dave Hershberger, W9GR. Many thanks to Dave.
- * The following description is mostly taken
- * from Frank, DD4WH and is on line at the GNU Radio site, ref:
- * https://github-wiki-see.page/m/df8oe/UHSDR/wiki/Controlled-Envelope-Single-Sideband-CESSB
- *
- * Controlled Envelope Single Sideband is an invention by Dave Hershberger
- * W9GR with the aim to "allow your rig to output more average power while
- * keeping peak envelope power PEP the same". The increase in perceived
- * loudness can be up to 4dB without any audible increase in distortion
- * and without making you sound "processed" (Hershberger 2014, 2016b).
- *
- * The principle to achieve this is relatively simple. The process
- * involves only audio baseband processing which can be done digitally in
- * software without the need for modifications in the hardware or messing
- * with the RF output of your rig.
- *
- * Controlled Envelope Single Sideband can be produced using three
- * processing blocks making up a complete CESSB system:
- *   1. An SSB modulator. This is implemented as a Weaver system to allow
- *      minimum (12 kHz) decimated sample rate with the output of I & Q
- *      signals (a complex SSB signal).
- *   2. A baseband envelope clipper. This takes the modulus of the I & Q
- *      signals (also called the magnitude), which is sqrt(I * I + Q * Q)
- *      and divides the I & Q signals by the modulus, IF the signal is
- *      larger than 1.0. If not, the signal remains untouched. After
- *      clipping, the signal is lowpass filtered with a linear phase FIR
- *      low pass filter with a stopband frequency of 3.0kHz
- *   3. An overshoot controller . This does something similar as the
- *      envelope clipper: Again, the modulus is calculated (but now on
- *      the basis of the current and two preceding and two subsequent
- *      samples). If the signals modulus is larger than 1 (clipping),
- *      the signals I and Q are divided by the maximum of 1 or of
- *      (1.9 * signal). That means the clipping is overcompensated by 1.9
- *      which leads to a much better suppression of the overshoots from
- *      the first two stages. Finally, the resulting signal is again
- *      lowpass-filtered with a linear phase FIR filter with stopband
- *      frequency of 3.0khz
- *
- * It is important that the sample rate is high enough so that the higher
- * frequency components of the output of the modulator, clipper and
- * overshoot controller do not alias back into the desired signal. Also
- * all the filters should be linear phase filters (FIR, not IIR).
- *
- * This CESSB system can reduce the overshoot of the SSB modulator from
- * 61% to 1.3%, meaning about 2.5 times higher perceived SSB output power
- * (Hershberger 2014).
- *
- * References:
- * 1-Hershberger, D.L. (2014): Controlled Envelope Single Sideband. QEX
- *   November/December 2014 pp3-13.
- *   http://www.arrl.org/files/file/QEX_Next_Issue/2014/Nov-Dec_2014/Hershberger_QEX_11_14.pdf
- * 2-Hershberger, D.L. (2016a): External Processing for Controlled
- *   Envelope Single Sideband. - QEX January/February 2016 pp9-12.
- *   http://www.arrl.org/files/file/QEX_Next_Issue/2016/January_February_2016/Hershberger_QEX_1_16.pdf
- * 3-Hershberger, D.L. (2016b): Understanding Controlled Envelope Single
- *   Sideband. - QST February 2016 pp30-36.
- * 4-Forum discussion on CESSB on the Flex-Radio forum,
- *   https://community.flexradio.com/discussion/6432965/cessb-questions
- *
+
+
  * Weaver Method of SSB:  Note that this class includes a good umplementation
  * of the Weaver method.  To use this without invoking the CESSB corrections,
  * just keep the input peak level below 1.0.  One could disable CESSB by
