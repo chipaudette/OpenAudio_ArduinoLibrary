@@ -360,7 +360,7 @@ span.mainfunction {color: #993300; font-weight: bolder}
         {"type":"AudioAnalyzeFFT4096_IQem_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"FFT4096IQem","inputs":2,"outputs":0,"category":"analyze-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"0"}},
 
         {"type":"AudioAnalyzeToneDetect_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"toneDetect","inputs":"1","output":"0","category":"analyze-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"0"}},
-        {"type":"AudioAnalyzeCTCSS_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"toneCTCSS","inputs":"1","output":"1","category":"analyze-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
+        {"type":"analyze_CTCSS_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"toneCTCSS","inputs":"1","output":"1","category":"analyze-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"AudioCalcEnvelope_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"calcEnvelope","inputs":"1","output":"0","category":"calc-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"AudioCalcGainWDRC_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"calcGainWDRC","inputs":"1","output":"0","category":"calc-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"AudioCalcLevel_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"calcLevel","inputs":"NaN","output":"0","category":"calc-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"NaN"}},
@@ -369,7 +369,7 @@ span.mainfunction {color: #993300; font-weight: bolder}
         {"type":"AudioConvert_F32toI16","data":{"defaults":{"name":{"value":"new"}},"shortName":"convert_F32toI16","inputs":"1","output":"0","category":"convert-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"0"}},
         {"type":"AudioEffectCompWDRC_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"compWDRC","inputs":"1","output":"0","category":"effect-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"AudioEffectCompressor_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"compressor","inputs":"1","output":"0","category":"effect-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
-        {"type":"AudioEffectDelay_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"delay","inputs":"1","output":"0","category":"effect-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
+        {"type":"AudioEffectDelay_OA_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"delay","inputs":"1","output":"0","category":"effect-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"AudioEmpty_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"empty","inputs":"1","output":"0","category":"effect-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"AudioEffectCompressor2_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"compressor2","inputs":"1","output":"0","category":"effect-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"AudioEffectNoiseGate_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"noiseGate","inputs":"1","output":"0","category":"effect-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
@@ -1094,8 +1094,8 @@ look ahead delay, as well.</p>
     </div>
 </script>
 
-<!-- ============   AudioEffectDelay_F32    ========= -->
-<script type="text/x-red" data-help-name="AudioEffectDelay_F32">
+<!-- ============   AudioEffectDelay_OA_F32    ========= -->
+<script type="text/x-red" data-help-name="AudioEffectDelay_OA_F32">
     <h3>Summary</h3>
     <div class=tooltipinfo>
     <p>Delay a signal.  Up to 8 separate delay taps can be used.</p>
@@ -1137,7 +1137,7 @@ look ahead delay, as well.</p>
         should be increased to allow for the longest delay tap.
     </p>
 </script>
-<script type="text/x-red" data-template-name="AudioEffectDelay_F32">
+<script type="text/x-red" data-template-name="AudioEffectDelay_OA_F32">
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
@@ -5097,8 +5097,8 @@ Times: T3.6 update() block of 128 is about 53 microseconds, AM Single output.
 </script>
 
 <div>
-<script type="text/x-red" data-help-name="AudioAnalyzeCTCSS_F32">
-<!-- ============   AudioAnalyzeCTCSS_F32    ========= -->
+<script type="text/x-red" data-help-name="analyze_CTCSS_F32">
+<!-- ============   analyze_CTCSS_F32    ========= -->
     <h3>Summary</h3>
     <div class=tooltipinfo>
     <p>Specific to the CTCSS sub-audible tone detection.  Uses the Goertzel
@@ -5177,7 +5177,7 @@ isBothThreshold
 
    <p>Each update of an 128-input block takes about 42 uSec on a Teensy 3.6.</p>
    </script>
-   <script type="text/x-red" data-template-name="AudioAnalyzeCTCSS_F32">>
+   <script type="text/x-red" data-template-name="analyze_CTCSS_F32">>
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
