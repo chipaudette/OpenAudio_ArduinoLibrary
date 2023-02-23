@@ -1,11 +1,15 @@
 /*
- * AudioMultiply
+ * AudioMultiply_F32
  *
  * Created: Patrick Radius, December 2016
  * Purpose: Multiply two channels of audio data. Can be used for example as 'vca' or amplitude modulation.
  * Assumes floating-point data.
  *
  * This processes a single stream fo audio data (ie, it is mono)
+ *
+ * NOTE: *** This is functionally the same clss as AudioMathMultiply_F32  ***
+ * Both classes are continued for back compatibility.  Use ofAudioMathMultiply_F32
+ * is preferred.  We need to pick one.
  *
  * MIT License.  use at your own risk.
 */
