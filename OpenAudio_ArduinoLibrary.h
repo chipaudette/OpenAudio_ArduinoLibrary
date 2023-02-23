@@ -18,6 +18,10 @@
 #include <AudioFilterFIR_F32.h>
 #include <AudioFilterIIR_F32.h>
 #include "AudioLMSDenoiseNotch_F32.h"
+#include "AudioMathAdd_F32.h"
+#include "AudioMathMultiply_F32.h"
+#include "AudioMathOffset_F32.h"
+#include "AudioMathScale_F32.h"
 #include "AudioMixer_F32.h"
 #include "AudioMultiply_F32.h"
 #include "AudioSDPlayer_F32.h"
