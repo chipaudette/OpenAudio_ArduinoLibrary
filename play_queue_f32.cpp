@@ -12,11 +12,6 @@
 */
 
 #include "play_queue_f32.h"
-//#include "utility/dspinst.h"
-
-// =================================================
-
-//#include <Arduino.h>
 
 void AudioPlayQueue_F32::setMaxBuffers(uint8_t maxb)
 {
