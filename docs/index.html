@@ -391,7 +391,7 @@ span.mainfunction {color: #993300; font-weight: bolder}
         {"type":"AudioMathScale_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"mathScale","inputs":"1","output":"0","category":"math-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"AudioMixer4_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"mixer4","inputs":"4","output":"0","category":"mixer-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"AudioMixer8_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"mixer8","inputs":"8","output":"0","category":"mixer-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
-	    {"type":"AudioPlaySdWav_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"playSdWav","inputs":0,"outputs":2,"category":"play-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
+	    {"type":"AudioSDPlayer_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"playSdWav","inputs":0,"outputs":2,"category":"play-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
         {"type":"AudioSwitch4_OA_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"switch4","inputs":"1","output":"0","category":"mixer-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"4"}},
         {"type":"AudioSwitch8_OA_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"switch8","inputs":"1","output":"0","category":"mixer-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"8"}},
         {"type":"FFT_Overlapped_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"blockwiseFFT","inputs":"NaN","output":"0","category":"analyze-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"NaN"}},
@@ -423,7 +423,7 @@ span.mainfunction {color: #993300; font-weight: bolder}
 
 
         {"type":"RadioFMDiscriminator_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"FMDiscrim","inputs":"1","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
-        {"type":"radioBFSKModulator_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"BFSKMod","inputs":"0","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
+        {"type":"RadioBFSKModulator_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"BFSKMod","inputs":"0","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"UART_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"UART","inputs":"1","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"0"}},
 
         {"type":"RadioFT8Modulator_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"FT8Mod","inputs":"0","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
@@ -2270,10 +2270,6 @@ look ahead delay, as well.</p>
 	</div>
 </script>
 
-
-
-
-
 <script type="text/x-red" data-help-name="AudioOutputI2S_F32">
     <h3>Summary</h3>
     <div class=tooltipinfo>
@@ -2565,7 +2561,7 @@ look ahead delay, as well.</p>
 </script>
 
 
-<script type="text/x-red" data-help-name="AudioPlaySdWav_F32">
+<script type="text/x-red" data-help-name="AudioSDPlayer_F32">
 	<h3>Summary</h3>
 	<div class=tooltipinfo>
 	<p>Plays a WAV file, stored on an SD card.</p>
@@ -2667,24 +2663,27 @@ look ahead delay, as well.</p>
 		If card access is needed for other purposes, you must
 		<a href="http://www.pjrc.com/teensy/td_libs_AudioProcessorUsage.html"
 		    target="_blank">use AudioNoInterrupts()</a>
-		to prevent AudioPlaySDWav from accessing the SD card while you use it.
+		to prevent AudioSDPlayer from accessing the SD card while you use it.
 		Disabling the audio library interrupt for too long may cause audible
 		dropouts or glitches.
 	</p>
 
 </script>
-<script type="text/x-red" data-template-name="AudioPlaySdWav_F32">
+<script type="text/x-red" data-template-name="AudioSDPlayer_F32">
 	<div class="form-row">
 		<label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
 		<input type="text" id="node-input-name" placeholder="Name">
 	</div>
 </script>
 
+<div>
 <script type="text/x-red" data-help-name="AudioPlayQueue_F32">
+<!-- ============   AudioPlayQueue_F32    ========= -->
     <h3>Summary</h3>
     <div class=tooltipinfo>
     <p>Play audio data provided by the Arduino sketch.  This object provides
-        functions to allow the sketch code to push data into the audio system.</p>
+        functions to allow the sketch code to push floating point data into
+        the audio system.</p>
     </div>
     <h3>Audio Connections</h3>
     <table class=doc align=center cellpadding=3>
@@ -2692,34 +2691,83 @@ look ahead delay, as well.</p>
         <tr class=odd><td align=center>Out 0</td><td>Sound Output</td></tr>
     </table>
     <h3>Functions</h3>
-    <p class=func><span class=keyword>play</span>(int16);</p>
-    <p class=desc>not yet implemented
+
+    <p class=func><span class=keyword>setMaxBuffers</span>(<strong>uint8_t</strong> maxBuf);</p>
+	<p class=desc>Set the maximum buffer block count for the queue to limit its size - by default 32 blocks are used on Teensy 3.x
+	  and 80 on Teensy 4.x - this allows the value to be reduced so that the queue cannot get too far ahead, nor use up lots of
+	  audio blocks you might want for other purposes.  The minimum number of buffer blocks is 2.
+	</p>
+	<p class=func><span class=keyword>play</span>(<strong>float32_t</strong> data);</p>
+	<p class=desc>add a single sample to the queue - no need to use getBuffer() or playBuffer() as this
+	  method does the necessary handling.
+	  		</p>
+	  <p class=desc>If the behaviour is set to ORIGINAL then this method may block waiting for a spare buffer if the queue is full.
+	  		</p>
+	  <p class=desc>If the behaviour is set to NON_STALLING then this method may return a non-zero value:
+	  in this case the call must be re-tried, passing in the original sample value.
+	</p>
+	<p class=func><span class=keyword>play</span>(<strong>float32_t[]</strong> pdata,
+	     <strong> uint32_t</strong> length);</p>
+	<p class=desc>add multiple samples to the queue - no need to use getBuffer() or playBuffer() as this
+	  method does the necessary handling.
+	  The length should be the number of samples in the array, which need not be a multiple of AUDIO_BLOCK_SAMPLES.
+	  <p class=desc>If the behaviour is set to ORIGINAL then this method may block waiting for a spare buffer if the queue is full.
+		</p>
+	  <p class=desc>If the behaviour is set to NON_STALLING then this method will return the number of samples unused (due to unavailable
+	  audio blocks or queue space): if non-zero then the call must be re-tried, with an updated array pointer and length.
+		</p>
+	</p>
+	<p class=func><span class=keyword>getBuffer</span>();</p>
+	<p class=desc>Returns a pointer to an array of AUDIO_BLOCK_SAMPLES (usually 128) int16.  This buffer
+	  is within the audio library memory pool, providing the most efficient
+	  way to input data to the audio system.  The buffer is likely to be
+	  populated by previously used data, so the entire AUDIO_BLOCK_SAMPLES samples should be
+	  written before calling playBuffer().  Only a single buffer is allocated at any one time:
+	  repeated calls to getBuffer() without calling playBuffer() will yield the same address.
+	<p class=desc>
+	  If the behaviour is set to ORIGINAL then this function will wait (possibly forever) for memory to become available.
+	  If set to NON_STALLING then function may return NULL if no memory is available.
+		</p>
+	</p>
+	<p>You may find it easier to use the play() methods unless performance is crucial.
+	</p>
+	<p class=func><span class=keyword>playBuffer</span>();</p>
+	<p class=desc>Transmit the buffer previously obtained from getBuffer().  If you use the play() methods you should not use this.
+	</p>
+	<p class=desc>
+	  If the behaviour is set to ORIGINAL then this function will wait (up to 128 sample periods)
+	  for a queue space to become available.
+	  If set to NON_STALLING then function may return a non-zero value if no queue space is free:
+	  in this case the call must be re-tried later, before any further call to getBuffer() is made.
+		</p>
+	<p class=func><span class=keyword>setBehaviour</span>(<strong>value</strong>);</p>
+	<p class=desc>Value should be AudioPlayQueue::ORIGINAL to preserve the original behaviour of getBuffer() and playBuffer(),
+		which can both stall until audio blocks or queue entries become available, with consequences for system performance.
+		Setting the value to AudioPlayQueue::NON_STALLING results in all the above functions returning promptly, but possibly
+		with a status indicating failure or a need to re-try. See the PlayQueueDemo example.
+	</p>
+	<p class=func><span class=keyword>playAudioBlock</span>
+	(<strong>audio_block_f32_t *</strong>audio_block);</p>
+	<p class=desc>This assumes that you already have an audio_block that was NOT allocated by
+    playBuffer.  You hand it your buffer.  This object takes ownership
+    of it and puts it into the queue.  This function is not in I16 library.
     </p>
-    <p class=func><span class=keyword>play</span>(int16[], length);</p>
-    <p class=desc>not yet implemented
-    </p>
-    <p class=func><span class=keyword>getBuffer</span>();</p>
-    <p class=desc>Returns a pointer to an array of 128 int16.  This buffer
-        is within the audio library memory pool, providing the most efficient
-        way to input data to the audio system.  The buffer is likely to be
-        populated by previously used data, so the entire 128 words should be
-        written before calling playBuffer().  Only a single buffer should be
-        requested at a time.  This function may return NULL if no memory is
-        available.
-    </p>
-    <p class=func><span class=keyword>playBuffer</span>();</p>
-    <p class=desc>Transmit the buffer previously obtained from getBuffer().
-    </p>
-    <h3>Examples</h3>
-        <p><a href="http://community.arm.com/groups/embedded/blog/2014/05/23/led-video-panel-at-maker-faire-2014" target="_blank">4320 LED Video+Sound Project</a>
-        </p>
-    <!--
-<p class=exam>File &gt; Examples &gt; Audio &gt;
-    </p>
--->
+
+	<h3>Examples</h3>
+	<p>Examples are available at https://github.com/chipaudette/OpenAudio_ArduinoLibrary/tree/master/examples</p>
+	<p class=exam>Examples &gt; PlayQueueDemo
+	</p>
+
     <h3>Notes</h3>
-    <p>TODO: many caveats....</p>
-    <p>
+    <p>February 2023 this whole class was updated to include the Teensy I16 library additions
+    of Jonathan Oakley. The functions are the same as the Teensy Audio (I16) library
+    except for the data type.</p>
+
+    <p>The maximum buffering is the same as used by the I16 library
+    This is at 32 buffers for Teensy 3.x and 80 for Teensy 4.x.
+    But floating point variables are 4-bytes, not 2.
+    So it is believed that these higher levels are useable, but if memory is tight,
+    consider using setMaxBuffers().
     </p>
 </script>
 <script type="text/x-red" data-template-name="AudioPlayQueue_F32">
@@ -2775,8 +2823,7 @@ look ahead delay, as well.</p>
         Up to 52 packets may be queued by this object, which allows approximately
         150 ms of audio to be held in the queue, to allow time for the Arduino
         sketch to write data to media or do other high-latency tasks.
-
-The actual packets are taken
+        The actual packets are taken
         from the pool created by AudioMemory().
     </p>
 </script>
@@ -3721,7 +3768,7 @@ The actual packets are taken
 </script>
 
 
-<script type="text/x-red" data-help-name="radioBFSKModulator_F32">
+<script type="text/x-red" data-help-name="RadioBFSKModulator_F32">
     <h3>Summary</h3>
     <div class=tooltipinfo>
     <p>Transmits Binary (2-frequency) Frequency Shift Keyed signals (BFSK).
@@ -3785,7 +3832,7 @@ The actual packets are taken
     </p>
     <p>Parity is not yet implemented.</p>
 </script>
-<script type="text/x-red" data-template-name="radioBFSKModulator_F32">
+<script type="text/x-red" data-template-name="RadioBFSKModulator_F32">
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
