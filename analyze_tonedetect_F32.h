@@ -32,6 +32,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+ // Added setGain(gain) March 2023  Bob L
 
 #ifndef analyze_tonedetect_F32_h_
 #define analyze_tonedetect_F32_h_
@@ -63,6 +64,10 @@ public:
            //(uint16_t)( ( (float)sample_rate_Hz/freq*(float)cycles) + 0.5f) );
         }
 
+    void setGain(float _gain) {
+        gain = _gain;
+        }
+
     bool available(void) {
         __disable_irq();
         bool flag = new_output;
@@ -91,6 +96,7 @@ private:
     float s1, s2;            // Goertzel algorithm state
     float out1, out2;        // Goertzel algorithm state output
     float power;
+    float gain = 1.0f;       // Voltage gain, added Mar 2023
     uint16_t length;         // number of samples to analyze
     uint16_t count;          // how many left to analyze
     uint16_t ncycles;        // number of waveform cycles to seek

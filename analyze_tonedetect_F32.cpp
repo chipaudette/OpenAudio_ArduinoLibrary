@@ -99,7 +99,7 @@ float AudioAnalyzeToneDetect_F32::read(void)  {
     len = length;
     __enable_irq();
     power = q1*q1 + q2*q2 - q1*q2*coef;
-    return 2.0f*sqrtf(power)/(float)len; // Scale to (0.0, 1.0)
+    return 2.0f*gain*sqrtf(power)/(float)len; // Scaled to gain*(0.0, 1.0)
     }
 
 AudioAnalyzeToneDetect_F32::operator bool()  {
@@ -112,7 +112,7 @@ AudioAnalyzeToneDetect_F32::operator bool()  {
     q2 = out2;
     len = length;
     __enable_irq();
-    power = q1*q1 + q2*q2 - q1*q2*coef;
+    power = gain*gain*(q1*q1 + q2*q2 - q1*q2*coef);
     trigger = (float)len * thresh;
     trigger *= trigger;
     //Serial.println("bool: power, trigger = "); Serial.print(power, 6); Serial.print(", "); Serial.println(trigger, 6);
