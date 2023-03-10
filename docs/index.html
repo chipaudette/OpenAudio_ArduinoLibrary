@@ -388,6 +388,7 @@ span.mainfunction {color: #993300; font-weight: bolder}
         {"type":"AudioMathAdd_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"mathAdd","inputs":"2","output":"0","category":"math-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"AudioMathMultiply_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"mathMultiply","inputs":"2","output":"0","category":"math-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"AudioMathOffset_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"mathOffset","inputs":"1","output":"0","category":"math-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
+        {"type":"AudioMathConstant_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"mathConstant","inputs":"0","output":"0","category":"math-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"AudioMathScale_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"mathScale","inputs":"1","output":"0","category":"math-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"AudioMixer4_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"mixer4","inputs":"4","output":"0","category":"mixer-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"AudioMixer8_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"mixer8","inputs":"8","output":"0","category":"mixer-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
@@ -1878,6 +1879,7 @@ look ahead delay, as well.</p>
         <input type="text" id="node-input-name" placeholder="Name">
     </div>
 </script>
+
 <script type="text/x-red" data-help-name="AudioMathScale_F32">
 <p> AudioMathScale_F32</p>
 <p> Created: Chip Audette, Open Audio, June 2018</p>
@@ -1892,6 +1894,30 @@ look ahead delay, as well.</p>
         <input type="text" id="node-input-name" placeholder="Name">
     </div>
 </script>
+
+<script type="text/x-red" data-help-name="AudioMathConstant_F32">
+    <h3>Summary</h3>
+    <div class=tooltipinfo>
+    <p>Generates all audio samples at a single value.
+    Assumes floating-point data. The default value is 0.0f.</p>
+    </div>
+    <h3>Audio Connections</h3>
+    <table class=doc align=center cellpadding=3>
+        <tr class=top><th>Port</th><th>Purpose</th></tr>
+        <tr class=odd><td align=center>Out 0</td><td>Constant Output</td></tr>
+    </table>
+    <h3>Functions</h3>
+    <p class=func><span class=keyword>setConstant</span>(<strong>float32_t</strong> constant);</p>
+    <p class=desc>This same value will be transmitted out for all data in a block.
+    Any float32_t is valid.</p>
+</script>
+<script type="text/x-red" data-template-name="AudioMathConstant_F32 ">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
 <script type="text/x-red" data-help-name="AudioMixer4_F32">
     <h3>Summary</h3>
     <div class=tooltipinfo>
@@ -5115,6 +5141,9 @@ Times: T3.6 update() block of 128 is about 53 microseconds, AM Single output.
     <h3>Functions</h3>
     <p class=func><span class=keyword>frequency</span>(<strong>float</strong> freq, <strong>int</strong> cycles);</p>
     <p class=desc>Sets the frequency fr for tone detection, in Hz, and the number of cycles to be analyzed.</p>
+
+    <p class=func><span class=keyword>setGain</span>(<strong>float</strong> gain);</p>
+    <p class=desc>Sets the voltage gain to equalize multiple toneDetect's such as in DTMF (Mar 2023).</p>
 
     <p class=func><span class=keyword>available</span>();</p>
     <p class=desc>returns <strong>bool</strong> true if the tone detection is complete,
