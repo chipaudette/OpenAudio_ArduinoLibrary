@@ -130,7 +130,7 @@ public:
       }
 
    // Following reflects that there are only 2 supported sample rates.
-   // IMPORTANT: This changes constants for FT8 Transmit, only.  It does not
+   // IMPORTANT: This changes constants for FT8 Receive, only.  It does not
    // change system-wide audio sample rate.  Use AudioSettings_F32.
    void setSampleRate_Hz(const float32_t &fs_Hz) {
       sampleRateHz = fs_Hz;
@@ -146,7 +146,7 @@ public:
          }
       else
          {
-         Serial.println("Unsupported sample rate, FT-8 will not receive.");\
+         Serial.println("Unsupported sample rate, FT8 will not receive.");\
          srIndex = SR_NONE;
          }
       }
