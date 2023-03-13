@@ -418,10 +418,9 @@ span.mainfunction {color: #993300; font-weight: bolder}
         {"type":"radioModulatedGenerator_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"Modulator","inputs":"2","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
         {"type":"radioNoiseBlanker_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"NoiseBlank","inputs":"2","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
 
-
         {"type":"radioCESSBtransmit_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"CESSB_Mod","inputs":"1","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
         {"type":"radioCESSB_Z_transmit_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"CESSB_Z_Mod","inputs":"1","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
-
+        {"type":"radioVoiceClipper_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"Clipper","inputs":"1","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
 
         {"type":"RadioFMDiscriminator_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"FMDiscrim","inputs":"1","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
         {"type":"RadioBFSKModulator_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"BFSKMod","inputs":"0","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
@@ -3793,6 +3792,103 @@ look ahead delay, as well.</p>
     </div>
 </script>
 
+<script type="text/x-red" data-help-name="radioVoiceClipper_F32">
+<!-- ============   radioVoiceClipper_F32    ========= -->
+    <h3>Summary</h3>
+    <div class=tooltipinfo>
+    <p>Applies controlled clipping and filtering for uses such as AM, FM and NBFM.
+    This prevents modulation peaks from exceeding a maximum level without increasing the
+    spectral width.
+    This can increase the power density of the modulation  by 3 or more dB. The output
+    is ready to be applied to an AM or FM modulator..
+     </p>
+    </div>
+    <h3>Audio Connections</h3>
+    <table class=doc align=center cellpadding=3>
+        <tr class=top><th>Port</th><th>Purpose</th></tr>
+        <tr class=odd><td align=center>In 0</td><td>Input Audio Signal</td></tr>
+        <tr class=odd><td align=center>Out 0</td><td>Clipped Audio Signal</td></tr>
+    </table>
+    <h3>Functions</h3>
+    <p class=func><span class=keyword>setSampleRate_Hz</span>
+    (<strong>float32_t</strong> fs_Hz bitRate);</p>
+    <p class=desc>Specifically, this sets the sample rate, in samples per second,
+    that is used by the clipper.  It also sets other parameters, such as
+    decimation ratios and filter cutoff frequencies.  Thus this function
+    is <strong>required.</strong>  Two ranges of sampling rate are currently
+    supported.  These are 11 to 12 ksps and 44 to 50 ksps.  There is no default value
+    and the  VoiceClipper objects will not run if this function is not called.</p>
+
+
+    <p class=func><span class=keyword>getLevels</span>(<strong>int</strong> what);</p>
+    <p class=desc>Returns a pointer to a structure of type levels. This allows
+    knowledge of the average and peak levels at both the input and output sides
+    of the clipper and overshoot compensator.  If what==0 the pointer is returned
+    but no updating is done.  That is used to setup the process before data is
+    available.  If what != 0, the contents of the structure are updated and measuring
+    is reset.  The function levelDataCount() below can be used to set the time
+    between updates. The stucture is part of the object and is defined as:
+    <pre>
+  struct levels {
+    float32_t pwr0;   // Average power at input
+    float32_t peak0;  // Peak voltage at input
+    float32_t pwr1;   // Average power at output
+    float32_t peak1;  // Peak voltage at output
+    uint32_t countP;  // Number of averaged samples for pwr0.
+    };
+</pre></p>
+
+    <p class=func><span class=keyword>levelDataCount</span>();</p>
+    <p class=desc>Returns an uint32_t with the number of averaged samples
+    of the input power.  See getLevels() above.  The number of output
+    samples may differ by an integer factor because of decimation inside
+    the object.</p>
+
+    <p class=func><span class=keyword>setGains</span>(
+        <strong>float32_t</strong> gainIn,
+        <strong>float32_t</strong> gainCompensate,
+        <strong>float32_t</strong> gainOut);</p>
+    <p class=desc> These are the controls for the ViceCipper class.  gainIn sets
+    the amount of clipping by setting the input level to the clipper.
+    gainCompensate sets the amount of correction applied to prevent
+    overshoot.  A value of 1.8 is normally used.  gainOut is
+    for convenience and sets the drive level to the next block.  </p>
+
+    <h3>Examples</h3>
+    <p class=exam>File &gt; Examples &gt; OpenAudio_ArduinoLibrary &gt; VoiceClipper
+    </p>
+    <p class=exam>File &gt; Examples &gt; OpenAudio_ArduinoLibrary &gt; VoiceClipper12
+    </p>
+
+    <h3>Notes</h3>
+    <p>The technical description is in the include file for this class,
+    <a href="https://github.com/chipaudette/OpenAudio_ArduinoLibrary/blob/master/radioVoiceClipper_F32.h"
+    target="_blank">available from Github</a>
+    These should be used to understand the details of the Voice Clipper.
+    </p>
+
+    <p>The first activity for the Voice Clipper is to limit or clip the amplitude of the input signal.
+    Internally this always occurs when the magnitude of the input signal exceeds 1.0.  This is all done
+    with floating point arithmetic so values may exceed 1.0.  The input level where this occurs
+    depends on the setting for gainIn, described above.  The maximum level seen ahead of the clipper
+    is measured by getLevels() as described above.  One way to control the input to the
+    Voice Clipper block is with
+    <a href="http://www.janbob.com/electron/OpenAudio_Design_Tool/index.html?info=AudioEffectCompressor2_F32"
+    target="_blank">Compressor2 Library block.</a>  Note that Compressor2
+    is not a clipper, but is rather an automatic gain control that uses look-ahead
+    processing to allow gradual gain changes.
+    </p>
+
+    <p>Voice Clipping as implemented here is intended for voice input, and so filters the voice
+    to a communications bandwidth of around 3000 Hz.</p>
+
+</script>
+<script type="text/x-red" data-template-name="radioCESSBtransmit_F32">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
 
 <script type="text/x-red" data-help-name="RadioBFSKModulator_F32">
     <h3>Summary</h3>
