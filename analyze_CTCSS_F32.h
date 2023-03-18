@@ -3,7 +3,9 @@
  * (floating point audio).
  *   MIT License on changed portions
  *   Bob Larkin March 2021 original write
- *   Rev 21 Jan 2022 Major redo and ready to publish.  RSL
+ *   Rev 21 Jan 2022 Major redo and ready to publish.  Bob L
+ *   Rev 15 March 2023 - Added dynamic sample rate control; added 12 ksps; corrected
+ *      receiveWritable_f32() for block with output.  Bob L
  *
  * This is specific for the CTCSS tone system
  * with tones in the 67.0 to 254.1 Hz range.
@@ -127,7 +129,7 @@
  * filtering and to reduce processing load.  The filter parameters of the decimation
  * LPF can be used at any sampling rate from 44 to 100 kHz.  Other rates will need
  * a new design for the LPF.  See the discussion below for "iirLpfCoeffs" showing
- * how to design such a filter.
+ * how to design such a filter.  (Mar 2023: Decimate by 8 for 12 ksps).
  *
  * The bandpass filter to cover 67 to 254 Hz is predesigned for sample rates near
  * 44, 48, 96 or 100 kHz.  The discussion below "BPF iir Coefficients" has
@@ -138,7 +140,7 @@
  *
  * Note - Pieces of this support block sizes other than 128, but not all.
  * Work needs to be done to implement and test variable block size.  The same is
- * true for sample rates outside the 44.1 to 100 kHz range.
+ * true for sample rates outside the 12 and 44.1 to 100 kHz range.
  */
 
 #ifndef analyze_CTCSS_F32_h_
@@ -165,43 +167,84 @@ public:
         initCTCSS();
         }
 
+    // This is called at instantation and also if either freq or sample_rate_Hz is changed
     void initCTCSS(void)
         {
-        frequency(103.5f,  300.0f);    // Defaults
-        setNotchX4(103.5f);
-        // Initialize BiQuad instance (ARM DSP Math Library)
+        gEnabled = true;
+        float32_t nDecimatef = (float32_t)nDecimate;  // Later use
+        // INFO: Initialize BiQuad instance (ARM DSP Math Library)
         //https://www.keil.com/pack/doc/CMSIS/DSP/html/group__BiquadCascadeDF1.html
-        arm_biquad_cascade_df1_init_f32(&iir_lpf_inst,   2, &iirLpfCoeffs[0],   &StateLpf32[0]);
+
+        // First, select the BPF for measuring the noise level
+        if(iirUserBpfCoeffs != NULL)
+           iirBpfCoeffs = iirUserBpfCoeffs;    // From INO, always use if supplied
+        //else if(sample_rate_Hz>11000.0f && sample_rate_Hz<11050.0f)
+           //iirBpfCoeffs = coeff32bp11;    Not currently implemented
+        else if(sample_rate_Hz>11975.0f && sample_rate_Hz<12025.0f)
+           iirBpfCoeffs = coeff32bp12;
+        //else if(sample_rate_Hz>23950.0f && sample_rate_Hz<24050.0f)
+           //iirBpfCoeffs = coeff32bp24;    Not currently implemented
+        else if(sample_rate_Hz>43900.0f && sample_rate_Hz<44200.0f)
+           iirBpfCoeffs = coeff32bp44;
+        else if(sample_rate_Hz>47900.0f && sample_rate_Hz<48100.0f)
+           iirBpfCoeffs = coeff32bp48;
+        else if(sample_rate_Hz>95800.0f && sample_rate_Hz<96200.0f)
+           iirBpfCoeffs = coeff32bp96;
+        else if(sample_rate_Hz>99800.0f && sample_rate_Hz<100200.0f)
+           iirBpfCoeffs = coeff32bp100;
+        else gEnabled = false;
         arm_biquad_cascade_df1_init_f32(&iir_bpf_inst,   4, iirBpfCoeffs,       &StateBpf32[0]);
-        for (int i=0; i<8; i++)
+
+        if(sample_rate_Hz>11900 && sample_rate_Hz<24100)  // Now choose a pre-decimation LPF
+           {
+           nDecimate = 8;
+           arm_biquad_cascade_df1_init_f32(&iir_lpf_inst, 4, &iirLpfCoeffs12[0],   &StateLpf32[0]);
+           }
+        else if (sample_rate_Hz>44000 && sample_rate_Hz<100100)
+           {
+           nDecimate = 16;
+           arm_biquad_cascade_df1_init_f32(&iir_lpf_inst,  4, &iirLpfCoeffs44[0],   &StateLpf32[0]);
+           }
+        else gEnabled = false;
+        nDecimatef = (float32_t)nDecimate;
+        sampleRate2 = sample_rate_Hz / nDecimatef;
+
+        for (int i=0; i<16; i++)   // Need 8 when decimate is 16 or 16 if decimate is 8
             {
 			d16a[i] = 0.0f;
 			d16b[i] = 0.0f;
 		    }
         arm_biquad_cascade_df1_init_f32(&iir_nulls_inst, 4, &iirNullsCoeffs[0], &StateNullsF32[0]);
-        thresholds(0.1f, 1.0f);
-        gEnabled = true;
-        setCTCSS_BP(NULL);            // May be invalid if Sample rate is not provided for here.
-        }
 
-    // Set frequency and length of Goertzel in Hz and milliseconds.
-    void frequency(float freq) {      // Defaults to 300 mSec
-		frequency(freq, 300.0f);
-        }
-
-    void frequency(float freq, float tMeas) {
         // e.g. freq=103.5, tMeas=250, sample_rate_Hz = 44100, gLength=689
-        gLength = (uint16_t)(0.5 + sample_rate_Hz*tMeas/(1000.0f*16));  // reinstated
+        gLength = (uint16_t)(0.5 + sample_rate_Hz*tMeas/(1000.0f*nDecimatef));  // reinstated
         // Now set the notch filters for the four-biquad notch filters
         setNotchX4(freq);
-        // and the sub-audible general BP filter
-        setCTCSS_BP(NULL);
+
         // e.g., freq=103.5, sample_rate_Hz=44100, gCoefficient=2*cos(0.23594)=1.944634
-        gCoefficient = 2.0f*cosf(6.28318530718f*16.0f*freq/sample_rate_Hz);
+        gCoefficient = 2.0f*cosf(6.28318530718f*nDecimatef*freq/sample_rate_Hz);
         // Another constant for ending calculation is exp(-j 2*pi*16*freq*(glength-1)/sample_rate_Hz)
-        ccRe =  cos(6.28318530718f*16.0f*freq/sample_rate_Hz);
-        ccIm = -sin(6.28318530718f*16.0f*freq/sample_rate_Hz);
+        ccRe =  cos(6.28318530718f*nDecimatef*freq/sample_rate_Hz);
+        ccIm = -sin(6.28318530718f*nDecimatef*freq/sample_rate_Hz);
+
+        thresholds(0.1f, 1.0f);
+    }
+
+    // Set frequency and length of Goertzel detect tone in Hz and milliseconds.
+    void frequency(float32_t _freq) {      // Defaults to 300 mSec
+		frequency(_freq, 300.0f);
         }
+    void frequency(float32_t _freq, float32_t _tMeas) {
+        freq = _freq;
+        tMeas = _tMeas;
+        initCTCSS();
+    }
+
+    // Sample rates 12, 44.1, 48, 96 and 100 ksps are supported.
+    void setSampleRate_Hz(const float32_t &fs_Hz) {
+       sample_rate_Hz = fs_Hz;
+       initCTCSS();
+    }
 
     bool available(void) {
         __disable_irq();
@@ -212,9 +255,9 @@ public:
         return flag;
         }
 
-    float readTonePower(void) { return powerTone; }
+    float32_t readTonePower(void) { return powerTone; }
 
-    float readRefPower(void)  { return powerRef; }
+    float32_t readRefPower(void)  { return powerRef; }
 
     const uint16_t isAbsThreshold=1;
     const uint16_t isRelThreshold=2;
@@ -229,7 +272,7 @@ public:
         else return false;    // Something was wrong about call
 	    }
 
-    void thresholds(float levelAbs, float levelRel) {
+    void thresholds(float32_t levelAbs, float32_t levelRel) {
 		// The absolute threshold is compared with tonePower
         if (levelAbs < 0.000001f) threshAbs = 0.000001f;
         else threshAbs = levelAbs;
@@ -244,29 +287,16 @@ public:
     virtual void update(void);
 
     /* The bandpass filter covers 67 to 254 Hz to allow a comparison
-     * measurement for the tone.  This changes with sample rate. Four
-     * precomputed filters are provided for 44.1, 48, 96 and 100 kHz.
-     * Supply a NULL for the filterCoeffs to use these 4.
-     * filterCoeffs points to an array of 20 floats that are IIR
+     * measurement for the tone.  This changes with sample rate. Five
+     * precomputed filters are provided for 12, 44.1, 48, 96 and 100 kHz.
+     * Supply a NULL for the filterCoeffs to use these five.
+     * _filterCoeffs points to an array of 20 floats that are IIR
      * coefficients for four BiQuad Stages.  To use caller supplied
      * filter coefficients, call with a pointer to that 4x BiQuad filter at
      * filterCoeffs.
      */
-    float* setCTCSS_BP(float *filterCoeffs)
-       {
-       if(filterCoeffs == NULL)
-          {
-          if(sample_rate_Hz>43900.0f && sample_rate_Hz<44200.0f)
-            iirBpfCoeffs = coeff32bp44;
-          else if(sample_rate_Hz>47900.0f && sample_rate_Hz<48100.0f)
-            iirBpfCoeffs = coeff32bp48;
-          else if(sample_rate_Hz>95800.0f && sample_rate_Hz<96200.0f)
-            iirBpfCoeffs = coeff32bp96;
-          else if(sample_rate_Hz>99800.0f && sample_rate_Hz<100200.0f)
-            iirBpfCoeffs = coeff32bp100;
-          else return NULL;
-          }
-       else  iirBpfCoeffs = filterCoeffs;       // Caller supplied
+    float* setCTCSS_BP(float32_t *_filterCoeffs)  {
+        iirUserBpfCoeffs = _filterCoeffs;       // Caller supplied
        return iirBpfCoeffs;
        }
 
@@ -275,7 +305,7 @@ public:
      * Call this function with a pointer to that array.  To stop windowing,
      * call this function with NULL as an argument.
      * /   Windowing not yet implemented  <<<-------------------
-    void setGWindow(float *pWinCoeff)
+    void setGWindow(float32_t *pWinCoeff)
        {
        windowCoeff = pWinCoeff;    // Point to the caller supplied window function
        if(pWinCoeff != NULL)
@@ -287,35 +317,39 @@ public:
 
 private:
     int16_t  count16 = 0;            unsigned long cnt = 0UL;
-    float  ccRe=0.0f;
-    float  ccIm=0.0f;
-    float freq = 103.5f;
-    float tMeas = 300.0f;
-    float d16a[8];              // Small data blocks, after decimation
-    float d16b[8];
-    float gCoefficient = 1.9f;  // Goertzel algorithm coefficient
-    float gs1, gs2;             // Goertzel algorithm state
-    float out1, out2;           // Goertzel algorithm state output
-    float powerTone;
-    float powerRef;
+    float32_t  ccRe=0.0f;
+    float32_t  ccIm=0.0f;
+    float32_t freq = 103.5f;
+    float32_t tMeas = 300.0f;
+    uint16_t nDecimate = 16;
+    float32_t sampleRate2 = 2756.25f;  // 44100/16 etc.
+    float32_t d16a[16];             // Small data blocks, after decimation
+    float32_t d16b[16];             // Reference power sum
+    float32_t gCoefficient = 1.9f;  // Goertzel algorithm coefficient
+    float32_t gs1, gs2;             // Goertzel algorithm state
+    float32_t out1, out2;           // Goertzel algorithm state output
+    float32_t powerTone;
+    float32_t powerRef;
     uint16_t gLength;           // number of samples to analyze
     uint16_t gCount;            // how many left to analyze
-    float powerSum = 0.0f;
+    float32_t powerSum = 0.0f;
     uint16_t powerSumCount = 0;
-    float threshAbs = 0.1f;     // absolute threshold, 0.01 to 0.99
-    float threshRel = 1.0f;     // noise relative threshold
+    float32_t threshAbs = 0.1f;     // absolute threshold, 0.01 to 0.99
+    float32_t threshRel = 1.0f;     // noise relative threshold
     bool gEnabled = false;
     volatile bool new_output = false;
     audio_block_f32_t *inputQueueArray_f32[1];
-    float sample_rate_Hz = AUDIO_SAMPLE_RATE;
+    float32_t sample_rate_Hz = AUDIO_SAMPLE_RATE;
     uint16_t block_size = 128;
-    float iirNullsCoeffs[20];
-    float *iirBpfCoeffs;
+    float32_t iirNullsCoeffs[20];
+    float32_t *iirBpfCoeffs;
+    float32_t *iirUserBpfCoeffs;
+
     // windowCoeff needs to store half of values (symmetry) for up to
     // 0.25 second at 100KHz sample rate, or 0.25*0.5*100000/16=782 pts.
     // This is extravagant and needs to be in caller area to allow
     // frugality when there is no window at all.
-    // float *windowCoeff;  <<- Windowing is not currently implemented
+    // float32_t *windowCoeff;  <<- Windowing is not currently implemented
     // uint16_t nWindow = 0;  <<-   ditto
     /* Info - The structure from arm_biquad_casd_df1_inst_f32 instance consists of
      *    uint32_t  numStages;
@@ -336,43 +370,47 @@ private:
      * The state variables are updated after each block of data is processed; the
      * coefficients are untouched.
      */
-    float  StateLpf32[2*4];
-    float  StateBpf32[4*4];
-    float  StateNullsF32[4*4];
+    float32_t  StateLpf32[4*4];
+    float32_t  StateBpf32[4*4];
+    float32_t  StateNullsF32[4*4];
 
+    // The coefficients are stored in the array pCoeffs in the following order:
+    //     {b10, b11, b12, a11, a12, b20, b21, b22, a21, a22, ...}
+    // where b1x and a1x are the coefficients for the first stage, b2x and a2x are
+    // the coefficients for the second stage, and so on. The pCoeffs array
+    // contains a total of 5*numStages values.
+    // a10, a20, etc are all 1.000 and not listed.
     /*
      * LPF for decimation before CTCSS tone detector.
      * Pick cutoff frequency to pass 254 Hz with fs=44.1kHz
      * or fc=2*254/44100=0.01152.  This passes highest tone
-     * frequency at the lowest sample rate.  Octave code:
-     *   FSample = 44100;
-     *   halfFSample = 0.5 * FSample
-     *   [z,p,g] = ellip(4,0.1,60,254/halfFSample);
-     *   sos = zp2sos(z,p,g);
-     *   sos1 = sos(1:1,:)     % 1st row
-     *   sos2 = sos(2:2,:)     % 2nd row
-     *   % This puts the stop band at 0.02*fs or for fs=100 KHz
-     *   % at 2 kHz.  This, in turn, supports an 4 kHz
-     *   % sampling rate after decimation.  Thus a single LPF design
-     *   % can be used for sample rates from 44.1 to 100 kHz.
-     *   % See notes below on how to convert Octave output to coefficients:
+     * frequency at the lowest sample rate. These
+     * were calculated by Iowa Hills routines.
      */
-     float iirLpfCoeffs[10] =            // See lp1ForCtcss.gif
-       {9.937058251573265e-04f, -1.898847656031816e-03f, 9.937058251573265e-04f,
-        1.953233139252097e+00f, -9.540781328043288e-01f,
-        1.000000000000000e+00f, -1.983872743032985e+00f, 9.999999999999998e-01f,
-        1.980584507653506e+00f, -9.822943824311938e-01f};
+    //12000   260Hz -60 dB double elliptic 8 pole  -60 dB at 300 Hz 
+    float32_t iirLpfCoeffs12[20] = {
+     0.182145523f,-0.359763551f, 0.182145523f, 1.888598461f,-0.893125955f,
+     0.350161286f,-0.689819799f, 0.350161286f, 1.922991947f,-0.933494720f,
+     0.293698317f,-0.571683303f, 0.293698317f, 1.954562781f,-0.970276113f,
+     0.053599924f,-0.089098167f, 0.053599924f, 1.973912800f,-0.992014481f };
+
+    float32_t iirLpfCoeffs44[20] = {
+     0.188636212f,-0.376924253f, 0.188636212f, 1.969403901f,-0.969752071f,
+     0.357249908f,-0.713703189f, 0.357249908f, 1.980638291f,-0.981434917f,
+     0.294316431f,-0.587455758f, 0.294316431f, 1.990628020f,-0.991805124f,
+     0.049761875f,-0.098177786f, 0.049761875f, 1.996468755f,-0.997814718f};
 
      /* There is a band pass filter that is used after decimation to limit the
       * spectrum that is seen by the CTCSS detector to (67, 254) Hz. This
       * provides the entire CTCSS band to compare against to see if any other
       * tones are present.  It also restricts the amount of voice spectrum
       * presented to the CTCSS detector.  This filter is sample rate dependent
-      * this routine allows for four different "built-in" rates.
+      * this routine allows for five different "built-in" rates.
       *
       *   Sample    LPF Decimation  CTCSS    BPF
       *    Rate     Fco   Ratio    Samp Rate Name
       *   ------- ------ --------  --------  -----
+      *   12.0kHz  260Hz     8     1500.0Hz  BP12
       *   44.1kHz  254Hz    16     2756.2Hz  BP44
       *   48.0kHz  276Hz    16     3000.0Hz  BP48
       *   96.0kHz  553Hz    16     6000.0Hz  BP96
@@ -381,7 +419,7 @@ private:
       * The following allow computing a bandpass filter for any sample rate in
       * the 44 to 100 kHz range (gnu octave script).
       *
-% ===================== BPF iir Coefficients =============================
+% ==========  Sidebar:  BPF iir Coefficients =============================
 % This GNU Octave m script will generate the BPF iir coefficients
 % for other sample rates than the four listed here.  It will probably
 % run under Matlab, but that is untested.
@@ -430,11 +468,19 @@ private:
 %   1.797650895821358e+00, -8.356641238925192e-01,
 %   1.000000000000000e+00, -1.999398698654737e+00, 1.000000000000000e+00,
 %   1.941833848024410e+00, -9.614543316508065e-01};
-%
-*/
-    // The four predefined bandpass filters:
+%   ===================================================================== */
+
+    // The five predefined bandpass filters:
+    // BP12  Decimated fSample = 1500 sps
+    // 65 to 260, 0.1 dB rip, -60 dB elliptic, -7.5 dB at 300 Hz, -60 at 475
+    float32_t coeff32bp12[20] =   {
+        0.386816925f,-0.769638284f, 0.386816925f, 1.586751090f,-0.706113049f,
+        0.265346713f, 0.247789162f, 0.265346713f, 0.996735842f,-0.484375851f,
+        0.461314461f,-0.921736474f, 0.461314461f, 1.864126624f,-0.928392720f,
+        0.380685155f, 0.664524969f, 0.380685155f, 0.720627184f,-0.766126702f};
+
     // BP44  Decimated fSample = 2756.2 Hz
-    float coeff32bp44[20] = {
+    float32_t coeff32bp44[20] = {
         4.386558177463118e-03f,  4.835083945591431e-03f, 4.386558177463117e-03f,
         1.503280453219001e+00f, -8.498498588788136e-01f,
         1.000000000000000e+00f, -4.234328155653108e-01f, 1.000000000000000e+00f,
@@ -445,17 +491,15 @@ private:
         1.941833848024410e+00f, -9.614543316508065e-01f};
 
     // BP48  Decimated fSample = 3000 Hz
-    float coeff32bp48[20] = {
-        3.764439090680418e-03f,  3.650362666517592e-03f, 3.764439090680417e-03f,
-        1.000000000000000e+00f, -5.926113222413726e-01f, 1.000000000000000e+00f,
-        1.569400123464342e+00f, -7.055760636246757e-01f,
-        1.000000000000000e+00f, -1.997300534603388e+00f, 9.999999999999998e-01f,
-        1.816002936969042e+00f, -8.483092827984080e-01f,
-        1.000000000000000e+00f, -1.999491318923814e+00f, 1.000000000000000e+00f,
-        1.947984087804752e+00f, -9.645809301964445e-01f};
+    // 67 to 254 Band Pass 60 dB reject elliptic  -7.5 at 300 Hz -35 at 450 Hz
+    float32_t coeff32bp48[20] = {
+        0.272147027f,-0.543594385f, 0.272147027f, 1.819349787f,-0.850367415f,
+        0.226417971f,-0.138869864f, 0.226417971f, 1.574952243f,-0.707479581f,
+        0.261002559f,-0.521878771f, 0.261002559f, 1.949332941f,-0.965207141f,
+        0.232822864f, 0.221820730f, 0.232822864f, 1.572088740f, -0.860996505}; 
 
     // BP96  Decimated fSample = 6000 Hz
-    float coeff32bp96[20] = {
+    float32_t coeff32bp96[20] = {
         1.554430361573611e-03f,  5.765630035510897e-04f, 1.554430361573611e-03f,
         1.803990601116592e+00f, -8.406882700444890e-01f,
         1.000000000000000e+00f, -1.541034615722940e+00f, 9.999999999999998e-01f,
@@ -466,7 +510,7 @@ private:
         1.978038062492293e+00f, -9.822341038950552e-01f};
 
     // BP100 Decimated fSample = 6250 Hz
-    float coeff32bp100[20] = {
+    float32_t coeff32bp100[20] = {
         1.504180063396739e-03f, -6.773089598829345e-04f, 1.504180063396738e-03f,
         1.812635069874353e+00f, -8.465624856328144e-01f,
         1.000000000000000e+00f, -1.573630872142354e+00f, 1.000000000000000e+00f,
@@ -482,14 +526,14 @@ private:
      * filter is always designed here and there is no need for
      * caller-designed filters.
      */
-    void setNotchX4(float frequency)
+    void setNotchX4(float32_t frequency)
        {
-       float kf[] = {0.9955f, 0.9982f, 1.0018f, 1.0045f};  // Offset ratios
-       float Q = 60.0f;
-       float w0, sinW0, alpha, cosW0, scale;
+       float32_t kf[] = {0.9955f, 0.9982f, 1.0018f, 1.0045f};  // Offset ratios
+       float32_t Q = 60.0f;
+       float32_t w0, sinW0, alpha, cosW0, scale;
        for (int ii = 0; ii<4; ii++)    // Over 4 cascaded BiQuad filters
           {
-          w0 = kf[ii]*frequency*(2.0f*3.141592654f*16.0f  / sample_rate_Hz);
+          w0 = kf[ii]*frequency*(2.0f*3.141592654f*nDecimate  / sample_rate_Hz);
           sinW0 = sin(w0);
           alpha = sinW0 / (Q * 2.0f);
           cosW0 = cos(w0);

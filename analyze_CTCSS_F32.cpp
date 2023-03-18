@@ -38,9 +38,8 @@
 
 void analyze_CTCSS_F32::update(void)  {
     audio_block_f32_t *block;
-    float gs0=0.0;
-
-    block = receiveReadOnly_f32();
+    float32_t gs0=0.0;
+    block = AudioStream_F32::receiveWritable_f32();                                       
     if (!block) return;
     if (!gEnabled) {
         release(block);
@@ -48,8 +47,8 @@ void analyze_CTCSS_F32::update(void)  {
         }
 
     // This process is working with frequencies of 254 Hz or less.  Thus
-    // it is beneficial to decimate before processing.  The chosen
-    // decimation rate is 16. For example, if the basic sample rate is 44.1 kHz,
+    // it is beneficial to decimate before processing.  The decimation ratio
+    // is 16 or 8. For example, if the basic sample rate is 44.1 kHz,
     // the decimated rate is 44100/16=2756.25 Hz  Before decimation, we
     // low pass filter to prevent alias problems.  Returns 128 pts in block.
     arm_biquad_cascade_df1_f32(&iir_lpf_inst, block->data,
@@ -58,17 +57,18 @@ void analyze_CTCSS_F32::update(void)  {
     // And decimate, using the first sample, giving 128/16=8 samples to
     // be processed per block.
     // Create a small data block, normally 8, d16a[].
-    for(int i=0; i<8; i++)
-       d16a[i] = *(block->data + 16*i);   // Decimated sample, only every 16
+    uint16_t nPerBlock2 = 128/nDecimate;
+    for(int i=0; i<nPerBlock2; i++)
+       d16a[i] = *(block->data + nDecimate*i);   // Decimated sample, only every nDecimate
 
     // Filter down to 67-254Hz band, leaving result in d16a[];
-    arm_biquad_cascade_df1_f32(&iir_bpf_inst, d16a, d16a, 8);
+    arm_biquad_cascade_df1_f32(&iir_bpf_inst, d16a, d16a, nPerBlock2);
 
     // For reference measurement, only, null out the tone, creating d16b[].
     // This d16b signal  path is not used for the Goertzel.
-    arm_biquad_cascade_df1_f32(&iir_nulls_inst, d16a, d16b, 8);
+    arm_biquad_cascade_df1_f32(&iir_nulls_inst, d16a, d16b, nPerBlock2);
 
-    for(int i=0; i<8; i++)
+    for(int i=0; i<nPerBlock2; i++)
        {
        if(gCount++ < gLength)            // Main Goertzel calculation
           {
@@ -88,18 +88,18 @@ void analyze_CTCSS_F32::update(void)  {
           out2 =     - gs1*ccIm;
           // At this point the phase is still in need of correction.  But we
           // only use amplitude so, leave the phase as is.
-          powerTone = 4.0f*(out1*out1 + out2*out2)/((float)gLength*(float)gLength);
-          //  2.0f*sqrtf(powerTone)/(float)gLength;  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+          powerTone = 4.0f*(out1*out1 + out2*out2)/((float32_t)gLength*(float32_t)gLength);
           gs1 = 0.0;        // Initialize to start new measurement
           gs2 = 0.0;
           gCount = 0;
           // The 2.04 factor makes the reference for sine waves the same as the Goertzel
-          powerRef = 2.04f*powerSum/((float)powerSumCount);
+          powerRef = 2.04f*powerSum/((float32_t)powerSumCount);
           powerSum = 0.0f;
           powerSumCount = 0;
           new_output = true;
           }
         }
+
     // If the CTCSS tone is detected, the output is the original data block.
     // If silenced, zeros are returned.
     if(powerTone>threshAbs  &&  powerTone>threshRel*powerRef)
@@ -107,15 +107,15 @@ void analyze_CTCSS_F32::update(void)  {
     else
        {
 	    for(int i = 0; i<128; i++)
-	        *(block->data + i) = 0.0;
+	        *(block->data + i) = 0.0f;
 	   transmit(block);
        }
     release(block);
     }
 
 analyze_CTCSS_F32::operator bool()  {
-    float pThresh;
-    pThresh = ((float)gLength)*threshAbs;
+    float32_t pThresh;
+    pThresh = ((float32_t)gLength)*threshAbs;
     pThresh *= pThresh;
     return (powerTone >= pThresh);
     }
