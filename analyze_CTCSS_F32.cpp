@@ -2,6 +2,8 @@
  * analyze_CTCSS_F32.cpp  Converted to float from PJRC Teensy Audio Library
  *   MIT License on changed portions
  *   Bob Larkin March 2021
+ *   Rev 15 March 2023 - Added dynamic sample rate control; added 12 ksps; corrected
+ *      receiveWritable_f32() for block with output.  Bob L - see .h file.
  *
  * Some parts of this  cpp came from:  Audio Library for Teensy 3.X
  * Copyright (c) 2014, Paul Stoffregen, paul@pjrc.com
@@ -39,7 +41,7 @@
 void analyze_CTCSS_F32::update(void)  {
     audio_block_f32_t *block;
     float32_t gs0=0.0;
-    block = AudioStream_F32::receiveWritable_f32();                                       
+    block = AudioStream_F32::receiveWritable_f32();
     if (!block) return;
     if (!gEnabled) {
         release(block);
