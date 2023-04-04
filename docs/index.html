@@ -3915,10 +3915,21 @@ look ahead delay, as well.</p>
     that set filters.</p>
 
     <p class=func><span class=keyword>bufferHasSpace</span>();</p>
-    <p class=desc>Returns a bool value true if another data word can be sent. </p>
+    <p class=desc>Returns a <strong>bool</strong> value true if one or
+    more data words can be sent
+    without filling the 64 word FIFO transmit buffer. </p>
+
+    <p class=func><span class=keyword>getBufferSpace</span>();</p>
+    <p class=desc>Returns an <strong>in16_t</strong> with the
+    number of data words can be sent
+    without filling the 64 word FIFO transmit buffer. </p>
+
 
     <p class=func><span class=keyword>sendData</span>(<strong>uint32_t</strong> data);</p>
-    <p class=desc>Empties the FIFO transmit buffer.</p>
+    <p class=desc>Places a data word into the FIFO transmit buffer.
+    The data word can be any length up to 32 bits.  The buffer length is 64 words.
+    If the word was queued for sending, a <strong>bool</strong> true is returned.
+    If no space was available, a <strong>bool</strong> false is returned.</p>
 
     <p class=func><span class=keyword>clearBuffer</span>();</p>
     <p class=desc>Clears the send buffer. Does not stop a character being sent. No return value.</p>
@@ -3929,17 +3940,18 @@ look ahead delay, as well.</p>
 
     <p class=func><span class=keyword>setLPF
     </span>(<strong>float32_t*</strong> FIRdata, <strong>float32_t*</strong> FIRcoeff, <strong>uint16_t</strong> numCoeffs);</p>
-    <p>This sets output filtering where:
+    <p class=desc>This sets output filtering where:
     <pre class="desc">
  float32_t* FIRdata is a pointer to array data storage
  float32_t* firCoeffs is a pointer to array of coefficients
  uint       numCoeffs is the number of FIR filter coefficients
-    </pre>
-    To omit the FIR filter, enter the pointer to the coefficients as NULL.
+    </pre></p>
+    <p class=desc>To omit the FIR filter, enter the pointer to the coefficients as NULL.</p>
+
+
     <p class=func><span class=keyword>setSampleRate_Hz</span>(<strong>float32_t</strong> sampleRate_Hz)</p>
-    <p class=desc>Enter sample rate, as float32_t.
-    It applies to this class only.
-    </p>
+    <p class=desc>Enter sample rate, as <strong>float32_t</strong>.
+    This applies to this class only, i.e., this does not change sample rates globally.</p>
     <h3>Examples</h3>
     <p class=exam>File &gt; Examples &gt; OpenAudio_ArduinoLibrary &gt;  BFSK
     </p>
@@ -3947,12 +3959,13 @@ look ahead delay, as well.</p>
     </p>
     <p class=exam>File &gt; Examples &gt; OpenAudio_ArduinoLibrary &gt;  BFSK_snr
     </p>
+
     <h3>Notes</h3>
     <p>This modulator includes a lowpass filter on the input bit data.
     This can be very effective in restricting the bandwidth of the BFSK output.
     This filter can be None (default) or an arbitrary FIR filter.
     </p>
-    <p>Parity is not yet implemented.</p>
+    <p>Parity is not implemented.</p>
 </script>
 <script type="text/x-red" data-template-name="RadioBFSKModulator_F32">
     <div class="form-row">
