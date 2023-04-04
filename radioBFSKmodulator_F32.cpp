@@ -5,64 +5,78 @@
  *
  * License: MIT License. Use at your own risk. See corresponding .h file.
  *
+ * 2 April 2023 -Corrected to handle outputs from a full buffer.  RSL
+ *               Added    int16_t getBufferSpace().  RSL
  */
 
 #include "radioBFSKmodulator_F32.h"
 // 513 values of the sine wave in a float array:
 #include "sinTable512_f32.h"
 
+// 64 entry send buffer check. Sets stateBuffer
+// Returns the number of un-transmitted characters.
+int16_t RadioBFSKModulator_F32::checkBuffer(void)  {
+   int64_t deltaIndex = indexIn - indexOut;
+
+   if(deltaIndex==0LL)
+      stateBuffer = DATA_BUFFER_EMPTY;
+   else if(deltaIndex==64LL)
+      stateBuffer = DATA_BUFFER_FULL;
+   else
+      stateBuffer = DATA_BUFFER_PART;
+
+   if(deltaIndex<0LL || deltaIndex>64LL)    // Should never happen
+      {
+      Serial.print("ERROR in Buffer;  deltaIndex = ");
+      Serial.println(deltaIndex);
+      }
+   return (int16_t)deltaIndex;
+   }
+
 void RadioBFSKModulator_F32::update(void) {
    audio_block_f32_t *blockFSK;
    uint16_t index, i;
    float32_t vca;
    float32_t a, b;
-
    // uint32_t tt=micros();
 
    blockFSK = AudioStream_F32::allocate_f32();   // Get the output block
    if (!blockFSK)  return;
 
-   // Note - If buffer is dry, there is a delay of up to 3 mSec.  Should be OK
-
-   // Note: indexIn and indexOut will not change during this update(),
-   // as we have the interrupt.
-
-   if(atIdle && (indexIn - indexOut) > 0)  // At idle and new buffer entry has arrived
-      {
-      atIdle = false;
-      bitSendCount = numBits + 1;   // Force new start
-      samplePerBitCount = samplesPerDataBit + 1;
-      }
-
    for (i=0; i < blockFSK->length; i++)
       {
+     samplePerBitCount++;
       // Each data bit is an integer number of sample periods
-      if(samplePerBitCount >= samplesPerDataBit)  // Time for either idle or new bit/word
+      if(samplePerBitCount >= samplesPerDataBit)  // Bit transition time
          {
+         samplePerBitCount = 0;       // Wait a bit period before checking again
          if(bitSendCount < numBits)   // Still sending a word, get next bit
             {
-            vc = (uint16_t)(currentWord & 1);
-            currentWord = currentWord >> 1;
+            vc = (uint16_t)(currentWord & 1);   // Send 0 or 1
+            currentWord = currentWord >> 1;     // Next bit position
             bitSendCount++;
-            samplePerBitCount = 0;
             }
-         else if((indexIn - indexOut) > 0)  // Is there another word ready?
+         else    // End of word, get another if possible
             {
-            atIdle = false;
-            indexOut++;   // Just keeps on going, not circular
-            currentWord = dataBuffer[indexOut&indexMask];
-            vc = (uint16_t)(currentWord & 1);  // Bit to send next
-            bitSendCount = 1U;   // Count how many bits have been sent
-            currentWord = currentWord >> 1;
-            samplePerBitCount = 0;
-            }
-         else           // No bits are available
-            {
-            atIdle = true;
-            vc = 1;     //Idle at logic 1 (Make programmable?)
-            samplePerBitCount = samplesPerDataBit + 1;  // Force revisit
-            }
-         }
+            if(stateBuffer != DATA_BUFFER_EMPTY)
+               {
+               indexOut++;   // Just keeps on going, not circular
+               checkBuffer();
+               currentWord = dataBuffer[indexOut&indexMask];
+//             Serial.print(indexIn);
+//             Serial.print(" In   Out ");
+//             Serial.println(indexOut);
+               vc = (uint16_t)(currentWord & 1);  // Bit to send next
+               bitSendCount = 1U;   // Count how many bits have been sent
+               currentWord = currentWord >> 1;
+               }
+            else           // No word available
+               {
+               vc = 1;     //Idle at logic 1 (Make programmable?)
+               }
+            }     // end, get another word
+         }       // end, bit transition time
+
 
       if(FIRcoeff==NULL)    //  No LPF being used
          vca = (float32_t)vc;
@@ -83,7 +97,9 @@ void RadioBFSKModulator_F32::update(void) {
             vca += FIRcoeff[k]*FIRdata[ii];
             }
          }
-      // pre-multiply phaseIncrement[0]=kp*freq[0]  and  deltaPhase=kp*deltaFreq
+
+      // Modulate baseband vca voltage to sine wave frequency (VCO)
+      // pre-multiply phaseIncrement[0]=kp*freq[0]  and deltaPhase=kp*deltaFreq
       currentPhase += (phaseIncrement[0] + vca*deltaPhase);
       if (currentPhase > 512.0f)  currentPhase -= 512.0f;
       index = (uint16_t) currentPhase;
@@ -99,3 +115,4 @@ void RadioBFSKModulator_F32::update(void) {
    AudioStream_F32::release (blockFSK);
    // Serial.print("     "); Serial.println(micros()-tt);
    }
+

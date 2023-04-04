@@ -69,6 +69,9 @@ Frequency deviation: ±30 Hz
  * The update() uses about 13 microseconds for 128 points with no LPF
  * on the control signal.  The LPF adds roughly 3 icroseconds per
  * FIR coefficient being used.
+ *
+ * 2 April 2023 -Corrected to handle outputs from full buffer.  RSL
+ *               Added    int16_t getBufferSpace().  RSL
  */
 
 /* Here is an Octave/Matlab .m file to design the Gaussian LP FIR filter
@@ -152,24 +155,36 @@ public:
       block_size = settings.audio_block_samples;
       }
 
+#define DATA_BUFFER_EMPTY  0
+#define DATA_BUFFER_PART   1
+#define DATA_BUFFER_FULL   2
+
    // As viewed from the INO, does the bufffer have space?
    bool bufferHasSpace(void)  {
-      if((64LL - indexIn + indexOut) <= 0LL) { //Serial.print(indexIn);
-         //Serial.print(" NR1 ");Serial.println(indexOut);  delay(4);
-         return false; } // No room for more
-      return true;
+      checkBuffer();
+      if(stateBuffer == DATA_BUFFER_FULL)
+         return false;
+      else
+         return true;
+      }
+
+   int16_t getBufferSpace(void)  {
+      return 64-checkBuffer();
       }
 
    // As viewed from the INO, put a data word into the buffer to send.
    // Returns true if successful.
    bool sendData(uint32_t data) {
-      int64_t space = 64LL - indexIn + indexOut;
-      if(space <= 0LL) {  // No room
+      checkBuffer();
+      if(stateBuffer == DATA_BUFFER_FULL)
          return false;
+      else
+         {
+         indexIn++;
+         dataBuffer[indexIn & indexMask] = data;
+         checkBuffer();
+         return true;
          }
-      indexIn++;
-      dataBuffer[indexIn & indexMask] = data;
-      return true;
       }
 
    void bufferClear(void)  {
@@ -204,8 +219,8 @@ public:
    // Low pass filter on frequency control line.  Set to NULL to omitfilter.
    void setLPF(float32_t* _FIRdata, float32_t* _FIRcoeff, uint16_t _numCoeffs) {
       FIRdata = _FIRdata;
-	   if(_FIRcoeff == NULL || _numCoeffs == 0)
-	      {
+       if(_FIRcoeff == NULL || _numCoeffs == 0)
+          {
          FIRcoeff = NULL;
          numCoeffs = 0;
          return;
@@ -225,7 +240,12 @@ public:
       samplesPerDataBit = (uint32_t)(0.5 +  sample_rate_Hz/bitRate);
       }
 
+   int16_t checkBuffer(void);
    virtual void update(void);
+
+#define DATA_BUFFER_EMPTY  0
+#define DATA_BUFFER_PART   1
+#define DATA_BUFFER_FULL   2
 
 private:
    float32_t sample_rate_Hz = AUDIO_SAMPLE_RATE_EXACT;
@@ -241,9 +261,6 @@ private:
    uint32_t  currentWord = 0UL;
    uint16_t  numBits = 10;
    uint16_t  bitSendCount = 0;
-   // atIdle means no data is available. But, keep on sending a sine wave
-   // at the logic 1 frequency.
-   bool      atIdle = true;
 
    uint32_t  dataBuffer[64];     // Make 64 a define??
    // By using a 64-bit index we never need to wrap around.
@@ -251,6 +268,7 @@ private:
    int64_t  indexIn = 0ULL;         // Next word to be entered to buffer
    int64_t  indexOut = 0ULL;        // Next word to be sent
    int64_t  indexMask = 0X003F;  // Goes with 64
+   uint16_t stateBuffer = DATA_BUFFER_EMPTY;
    uint16_t  vc = 0;
 
    uint32_t  samplePerBitCount = 0;
