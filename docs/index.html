@@ -417,12 +417,11 @@ span.mainfunction {color: #993300; font-weight: bolder}
         {"type":"RadioFMDetector_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"FMDetector","inputs":"1","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
         {"type":"radioModulatedGenerator_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"Modulator","inputs":"2","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
         {"type":"radioNoiseBlanker_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"NoiseBlank","inputs":"2","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
-
         {"type":"radioCESSBtransmit_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"CESSB_Mod","inputs":"1","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
         {"type":"radioCESSB_Z_transmit_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"CESSB_Z_Mod","inputs":"1","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
         {"type":"radioVoiceClipper_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"Clipper","inputs":"1","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
-
         {"type":"RadioFMDiscriminator_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"FMDiscrim","inputs":"1","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
+        {"type":"radioCWModulator_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"CWMod","inputs":"0","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"RadioBFSKModulator_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"BFSKMod","inputs":"0","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"UART_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"UART","inputs":"1","output":"0","category":"radio-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"0"}},
 
@@ -3973,6 +3972,113 @@ look ahead delay, as well.</p>
         <input type="text" id="node-input-name" placeholder="Name">
     </div>
 </script>
+
+<script type="text/x-red" data-help-name="radioCWModulator_F32">
+	<!-- ============   radioCWModulator_F32    ========= -->
+    <h3>Summary</h3>
+    <div class=tooltipinfo>
+    <p>Generates and transmits Morse code at a programmable rate.
+    Storage for 512 characters is provided.
+    Inputs can be characters or ASCII strings.  Most amateur radio CW symbols
+    are available.  Gaussian bandwidth shaping is used, with a rise time of about 5 milliseconds.
+    The output is a keyed sine wave of programmable frequency and amplitude.</p>
+    </div>
+
+    <h3>Audio Connections</h3>
+    <table class=doc align=center cellpadding=3>
+        <tr class=top><th>Port</th><th>Purpose</th></tr>
+        <tr class=odd><td align=center>Out 0</td><td>CW transmit audio or I-F</td></tr>
+    </table>
+
+    <h3>Functions</h3>
+
+    <p class=func><span class=keyword><strong>bool</strong> sendCW</span>(<strong>char</strong> ch);</p>
+    <p class=desc>This places a single character, ch, into the buffer. If successful,
+    meaning that the buffer is not full, a <strong>true</strong> is returned.</p>
+
+    <p class=func><span class=keyword><strong>bool</strong> sendStringCW</span>
+                (<strong>char*</strong> pStr);</p>
+    <p class=desc>This places a string, pointed to by pStr, into the buffer. If successful,
+    meaning that the buffer is not full, a <strong>true</strong> is returned.</p>
+
+    <p class=func><span class=keyword>enableTransmit</span>(<strong>bool</strong> en);</p>
+    <p class=desc>If en is <strong>true</strong> and the buffer has characters available, CW is sent.
+    If en is <strong>false</strong> CW is not sent and characters are left in the buffer.
+    This, of course, does not control PTT.  No return value.</p>
+
+    <p class=func><span class=keyword><strong>bool</strong> getEnableTransmit</span>();</p>
+    <p class=desc>Returns the enableTransmit status.  If enableTransmit(false) is applied,
+    the getTransmitEnable() will remain true until the current character is completed.
+    Additionally, getTransmitEnable() will go false when all characters in the buffer have
+    been fully sent.  This can be useful for control of Transmit/Receive.</p>
+
+    <p class=func><span class=keyword>amplitude</span>(<strong>float32_t</strong> a);</p>
+    <p class=desc>Sets a,  the zero-to-peak amplitude of the transmit signal.  The default is 1.0.
+    No return value.</p>
+
+    <p class=func><span class=keyword>frequency</span>(<strong>float32_t</strong> f);</p>
+    <p class=desc>Sets the frequency of the CW waveform.  The default is 600 Hz.  Any value up to
+    half of the sample rate can be used.
+    No return value.</p>
+
+    <p class=func><span class=keyword>setLongDashMs</span>(<strong>uint32_t</strong> longDashMs);</p>
+    <p class=desc>Sets the length, in milliseconds, of the long dash, longDashMs.  This is sent by a
+    semi-colon in the CW buffer. The default is 1000 milliseconds.  No return value.</p>
+
+    <p class=func><span class=keyword>setSampleRate_Hz</span>
+    (<strong>const float32_t</strong> &fs_Hz);</p>
+    <p class=desc>Most standard sample rates are supported.  See the Notes below for details. </p>
+
+    <h3>Examples</h3>
+<!-- <p class=exam>File &gt; Examples &gt; OpenAudio_ArduinoLibrary &gt; FT8Transmit</p> -->
+
+    <h3>Notes</h3>
+
+    <p>See the library file radioCWModulator.h for more information</p>
+
+    <p>The alphabet includes A to Z (or a to z), 0 to 9, space, quote, dollar,
+    parentheses, period, comma, hyphen. slash, colon, equal (so-called double dash),
+    question-mark, under-score, error, KN, AR, SK, AS. There is also a programmable
+    long dash that is involked by the semicolon. By changing the frequency, amplitude
+    and length, this can be used as a general purpose pulsed tone generator.
+    </p>
+
+    <p>Seeds can be from 5 to 50 words per minute (WPM).  From 5 to 30, all integer
+    speeds are available  Above 30, you get the speed lower, or equal, than requested as
+    30, 35, 40, 45, or 50 WPM.</p>
+
+    <p>A 512 character circular buffer holds CW get to be sent.  One can add to this buffer
+    any time.  The actual transmission of data is controlled by the enable() function.
+    If there is any question that the buffer will be over-filled, the getBufferSpace() function
+    can be used to check.</p>
+
+    <p>This runs on T3.x or T4.x.</p>
+
+    <P>The built-in Gaussian bandwidth filter only runs with a sample rate around
+    12 ksps.  To support higher rates, the output is "interpolated."  The resulting
+    ranges of supported sample rates are 11.0 ksps to 12.1 ksps, 44.0 ksps to 50.1 ksps,
+    and 88.0 ksps to 100.1 ksps.</P>
+
+    <p>It is planned to add a couple of variables to support fast break-in (QSK I think?).
+    If someone needs this, let me know at the library Github "messages" and we could
+    try to finish it up.</p>
+
+</script>
+<script type="text/x-red" data-template-name="radioCWModulator_F32">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+
+
+
+
+
+
+
+
 
 
 <script type="text/x-red" data-help-name="RadioFT8Modulator_F32">
