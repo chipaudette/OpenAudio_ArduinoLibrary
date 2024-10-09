@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+// Redid zeroing in begin() to not zero non-floats with memset().  Bob Larkin 9 Oct 2024
 /*
  http://www.hardwarebook.info/S/PDIF
  https://www.mikrocontroller.net/articles/S/PDIF
@@ -74,8 +75,9 @@ void AudioOutputSPDIF3_F32::begin(void)
 
 	block_left_1st = nullptr;
 	block_right_1st = nullptr;
-	memset(&block_silent, 0, sizeof(block_silent));
-
+	//memset(&block_silent, 0, sizeof(block_silent)); // Was 25 Aug 2024
+    for(int i=0; i<block_silent.length; i++)     // Now 25 Aug 2024 RSL
+	     block_silent.data[i] = 0.0f;
 	config_spdif3(sample_rate_Hz);
 	const int nbytes_mlno = 2 * 4; // 8 Bytes per minor loop
 
@@ -140,7 +142,7 @@ void AudioOutputSPDIF3_F32::isr(void)
 		SCB_CACHE_DCCIMVAC = (uintptr_t) dest;
 		asm volatile("dsb");
 		#endif
-		
+
 		*dest++ = f32_to_i24(*src_left++);
 		*dest++ = f32_to_i24(*src_right++);
 
