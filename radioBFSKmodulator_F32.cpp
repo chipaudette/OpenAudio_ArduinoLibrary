@@ -1,11 +1,11 @@
 /*
- * radioBFSKmodulator_F32
+ * radioBFSKmodulator_F32.cpp
  *
  * Created: Bob Larkin 17 March 2022
  *
  * License: MIT License. Use at your own risk. See corresponding .h file.
  *
- * 2 April 2023 -Corrected to handle outputs from a full buffer.  RSL
+ * 2 April 2023 -Corrected to handle outputs from full buffer.  RSL
  *               Added    int16_t getBufferSpace().  RSL
  */
 
@@ -115,4 +115,3 @@ void RadioBFSKModulator_F32::update(void) {
    AudioStream_F32::release (blockFSK);
    // Serial.print("     "); Serial.println(micros()-tt);
    }
-

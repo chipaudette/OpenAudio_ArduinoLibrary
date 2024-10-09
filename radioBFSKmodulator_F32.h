@@ -284,4 +284,3 @@ private:
    uint64_t   indexFIRMask = 0X001F;  // Goes with 32
 };
 #endif
-
