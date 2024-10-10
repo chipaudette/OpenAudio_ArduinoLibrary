@@ -18,18 +18,19 @@ namespace BTNRH_FFT {
 	ilog2(int n)
 	{
 		int     m;
-	
+
 		for (m = 1; m < 32; m++)
 			if (n == (1 << m))
 				return (m);
 		return (-1);
 	}
-	
+
 	static __inline int
 	bitrev(int ii, int m)
 	{
-		register int jj;
-	
+		// Was:  register int jj;  RSL 9 Oct 2024
+		int jj;
+
 		jj = ii & 1;
 		--m;
 		while (--m > 0) {
@@ -39,26 +40,26 @@ namespace BTNRH_FFT {
 		}
 		return (jj);
 	}
-	
+
 	static __inline void
 	rad2(int ii, float *x0, float *x1)
 	{
 		int     k;
 		float   t;
-	
+
 		for (k = 0; k < ii; k++) {
 			t = x0[k] + x1[k];
 			x1[k] = x0[k] - x1[k];
 			x0[k] = t;
 		}
 	}
-	
+
 	static __inline void
 	reorder1(int m, float *x)
 	{
 		int     j, k, kl, n;
 		float   t;
-	
+
 		k = 4;
 		kl = 2;
 		n = 1 << m;
@@ -75,13 +76,13 @@ namespace BTNRH_FFT {
 			}
 		}
 	}
-	
+
 	static __inline void
 	reorder2(int m, float *x)
 	{
 		int     ji, ij, n;
 		float   t;
-	
+
 		n = 1 << m;
 		for (ij = 0; ij <= (n - 2); ij += 2) {
 			ji = bitrev(ij >> 1, m) << 1;
@@ -95,11 +96,11 @@ namespace BTNRH_FFT {
 			}
 		}
 	}
-	
+
 	/***********************************************************/
-	
+
 	// rcfft
-	
+
 	static void
 	rcrad4(int ii, int nn,
 		float *x0, float *x1, float *x2, float *x3,
@@ -109,7 +110,7 @@ namespace BTNRH_FFT {
 		float   c1, c2, c3, s1, s2, s3, pr, pi, r1, r5;
 		float   t0, t1, t2, t3, t4, t5, t6, t7;
 		int     i0, i4, j, j0, ji, jl, jr, jlast, k, k0, kl, m, n, ni;
-	
+
 		n = nn / 4;
 		for (m = 1; (1 << m) < n; m++)
 			continue;
@@ -186,19 +187,19 @@ namespace BTNRH_FFT {
 			}
 		}
 	}
-	
+
 	//-----------------------------------------------------------
-	
+
 	static int
 	rcfft2(float *x, int m)
 	{
 		int     ii, nn, m2, it, n;
-	
+
 		n = 1 << m;;
 		m2 = m / 2;
-	
+
 	// radix 2
-	
+
 		if (m <= m2 * 2) {
 			nn = 1;
 		} else {
@@ -206,9 +207,9 @@ namespace BTNRH_FFT {
 			ii = n / nn;
 			rad2(ii, x, x + ii);
 		}
-	
+
 	// radix 4
-	
+
 		if (m2 != 0) {
 			for (it = 0; it < m2; it++) {
 				nn = nn * 4;
@@ -217,9 +218,9 @@ namespace BTNRH_FFT {
 					x, x + ii, x + 2 * ii, x + 3 * ii);
 			}
 		}
-	
+
 	// re-order
-	
+
 		reorder1(m, x);
 		reorder2(m, x);
 		for (it = 3; it < n; it += 2)
@@ -227,14 +228,14 @@ namespace BTNRH_FFT {
 		x[n] = x[1];
 		x[1] = 0.0;
 		x[n + 1] = 0.0;
-	
+
 		return (0);
 	}
-	
+
 	/***********************************************************/
-	
+
 	// rcfft
-	
+
 	static void
 	crrad4(int jj, int nn,
 		float *x0, float *x1, float *x2, float *x3,
@@ -244,7 +245,7 @@ namespace BTNRH_FFT {
 		float   c1, c2, c3, s1, s2, s3;
 		float   t0, t1, t2, t3, t4, t5, t6, t7;
 		int     ii, j, j0, ji, jr, jl, jlast, j4, k, k0, kl, m, n, ni;
-	
+
 		tpiovn = 2 * M_PI / nn;
 		ji = 3;
 		jl = 2;
@@ -317,27 +318,27 @@ namespace BTNRH_FFT {
 			}
 		}
 	}
-	
+
 	//-----------------------------------------------------------
-	
+
 	static int
 	crfft2(float *x, int m)
 	{
 		int     n, i, it, nn, jj, m2;
-	
+
 		n = 1 << m;
 		x[1] = x[n];
 		m2 = m / 2;
-	
+
 	// re-order
-	
+
 		for (i = 3; i < n; i += 2)
 			x[i] = -x[i];
 		reorder2(m, x);
 		reorder1(m, x);
-	
+
 	// radix 4
-	
+
 		if (m2 != 0) {
 			nn = 4 * n;
 			for (it = 0; it < m2; it++) {
@@ -347,39 +348,39 @@ namespace BTNRH_FFT {
 					x, x + jj, x + 2 * jj, x + 3 * jj);
 			}
 		}
-	
+
 	// radix 2
-	
+
 		if (m > m2 * 2) {
 			jj = n / 2;
 			rad2(jj, x, x + jj);
 		}
-	
+
 		return (0);
 	}
-	
+
 	/***********************************************************/
-	
+
 	// real-to-complex FFT
-	
+
 	//FUNC(void)
 	void cha_fft_rc(float *x, int n)
 	{
 		int m;
-	
-		// assume n is a power of two 
+
+		// assume n is a power of two
 		m = ilog2(n);
 		rcfft2(x, m);
 	}
-	
+
 	// complex-to-real inverse FFT
-	
+
 	//FUNC(void)
 	void cha_fft_cr(float *x, int n)
 	{
 		int i, m;
-	
-		// assume n is a power of two 
+
+		// assume n is a power of two
 		m = ilog2(n);
 		crfft2(x, m);
 		// scale inverse by 1/n
