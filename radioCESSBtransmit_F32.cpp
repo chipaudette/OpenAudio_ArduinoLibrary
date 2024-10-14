@@ -117,7 +117,7 @@ void radioCESSBtransmit_F32::update(void)  {
    arm_fir_f32(&firInstWeaverQ, weaverMQ, workingDataQ, nW);
    // Note: Sine wave envelope gain from blockIn->data[kk] to here is gainIn
 
-   // Mesaure input power and peak envelope, SSB before any CESSB processing
+   // Measure input power and peak envelope, SSB before any CESSB processing
    for(int k=0; k<nW; k++)
       {
       float32_t pwrWorkingData = workingDataI[k]*workingDataI[k] + workingDataQ[k]*workingDataQ[k];
@@ -142,102 +142,110 @@ void radioCESSBtransmit_F32::update(void)  {
    // LPF with gain of 2 built into coefficients, correct for zeros.
    arm_fir_f32(&firInstInterpolate1I,  workingDataI, workingDataI, nC);
    arm_fir_f32(&firInstInterpolate1Q,  workingDataQ, workingDataQ, nC);
+
    // WorkingDataI and Q are now at 24 ksps and ready for clipping
    // For input 48 ksps this produces 64 numbers
    // Voltage gain from blockIn->data to here for small sine wave is 1.0
 
-   for(int kk=0; kk<nC; kk++)
+
+
+
+   // Optional skip of CESSB processing. Filtering & SSB generation unchanged. Thanks to Greg KF5N
+   if(cessbProcessing)    // Not skipping
       {
-      float32_t power = workingDataI[kk]*workingDataI[kk] + workingDataQ[kk]*workingDataQ[kk];
-      float32_t mag = sqrtf(power);
-      if(mag > 1.0f)  // This the clipping, scaled to 1.0, desired max
+      for(int kk=0; kk<nC; kk++)
          {
-         workingDataI[kk] /= mag;
-         workingDataQ[kk] /= mag;
+         float32_t power = workingDataI[kk]*workingDataI[kk] + workingDataQ[kk]*workingDataQ[kk];
+         float32_t mag = sqrtf(power);
+         if(mag > 1.0f)  // This the clipping, scaled to 1.0, desired max
+            {
+            workingDataI[kk] /= mag;
+            workingDataQ[kk] /= mag;
+            }
+         powerSum0 += power;  // For measuring amount of clipping
+         if(mag > maxMag0)
+            maxMag0 = mag;
          }
-      powerSum0 += power;  // For measuring amount of clipping
-      if(mag > maxMag0)
-         maxMag0 = mag;
-      }
 
-   // clipperIn needs spectrum control, so LP filter it.  Same filter coeffs as Weaver.
-   // Both BW of the signal and the sample rate have been doubled.
-   arm_fir_f32(&firInstClipperI, workingDataI, workingDataI, nC);
-   arm_fir_f32(&firInstClipperQ, workingDataQ, workingDataQ, nC);
+      // clipperIn needs spectrum control, so LP filter it.  Same filter coeffs as Weaver.
+      // Both BW of the signal and the sample rate have been doubled.
+      arm_fir_f32(&firInstClipperI, workingDataI, workingDataI, nC);
+      arm_fir_f32(&firInstClipperQ, workingDataQ, workingDataQ, nC);
 
-   // Ready to compensate for filter overshoots
-   for (int k=0; k<64; k++)
-      {
-     /* ======= Sidebar:  Circular 2^n length delay arrays ========
-      *
-      * The length of the array, N,
-      * must be a power of 2.  For example N=2^6 = 64.  The minimum
-      * delay possible is the trivial case of 0 up to N-1.
-      * As in C, let i be the index of the N array elements which
-      * would range from 0 to N-1.  If p is an integer, that is a power
-      * of 2 also, with p >= n, it can serve as an index to the
-      * delay array by "ANDing" it with (N-1).  That is,
-      * i = p & (N-1).  It can be convenient if the largest
-      * possible value of the integer p, plus 1, is an integer multiple
-      * of the arrray size N, as then the rollover of p will not cause
-      * a jump in i.  For instance, if p is an uint8_t with a maximum
-      * value of pmax=255, (pmax+1)/N = (255+1)/64 = 4, which is an
-      * integer.  This combination will have no problems from rollover
-      * of p.
-      *
-      * The new data point is entered at index p & (N - 1).  To
-      * achieve a delay of d, the output of the delay array is taken
-      * at index ((p-d) & (N-1)). The index is then incremented by 1.
-      *  ========================================================== */
+      // Ready to compensate for filter overshoots
+      for (int k=0; k<64; k++)
+         {
+      /* ======= Sidebar:  Circular 2^n length delay arrays ========
+       *
+       * The length of the array, N,
+       * must be a power of 2.  For example N=2^6 = 64.  The minimum
+       * delay possible is the trivial case of 0 up to N-1.
+       * As in C, let i be the index of the N array elements which
+       * would range from 0 to N-1.  If p is an integer, that is a power
+       * of 2 also, with p >= n, it can serve as an index to the
+       * delay array by "ANDing" it with (N-1).  That is,
+       * i = p & (N-1).  It can be convenient if the largest
+       * possible value of the integer p, plus 1, is an integer multiple
+       * of the arrray size N, as then the rollover of p will not cause
+       * a jump in i.  For instance, if p is an uint8_t with a maximum
+       * value of pmax=255, (pmax+1)/N = (255+1)/64 = 4, which is an
+       * integer.  This combination will have no problems from rollover
+       * of p.
+       *
+       * The new data point is entered at index p & (N - 1).  To
+       * achieve a delay of d, the output of the delay array is taken
+       * at index ((p-d) & (N-1)). The index is then incremented by 1.
+       *  ========================================================== */
 
-      // Circular delay line for signal to align data with FIR output
-      // Put I & Q data points into the delay arrays
-      osDelayI[indexOsDelay & 0X3F] = workingDataI[k];
-      osDelayQ[indexOsDelay & 0X3F] = workingDataQ[k];
-      // Remove 64 points delayed data from line and save for later
-      delayedDataI[k] = osDelayI[(indexOsDelay - 63) & 0X3F];
-      delayedDataQ[k] = osDelayQ[(indexOsDelay - 63) & 0X3F];
-      indexOsDelay++;
+         // Circular delay line for signal to align data with FIR output
+         // Put I & Q data points into the delay arrays
+         osDelayI[indexOsDelay & 0X3F] = workingDataI[k];
+         osDelayQ[indexOsDelay & 0X3F] = workingDataQ[k];
+         // Remove 64 points delayed data from line and save for later
+         delayedDataI[k] = osDelayI[(indexOsDelay - 63) & 0X3F];
+         delayedDataQ[k] = osDelayQ[(indexOsDelay - 63) & 0X3F];
+         indexOsDelay++;
 
-      // Delay line to allow strongest envelope to be used for compensation
-      // We only need to look ahead 1 or behind 1, so delay line of 4 is OK.
-      // Enter latest envelope to delay array
-      osEnv[indexOsEnv & 0X03] = sqrtf(
-         workingDataI[k]*workingDataI[k] + workingDataQ[k]*workingDataQ[k]);
+         // Delay line to allow strongest envelope to be used for compensation
+         // We only need to look ahead 1 or behind 1, so delay line of 4 is OK.
+         // Enter latest envelope to delay array
+         osEnv[indexOsEnv & 0X03] = sqrtf(
+            workingDataI[k]*workingDataI[k] + workingDataQ[k]*workingDataQ[k]);
 
-      // look over the envelope curve to find the max
-      float32_t eMax = 0.0f;
-      if(osEnv[(indexOsEnv) & 0X03] > eMax)  // One just entered
-         eMax = osEnv[(indexOsEnv) & 0X03];
-      if(osEnv[(indexOsEnv-1) & 0X03] > eMax)  // Entered one before
-         eMax = osEnv[(indexOsEnv-1) & 0X03];
-      if(osEnv[(indexOsEnv-2) & 0X03] > eMax)  // Entered one before that
-         eMax = osEnv[(indexOsEnv-2) & 0X03];
-      if(eMax < 1.0f)
-         eMax = 1.0f;                         // Below clipping region
+         // look over the envelope curve to find the max
+         float32_t eMax = 0.0f;
+         if(osEnv[(indexOsEnv) & 0X03] > eMax)  // One just entered
+            eMax = osEnv[(indexOsEnv) & 0X03];
+         if(osEnv[(indexOsEnv-1) & 0X03] > eMax)  // Entered one before
+            eMax = osEnv[(indexOsEnv-1) & 0X03];
+         if(osEnv[(indexOsEnv-2) & 0X03] > eMax)  // Entered one before that
+            eMax = osEnv[(indexOsEnv-2) & 0X03];
+         if(eMax < 1.0f)
+            eMax = 1.0f;                         // Below clipping region
 
-      indexOsEnv++;
+         indexOsEnv++;
 
-      // Clip the signal to 1.0.  -2 allows 1 look ahead on signal.
-      float32_t eCorrectedI = osDelayI[(indexOsDelay - 2) & 0X3F] / eMax;
-      float32_t eCorrectedQ = osDelayQ[(indexOsDelay - 2) & 0X3F] / eMax;
-      // Filtering is linear, so we only need to filter the difference between
-      // the signal and the clipper output.  This needs less filtering, as the
-      // difference is many dB below the signal to begin with. Hershberger 2014
-      diffI[k] = osDelayI[(indexOsDelay - 2) & 0X3F] - eCorrectedI;
-      diffQ[k] = osDelayQ[(indexOsDelay - 2) & 0X3F] - eCorrectedQ;
-      }  // End, for k=0 to 63
+         // Clip the signal to 1.0.  -2 allows 1 look ahead on signal.
+         float32_t eCorrectedI = osDelayI[(indexOsDelay - 2) & 0X3F] / eMax;
+         float32_t eCorrectedQ = osDelayQ[(indexOsDelay - 2) & 0X3F] / eMax;
+         // Filtering is linear, so we only need to filter the difference between
+         // the signal and the clipper output.  This needs less filtering, as the
+         // difference is many dB below the signal to begin with. Hershberger 2014
+         diffI[k] = osDelayI[(indexOsDelay - 2) & 0X3F] - eCorrectedI;
+         diffQ[k] = osDelayQ[(indexOsDelay - 2) & 0X3F] - eCorrectedQ;
+         }  // End, for k=0 to 63
 
-   // Filter the differences, osFilter has 129 taps and 64 delay
-   arm_fir_f32(&firInstOShootI, diffI, diffI, nC);
-   arm_fir_f32(&firInstOShootQ, diffQ, diffQ, nC);
+      // Filter the differences, osFilter has 129 taps and 64 delay
+      arm_fir_f32(&firInstOShootI, diffI, diffI, nC);
+      arm_fir_f32(&firInstOShootQ, diffQ, diffQ, nC);
 
-   // Do the overshoot compensation
-   for(int k=0; k<64; k++)
-      {
-      workingDataI[k] = delayedDataI[k] - gainCompensate*diffI[k];
-      workingDataQ[k] = delayedDataQ[k] - gainCompensate*diffQ[k];
-      }
+      // Do the overshoot compensation
+      for(int k=0; k<64; k++)
+         {
+         workingDataI[k] = delayedDataI[k] - gainCompensate*diffI[k];
+         workingDataQ[k] = delayedDataQ[k] - gainCompensate*diffQ[k];
+         }
+      }   // End CESSB processing
 
    // Finally interpolate to 48 or 96 ksps. Data is in workingDataI[k]
    // and is 64 samples for audio 48 ksps.

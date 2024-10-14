@@ -105,6 +105,7 @@
  * such as IIR.  Minimize any linear-phase filtering such as FIR.
  * Such activities enhance the overshoots and defeat the purpose of CESSB.
  */
+// Rev 14Oct24 Added on/off via cessbProcessing. Tnx KF5N.
 
 #ifndef _radioCESSB_Z_transmit_f32_h
 #define _radioCESSB_Z_transmit_f32_h
@@ -156,6 +157,16 @@ public:
          {
 	     setSampleRate_Hz(settings.sample_rate_Hz);
 	     //setBlockLength(128);   Always default 128
+         }
+
+    // A "setter" and "getter" methods.  If cessbProcessing==false, CESSB processing is bypassed.
+    // This is intended for digital modes.  Greg KF5N August 16 2024
+    void setProcessing(bool cessbActive) {
+        cessbProcessing = cessbActive;
+         }
+
+    bool getProcessing(void) {
+        return cessbProcessing;
          }
 
     // Sample rate starts at default 44.1 ksps. That will work.  Filters
@@ -278,7 +289,8 @@ private:
     struct levelsZ levelData;
     audio_block_f32_t *inputQueueArray_f32[1];
     uint32_t jjj = 0;   // Used for diagnostic printing
-
+    bool cessbProcessing = true;  // If false, CESSB processing is bypassed.
+                                  // Greg KF5N August 16 2024
     // Input/Output is at 48 or 96 ksps.  Hilbert generation is at 12 ksps.
     // Clipping and overshoot processing is at 24 ksps.
     // Next line is to indicate that setSampleRateHz() has not executed
