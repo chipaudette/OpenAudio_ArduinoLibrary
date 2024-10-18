@@ -67,19 +67,19 @@ audio_block_f32_t * AudioStream_F32::allocate_f32(void)
   audio_block_f32_t *block;
   uint8_t used;
 
-  // f32_memory_pool_available_mask is array of six 32-bit uints with a 1 in position of 
+  // f32_memory_pool_available_mask is array of six 32-bit uints with a 1 in position of
   // each available block (max 192).  0 if unavailable (busy) or not allocated at all.
   p = f32_memory_pool_available_mask;
-  
-  
-/* 
+
+
+/*
   if(millis() > 1200) {
        Serial.print("AudioStream_F32 ");
        Serial.println((uint32_t)*p, BIN);  // Just first of 6
-     } 
- */    
-     
-     
+     }
+ */
+
+
   __disable_irq();
   do {
     avail = *p; if (avail) break;
@@ -196,4 +196,3 @@ void AudioConnection_F32::connect(void) {
   dst.active = true;
   __enable_irq();
 }
-
