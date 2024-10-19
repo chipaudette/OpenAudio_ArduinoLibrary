@@ -3573,7 +3573,7 @@ look ahead delay, as well.</p>
     float32_t peak1;  // Peak voltage at output
     uint32_t countP;  // Number of averaged samples for pwr0.
     };
-</pre></p>
+    </pre></p>
 
     <p class=func><span class=keyword>levelDataCount</span>();</p>
     <p class=desc>Returns an uint32_t with the number of averaged samples
@@ -3591,11 +3591,19 @@ look ahead delay, as well.</p>
     overshoot.  A value of 2.0 or slightly less is normally used.  gainOut is
     for convenience and sets the drive level to the next block.  </p>
 
-
     <p class=func><span class=keyword>setSideband</span>(<strong>bool</strong> sbReverse);</p>
     <p class=desc>The LSB/USB selection depends on the processing of the
     IQ outputs of this class.  But, what we can do here is to reverse the
     selection by reversing the phase of one of the Weaver LO's. </p>
+
+    <p class=func><span class=keyword>setProcessing</span>(<strong>bool</strong> cessbActive);</p>
+    <p class=desc>This function turns the CESSB on (if boolean cessbActive==true) or stops the CESSB (if false.
+    if boolean cessbActive==false).  If cessbActive==false the SSB generation continues normally, but
+    without CESSB.  The default is true.</p>
+
+    <p class=func><span class=keyword>getProcessing</span>();</p>
+    <p class=desc>This function returns boolean true if CESSB processing is running
+    and boolean false if it is not.</p>
 
     <h3>Examples</h3>
     <p class=exam>File &gt; Examples &gt; OpenAudio_ArduinoLibrary &gt;  CESSB
@@ -3721,7 +3729,14 @@ look ahead delay, as well.</p>
     IQ outputs of this class.  But, what we can do here is to reverse the
     selection by reversing the phase of the Q signal. </p>
 
+    <p class=func><span class=keyword>setProcessing</span>(<strong>bool</strong> cessbActive);</p>
+    <p class=desc>This function turns the CESSB on (if boolean cessbActive==true) or stops the CESSB
+    (if boolean cessbActive==false).  If cessbActive==false the SSB generation continues normally, but
+    without CESSB.  The default is true.</p>
 
+    <p class=func><span class=keyword>getProcessing</span>();</p>
+    <p class=desc>This function returns boolean true if CESSB processing is running
+    and boolean false if it is not.</p>
     <p class=func><span class=keyword>setIQCorrections</span>
       (<strong>bool</strong> useIQCorrection, <strong>float32_t</strong> gainI,
       <strong>float32_t</strong> crossIQ,<strong>float32_t</strong> crossQI);</p>
@@ -4012,14 +4027,30 @@ look ahead delay, as well.</p>
     Additionally, getTransmitEnable() will go false when all characters in the buffer have
     been fully sent.  This can be useful for control of Transmit/Receive.</p>
 
+    <p class=func><span class=keyword><strong>getBufferSpace</strong></span>();</p>
+    <p class=desc>Returns the number of places (of 512) left in the character buffer.</p>
+
     <p class=func><span class=keyword>amplitude</span>(<strong>float32_t</strong> a);</p>
     <p class=desc>Sets a,  the zero-to-peak amplitude of the transmit signal.  The default is 1.0.
     No return value.</p>
 
-    <p class=func><span class=keyword>frequency</span>(<strong>float32_t</strong> f);</p>
+    <p class=func><span class=keyword>setFrequency</span>(<strong>float32_t</strong> f);</p>
     <p class=desc>Sets the frequency of the CW waveform.  The default is 600 Hz.  Any value up to
     half of the sample rate can be used.
     No return value.</p>
+
+    <p class=func><span class=keyword>setCWSpeedWPM</span>(<strong>uint16_t</strong> speed);</p>
+    <p class=desc>Sets the speed ofCW sending.  The default is 13 WPM. The speed is the highest of
+    the following that does not exceed the requested speed. There is no return value.
+<pre>
+  5   11   17   23   29
+  6   12   18   24   30
+  7   13   19   25   35
+  8   14   20   26   40
+  9   15   21   27   50
+  10  16   22   28
+</pre>
+    </p>
 
     <p class=func><span class=keyword>setLongDashMs</span>(<strong>uint32_t</strong> longDashMs);</p>
     <p class=desc>Sets the length, in milliseconds, of the long dash, longDashMs.  This is sent by a
