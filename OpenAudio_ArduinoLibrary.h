@@ -61,6 +61,7 @@
 #include "AudioAnalyzePhase_F32.h"
 #include "AudioFilterEqualizer_F32.h"
 #include "AudioFilterFIRGeneral_F32.h"
+#include "radioCWModulator_F32.h"
 #include "radioCESSBtransmit_F32.h"
 #include "radioCESSB_Z_transmit_F32.h"
 #include "radioVoiceClipper_F32.h"
