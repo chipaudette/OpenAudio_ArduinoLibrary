@@ -108,14 +108,21 @@ class AudioConnection_F32
 
 class AudioStream_F32 : public AudioStream {
   public:
-    AudioStream_F32(unsigned char n_input_f32, audio_block_f32_t **iqueue) : AudioStream(1, inputQueueArray_i16),
-        num_inputs_f32(n_input_f32), inputQueue_f32(iqueue) {
+    AudioStream_F32(unsigned char n_input_f32, audio_block_f32_t **iqueue, 
+        unsigned char ninput_i16, audio_block_t** iqueues_i16)
+      : AudioStream(ninput_i16, iqueues_i16),
+        num_inputs_f32(n_input_f32), inputQueue_f32(iqueue) 
+    {
       //active_f32 = false;
       destination_list_f32 = NULL;
       for (int i=0; i < n_input_f32; i++) {
         inputQueue_f32[i] = NULL;
       }
     };
+    AudioStream_F32(unsigned char n_input_f32, audio_block_f32_t **iqueue)
+      : AudioStream_F32(n_input_f32, iqueue, 1, inputQueueArray_i16)
+      {}
+
     static void initialize_f32_memory(audio_block_f32_t *data, unsigned int num);
     static void initialize_f32_memory(audio_block_f32_t *data, unsigned int num, const AudioSettings_F32 &settings);
     //virtual void update(audio_block_f32_t *) = 0;
