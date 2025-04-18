@@ -21,7 +21,7 @@ class AudioEffectGain_F32 : public AudioStream_F32
   public:
     //constructor
     AudioEffectGain_F32(void) : AudioStream_F32(1, inputQueueArray_f32) {};
-	AudioEffectGain_F32(const AudioSettings_F32 &settings) : AudioStream_F32(1, inputQueueArray_f32) {};
+	  AudioEffectGain_F32(const AudioSettings_F32 &settings) : AudioStream_F32(1, inputQueueArray_f32) {};
 
     //here's the method that does all the work
     void update(void) {
