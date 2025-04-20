@@ -81,7 +81,7 @@ AudioConnection pc12(convert_F32toI16x2_6,1,  tdmO,11);
 //======================================================
 void setup() 
 {
-  AudioMemory(32); // TDM uses many blocks!
+  AudioMemory(48); // TDM uses many blocks!
   AudioMemory_F32(20);
 
   cs42448.enable();
@@ -113,5 +113,10 @@ void loop()
   delay(250);
   digitalToggle(LED_BUILTIN);
   if (rms.available())
-    Serial.printf("RMS input level: %.3f\n", rms.read());
+  {
+    Serial.printf("RMS input level: %.3f; audio memory: %d; F32 audio memory: %d\n", 
+                rms.read(), AudioMemoryUsageMax(), AudioStream_F32::f32_memory_used_max);
+    AudioMemoryUsageMaxReset();                
+    AudioMemoryUsageMaxReset_F32();                
+  }
 }
