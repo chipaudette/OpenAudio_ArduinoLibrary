@@ -54,11 +54,11 @@ public:
 	void amplitude(float n) {
 		if (n < 0.0) n = 0.0;
 		else if (n > 1.0) n = 1.0;
-		level = (int32_t)(n * 65536.0);
+		level = n;
 	}
 	virtual void update(void);
 private:
-	int32_t  level; // 0=off, 65536=max
+	float  level; // 0=off, 1=max
 	uint32_t seed;  // must start at 1
 	static uint16_t instance_count;
 };
