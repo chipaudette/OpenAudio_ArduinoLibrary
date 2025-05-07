@@ -20,6 +20,9 @@ void AudioSynthWaveformSine_F32::update(void) {
     uint16_t index, i;
     float32_t a, b;
 
+    if(!enabled)
+        return;
+
     blockS = AudioStream_F32::allocate_f32();   // Output blocks
     if (!blockS)  return;
 
