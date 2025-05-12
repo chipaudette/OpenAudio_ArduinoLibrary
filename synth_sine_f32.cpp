@@ -9,6 +9,7 @@
  * License: MIT License. Use at your own risk.
   *
  * Revised per synth_sine_f32.h.  7 Feb 2022 Bob.
+ * Revised to properly apply begin() and end().  11 May 2025  Bob
  */
 #include "synth_sine_f32.h"
 #include "utility/dspinst.h"
