@@ -115,7 +115,7 @@ public:
       uint16_t space = getBufferSpace();
       uint16_t size = strlen(_pStr);
       // Serial.print(space); Serial.print(" space    size "); Serial.println(size);
-      if(space < size)  return  false;
+      if(space <= size)  return  false;
       for(int kk=0; kk<(int)strlen(_pStr); kk++)
          sendCW( (uint16_t)*(_pStr+kk) );
       return true;
