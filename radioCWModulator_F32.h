@@ -36,10 +36,30 @@
  * equivalent to removing "key clicks."  To use higher sample rates, the
  * generation is only done for every 2nd, 4th or 8th sample.  The output
  * for sample rates above 12 ksps are interpolated.  The supported sample
- * rates become 11.025, 12, 44.1, 48, 50, 88, 96 and 100 ksps or others
+ * rates become 11.025, 12, 22, 24, 44.1, 48, 50, 88, 96 and 100 ksps or others
  * in those general ranges.
  */
+// Revised 25 Aug 2025. Added manual keying capability with Gaussian filtering.
+// Corrected peration at sampling rates above 12 ksps.   Bob L
+// Revised 29 Aug 2025 to extend lower range of sampling rate and to include
+// 22 to 25 ksps.  setSampleRate_Hz() changed to bool (true if successful, false
+// if unsupported rate.
 
+// *** 15 SEPT 2025  VERSION USING FULL FIR FILTERS (multiplying by zeros) ***
+
+/* ToDo:  Revise to polyphase interpolation to improve execution time.
+   See Richard G. Lyons,  "Understanding Digital Signal Processing,"
+   Third Edition, Prentice-Hall 2011, Section 10.12.2 Half-Band
+   Implementations, Figure 10-27(d). This procedure alternates half-length
+   FIR Filters with single term multiplys by 0.5.
+
+   The padding of the input array with zeros is accomplished as part of
+   the FIR LP filtering by designing the filter to be symmetrical about
+   Fsample/4, along with an odd number of coefficients. Then every other
+   filter coefficient is zero, except for the center one that is
+   always 0.5. The zero-product multiply-and-accumulates are not done by
+   omitting them from the coefficient array.
+ */
 
 #ifndef radioCWModulator_F32_h_
 #define radioCWModulator_F32_h_
@@ -52,6 +72,12 @@ class radioCWModulator_F32 : public AudioStream_F32
 //GUI: inputs:1, outputs:1  //this line used for automatic generation of GUI node
 //GUI: shortName:DetCTCSS
 public:
+
+#define SR_12KSPS  0
+#define SR_24KSPS  1
+#define SR_48KSPS  2
+#define SR_96KSPS  3
+
    radioCWModulator_F32(void) : AudioStream_F32(0, NULL) {
       sample_rate_Hz = AUDIO_SAMPLE_RATE;
       block_size = AUDIO_BLOCK_SAMPLES;
@@ -79,9 +105,21 @@ public:
       indexW = 0;
       indexR = 0;
       setCWSpeedWPM(speedWPM);
-      arm_fir_init_f32(&interpolateLPFInst, 59, &interpolateLPF[0], &interpolateLPFState[0], 128);
+      arm_fir_interpolate_init_f32 (&interp12_24Inst, 2, 40, b38A, pState12_24, 64);
+      arm_fir_interpolate_init_f32 (&interp24_48Inst, 2, 40, b38A, pState24_48, 64);
+      arm_fir_interpolate_init_f32 (&interp48_96Inst, 2, 40, b38A, pState48_96, 64);
       setSampleRate_Hz(sample_rate_Hz);
       setFrequency(600.0f);
+      // Clear interpolation buffers
+      for(int ii=0; ii<64; ii++)
+         dataBuf12[ii] = 0.0f;
+      for(int ii=0; ii<128; ii++)
+         {
+         dataBuf12[ii]     = 0.0f;
+         dataBuf24[ii] = 0.0f;    // Buffer for 12 to 24 ksps interp
+         dataBuf48[ii] = 0.0f;
+         dataBuf96[ii] = 0.0f;
+         }
       }
 
    // Enables the operation of the update().  This is needed when there
@@ -92,6 +130,21 @@ public:
 
    bool getEnableTransmit(void)  {
        return enableXmit;
+   }
+
+   // Enables/disables manual keying. Buffer sent keying is disabled.  The
+   // Gaussian keying shaping is continued.  Buffers are left untouched
+   // when manual CW is enabled.
+   void enableManualCW(bool _manualCW)  {
+      manualCW = _manualCW;
+      }
+
+   bool getmanualCW(void)  {
+       return manualCW;
+   }
+
+   void manualCWKey(bool _keyDown)  {
+	   keyDown = _keyDown;
    }
 
    uint16_t getBufferSpace(void)  {
@@ -114,8 +167,7 @@ public:
       {
       uint16_t space = getBufferSpace();
       uint16_t size = strlen(_pStr);
-      // Serial.print(space); Serial.print(" space    size "); Serial.println(size);
-      if(space <= size)  return  false;
+      if(space < size)  return  false;
       for(int kk=0; kk<(int)strlen(_pStr); kk++)
          sendCW( (uint16_t)*(_pStr+kk) );
       return true;
@@ -148,33 +200,47 @@ public:
       }
 
    // See note above on sample rates.
-   void setSampleRate_Hz (float32_t fs_Hz)  {             // (const float32_t &fs_Hz) {
+   bool setSampleRate_Hz (float32_t fs_Hz)  {
+      bool returnState = true;
       sample_rate_Hz = fs_Hz;
-      timeSamplesMs =  1000.0f/sample_rate_Hz;     // In millisec
-      if(sample_rate_Hz>11000.0f && sample_rate_Hz<12100.0f)
+      setFrequency(frequencyHz);
+      phaseIncrement = 512.0f*frequencyHz/sample_rate_Hz;
+      if(sample_rate_Hz>10900.0f && sample_rate_Hz<12100.0f)
          {
          nSample = 1;
          nSamplesPerUpdate = 128;
+         sampleRate = SR_12KSPS;
          }
-      else if(sample_rate_Hz>44000.0f && sample_rate_Hz<50100.0f)
+      else if(sample_rate_Hz>21900.0f && sample_rate_Hz<25100.0f)
+         {
+         nSample = 2;
+         nSamplesPerUpdate = 64;
+         sampleRate = SR_24KSPS;
+         }
+      else if(sample_rate_Hz>43900.0f && sample_rate_Hz<50100.0f)
          {
          nSample = 4;
          nSamplesPerUpdate = 32;
+         sampleRate = SR_48KSPS;
          }
-      else if(sample_rate_Hz>88000.0f && sample_rate_Hz<100100.0f)
+      else if(sample_rate_Hz>87900.0f && sample_rate_Hz<100100.0f)
          {
          nSample = 8;
          nSamplesPerUpdate = 16;
+         sampleRate = SR_96KSPS;
          }
       else
          {
-         Serial.print(sample_rate_Hz);
-         Serial.println(" sample rate not supported.");
          nSample = 4;
          nSamplesPerUpdate = 32;
+         sampleRate = SR_48KSPS;
+         setFrequency(48000.0f);
+         phaseIncrement = 512.0f*frequencyHz/sample_rate_Hz;
+         returnState = false;
          }
       arm_fir_init_f32(&GaussLPFInst, 145, &firGaussCoeffs[0], &GaussState[0], nSamplesPerUpdate);
       setFrequency(frequencyHz);
+      return returnState;
       }
 
    // The amplitude, a, is the peak, as in zero-to-peak.  This produces outputs
@@ -188,26 +254,27 @@ public:
    virtual void update(void);
 
 private:
-   uint8_t   sendBuffer[512];    // Circular send buffer
+   uint8_t   sendBuffer[512];    // Circular send buffer for CW chars
    uint16_t  indexW = 0;         // Write index in to buffer
    uint16_t  indexR = 0;         // Read index into buffer
    float32_t sample_rate_Hz = AUDIO_SAMPLE_RATE;
-   int16_t   block_size = 128;
-   int16_t   nSample = 4;        //
-   int16_t   nSamplesPerUpdate = 32;
+   int       block_size = 128;
+   int       sampleRate = SR_48KSPS;
+   int       nSample = 4;
+   int       nSamplesPerUpdate = 32;
    uint16_t  stateCW = IDLE_CW;
    uint8_t   c = 0;
    uint16_t  ic = 0;           // Current character as integer
    bool enableXmit = true;
+   bool manualCW = false;
+   bool keyDown = false;
    float32_t levelCW = 0.0f;   // sample by sample
    float32_t frequencyHz = 600.0f;
    float32_t phaseIncrement = 512.0f*frequencyHz/sample_rate_Hz;
    float32_t phaseS = 0.0f;
    float32_t magnitude = 1.0f;
-
-   float32_t timeSamplesMs =  1000.0f/sample_rate_Hz;     // In millisec
-   float32_t timeMsF = 0.0f;   // Update the event clock
-   uint32_t  timeMsI = 0;      // This is easier to use
+   float32_t timeMsF = 0.0f;   // Update the event clock, as float
+   uint32_t  timeMsI = 0;      // This int is easier to use
    uint16_t  speedWPM = 13;
    uint16_t  speedIndex = 8;
 
@@ -222,8 +289,52 @@ private:
    arm_fir_instance_f32 GaussLPFInst;
    float32_t GaussState[128 + 145];
 
-   arm_fir_instance_f32 interpolateLPFInst;
-   float32_t interpolateLPFState[128 + 59];
+   arm_fir_interpolate_instance_f32 interp12_24Inst;
+   float32_t  pState12_24[148];
+
+   arm_fir_interpolate_instance_f32 interp24_48Inst;
+   float32_t  pState24_48[148];
+
+   arm_fir_interpolate_instance_f32 interp48_96Inst;
+   float32_t  pState48_96[148];
+
+   // Circular buffers for interpolation
+   float32_t  dataBuf12[128];  // Buffer for 12 kHz signal start
+   float32_t  dataBuf12A[64]; // Temp storage after Gaussian LPF, if SR>12
+   float32_t  dataBuf24[128];  // Buffer for 12 to 24 ksps interp
+   float32_t  dataBuf48[128];  // Buffer for 24 to 48 ksps interp
+   float32_t  dataBuf96[128];  // Buffer for 48 to 96 ksps interp
+
+// For first stage of x2 interpolation.  SampleFreq is the new x2 rate.
+// b38 coefficients 0.003dB pass band up to 0.2*SampleFreq, -70 dB stop band above 0.3*SampleFreq
+// Includes a gain of 2.0
+/*float32_t b38[20] = {-0.0012772, 0.003261, -0.0070986, 0.0135458,
+                     -0.023764,  0.039562, -0.064408,  0.107022,
+                     -0.199250,  0.632406,  0.632408, -0.19925,
+                      0.107022, -0.064408,  0.039562, -0.023764,
+                      0.0135458,-0.0070986, 0.003261, -0.0012772};
+ */
+// float32_t b38mid = 0.500;  Always 0.5 and built into functions
+// The original filter with zeros left in.
+float32_t b38A[40] = {-0.0006386, 0.0, 0.0016305,  0.0, -0.0035493, 0.0,
+                       0.0067729, 0.0, -0.011882,  0.0,  0.019781,  0.0,
+                      -0.032204,  0.0,  0.053511,  0.0, -0.099725,  0.0,
+                       0.31613,   0.5,  0.31613,   0.0, -0.099725,  0.0,
+                       0.053511,  0.0, -0.032204,  0.0,  0.019781,  0.0,
+                      -0.011882,  0.0,  0.0067729, 0.0, -0.0035493, 0.0,
+                       0.0016305, 0.0, -0.0006386, 0.0};
+
+/*
+// For second or third stage x2 interpolation
+// b38 coefficients 0.002dB pass band up to 0.125*SampleFreq, -72 dB stop band above 0.375*SampleFreq
+float32_t b14[8] = {-3.7369195e-03,  2.0567858e-02, -7.2319757e-02,  3.0536909e-01,
+                     3.0536909e-01, -7.2319757e-02,  2.0567858e-02, -3.7369195e-03};
+// float32_t b14mid = 0.500; Always 0.5 and built into functions
+// The original filter with zeros left in:
+float32_t b14A[16] = {-3.7369195e-03, 0.0, 2.0567858e-02,  0.0, -7.2319757e-02, 0.0,
+                       3.0536909e-01, 0.5, 3.0536909e-01,  0.0, -7.2319757e-02, 0.0,
+                       2.0567858e-02, 0.0, -3.7369195e-03, 0.0};
+ */
 
    /* The following mc[] table defines the morse code sequences
     * in terms of bits. Starting from lsb and continuing until only one
@@ -303,54 +414,36 @@ struct cw_data tCW[29] = {
   { 40,  30,  90,  30,  60, 120},
   { 50,  24,  72,  24,  48,  96}};
 
-// CW LPF Gaussian 12 ksps, 70 Hz at 3 dB
+// CW LPF Gaussian 12 ksps, 
 float32_t coeffLPFGaussCW70[145] =  {
- 0.0000000994f, 0.0000002465f, 0.0000005437f, 0.0000010924f, 0.0000020348f,
- 0.0000035609f, 0.0000059142f, 0.0000093971f, 0.0000143746f, 0.0000212771f,
- 0.0000306017f, 0.0000429118f, 0.0000588363f, 0.0000790660f, 0.0001043500f,
- 0.0001354903f, 0.0001733351f, 0.0002187713f, 0.0002727164f, 0.0003361089f,
- 0.0004098986f, 0.0004950364f, 0.0005924635f, 0.0007031003f, 0.0008278357f,
- 0.0009675161f, 0.0011229345f, 0.0012948202f, 0.0014838290f, 0.0016905333f,
- 0.0019154139f, 0.0021588516f, 0.0024211200f, 0.0027023793f, 0.0030026708f,
- 0.0033219125f, 0.0036598959f, 0.0040162835f, 0.0043906075f, 0.0047822700f,
- 0.0051905436f, 0.0056145733f, 0.0060533799f, 0.0065058635f, 0.0069708087f,
- 0.0074468905f, 0.0079326809f, 0.0084266565f, 0.0089272066f, 0.0094326423f,
- 0.0099412055f, 0.0104510798f, 0.0109603999f, 0.0114672630f, 0.0119697396f,
- 0.0124658847f, 0.0129537493f, 0.0134313915f, 0.0138968878f, 0.0143483444f,
- 0.0147839080f, 0.0152017763f, 0.0156002085f, 0.0159775353f, 0.0163321678f,
- 0.0166626067f, 0.0169674505f, 0.0172454031f, 0.0174952809f, 0.0177160188f,
- 0.0179066758f, 0.0180664400f, 0.0181946320f, 0.0182907087f, 0.0183542653f,
- 0.0183850369f, 0.0183828991f, 0.0183478684f, 0.0182801008f, 0.0181798905f,
- 0.0180476675f, 0.0178839942f, 0.0176895623f, 0.0174651874f, 0.0172118049f,
- 0.0169304634f, 0.0166223192f, 0.0162886292f, 0.0159307439f, 0.0155500995f,
- 0.0151482106f, 0.0147266612f, 0.0142870968f, 0.0138312154f, 0.0133607587f,
- 0.0128775032f, 0.0123832512f, 0.0118798218f, 0.0113690419f, 0.0108527375f,
- 0.0103327249f, 0.0098108024f, 0.0092887417f, 0.0087682803f, 0.0082511135f,
- 0.0077388875f, 0.0072331919f, 0.0067355538f, 0.0062474314f, 0.0057702081f,
- 0.0053051882f, 0.0048535913f, 0.0044165491f, 0.0039951010f, 0.0035901916f,
- 0.0032026682f, 0.0028332785f, 0.0024826695f, 0.0021513865f, 0.0018398728f,
- 0.0015484699f, 0.0012774182f, 0.0010268582f, 0.0007968321f, 0.0005872861f,
- 0.0003980729f, 0.0002289548f, 0.0000796069f,-0.0000503789f,-0.0001614900f,
--0.0002542886f,-0.0003294068f,-0.0003875421f,-0.0004294517f,-0.0004559477f,
--0.0004678910f,-0.0004661861f,-0.0004517752f,-0.0004256325f,-0.0003887583f,
--0.0003421730f,-0.0002869118f,-0.0002240186f,-0.0001545404f,-0.0000795219f};
-
-/* FIR filter designed with http://t-filter.appspot.com
-Fs = 96000 Hz  [48000]
-    0 Hz to 4000 Hz  [0 to 2000]     actual ripple = 0.05 dB
-11000 Hz to 48000 Hz [5500 to 24000] actual atten = -93.1 dB  */
-float32_t interpolateLPF[59] = {
--0.000052355f,-0.000146720f,-0.000307316f,-0.000517033f,-0.000721194f,-0.000819999f,
--0.000680277f,-0.000169005f, 0.000793689f, 0.002172809f, 0.003767656f, 0.005194993f,
- 0.005927352f, 0.005395822f, 0.003149023f,-0.000960853f,-0.006611837f,-0.012919698f,
--0.018466308f,-0.021473003f,-0.020108212f,-0.012880252f, 0.000965492f, 0.021140621f,
- 0.046185831f, 0.073574790f, 0.100053429f, 0.122161788f, 0.136838160f, 0.141979757f,
- 0.136838160f, 0.122161788f, 0.100053429f, 0.073574790f, 0.046185831f, 0.021140621f,
-
-0.000965492f,-0.012880252f,-0.020108212f,-0.021473003f,-0.018466308f,-0.012919698f,
--0.006611837f,-0.000960853f, 0.003149023f, 0.005395822f, 0.005927352f, 0.005194993f,
- 0.003767656f, 0.002172809f, 0.000793689f,-0.000169005f,-0.000680277f,-0.000819999f,
--0.000721194f,-0.000517033f,-0.000307316f,-0.000146720f,-0.000052355f};
-
+ 0.000000000013f,  0.000000000230f,  0.000000001967f, 0.000000011200f,  0.000000048141f,
+ 0.000000167593f,  0.000000494741f,  0.000001279313f, 0.000002968163f,  0.000006293182f,
+ 0.000012368634f,  0.000022789991f,  0.000039725258f, 0.000065989656f,  0.000105095272f,
+ 0.000161268735f,  0.000239431946f,  0.000345143158f, 0.000484498100f,  0.000663993182f,
+ 0.000890354951f,  0.001170341805f,  0.001510525404f, 0.001917060227f,  0.002395450260f,
+ 0.002950321908f,  0.003585211904f,  0.004302378311f, 0.005102641686f,  0.005985262283f,
+ 0.006947857700f,  0.007986363895f,  0.009095040924f, 0.010266523229f,  0.011491912843f,
+ 0.012760912591f,  0.014061995183f,  0.015382603150f, 0.016709373840f,  0.018028383143f,
+ 0.019325401352f,  0.020586154438f,  0.021796584180f, 0.022943100872f,  0.024012822795f,
+ 0.024993797252f,  0.025875198659f,  0.026647500006f, 0.027302614782f,  0.027834007382f,
+ 0.028236770835f,  0.028507671540f,  0.028645161477f, 0.028649359097f,  0.028522000726f,
+ 0.028266364893f,  0.027887172428f,  0.027390465579f, 0.026783469604f,  0.026074440512f,
+ 0.025272502642f,  0.024387479779f,  0.023429723379f, 0.022409941313f,  0.021339030279f,
+ 0.020227914764f,  0.019087395070f,  0.017928006598f, 0.016759892161f,  0.015592688743f,
+ 0.014435429706f,  0.013296463085f,  0.012183386246f, 0.011102996841f,  0.010061259692f,
+ 0.009063288961f,  0.008113344718f,  0.007214842832f, 0.006370376935f,  0.005581751105f,
+ 0.004850021809f,  0.004175547619f,  0.003558045198f, 0.002996650053f,  0.002489980622f,
+ 0.002036204323f,  0.001633104269f,  0.001278145483f, 0.000968539557f,  0.000701306812f,
+ 0.000473335187f,  0.000281435183f,  0.000122390339f, -0.000006997132f, -0.000109865828f,
+-0.000189259903f, -0.000248099099f, -0.000289154009f, -0.000315026421f, -0.000328134503f,
+-0.000330702557f, -0.000324754989f, -0.000312114118f, -0.000294401420f, -0.000273041783f,
+-0.000249270341f, -0.000224141464f, -0.000198539480f, -0.000173190738f, -0.000148676626f,
+-0.000125447205f, -0.000103835123f, -0.000084069549f, -0.000066289850f, -0.000050558825f,
+-0.000036875286f, -0.000025185874f, -0.000015395980f, -0.000007379693f, -0.000000988737f,
+ 0.000003939638f,  0.000007575807f,  0.000010091935f, 0.000011657137f,  0.000012433551f,
+ 0.000012573298f,  0.000012216214f,  0.000011488311f, 0.000010500866f,  0.000009350060f,
+ 0.000008117080f,  0.000006868609f,  0.000005657627f, 0.000004524445f,  0.000003497908f,
+ 0.000002596712f,  0.000001830778f,  0.000001202630f, 0.000000708753f,  0.000000340886f,
+ 0.000000087231f, -0.000000066451f, -0.000000135848f, -0.000000137250f, -0.000000086820f}; 
 };
 #endif

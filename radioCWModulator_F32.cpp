@@ -5,17 +5,22 @@
 *
 *   License: MIT License.  Use at your own risk.
 */
+// Update notes are  in radioCWModulator_F32.h
 
 #include "radioCWModulator_F32.h"
 #include "sinTable512_f32.h"
 
 void radioCWModulator_F32::update(void)  {
-   float32_t keyData[128];     // CW key down and up, 0.0f and 1.0f
-   float32_t modulateCW[128];  // Storage for data to modulate sine wave
+
+   if(!enableXmit)
+      return;
+
+   float32_t circTemp[64];  // Storage for data from Gaussian
+   uint16_t tempIndex;
    uint16_t index, i;
    float32_t a, b;
    audio_block_f32_t *blockOut;
-
+   int32_t circIndexSave24;
    blockOut = AudioStream_F32::allocate_f32();   // Output block
    if (!blockOut)  return;
 
@@ -25,19 +30,24 @@ void radioCWModulator_F32::update(void)  {
 
    // We always generate CW at 12 ksps.  The number of data points in this
    // generation varies to provide 128 output output points after
-   // interpolation to 48 or 96 ksps.
-    for(i=0; i<nSamplesPerUpdate; i++)
+   // interpolation to 24, 48 or 96 ksps.  So for each update(), we generate
+   // 128 points if sample rate is 12 ksps and 32 if it is 48 ksps, etc. The
+   // remainder are filled in by interpolation, below.
+   for(i=0; i<nSamplesPerUpdate; i++)
       {
-      timeMsF += timeSamplesMs;
+      // Code is generated at 12 ksps, so always increment by 1000mSec/12000:
+      timeMsF += 0.0833333;  // in milliSec
       timeMsI = (uint32_t)(0.5 + timeMsF);
-
-      if(!enableXmit)   // Just leave the key up and no new characters
+      if(manualCW)
          {
-         levelCW = 0.0f;
-         goto noXmit;
+         if(keyDown)
+            levelCW = 1.0f;
+         else
+            levelCW = 0.0f;
+         goto noAuto;
          }
 
-      switch(stateCW)
+      switch(stateCW)      // Sort out the automatic keying
          {
          case IDLE_CW:
             timeMsF = 0.0f;
@@ -164,35 +174,55 @@ void radioCWModulator_F32::update(void)  {
                break;
                }
       }   // end switch
-   noXmit:
-   keyData[i] = levelCW;
-   }      // end, over all 128 times
+   noAuto:
+   dataBuf12[i] = levelCW;   // A float, 128 to 16 of them, starting at i=0
+   }      // end, over all 128 to 16 times
 
-   arm_fir_f32(&GaussLPFInst, keyData, keyData, nSamplesPerUpdate);
+   if(sampleRate == SR_12KSPS)
+      // Do anti-key-click shaping of the 0.0 and 1.0 values.
+      arm_fir_f32(&GaussLPFInst, dataBuf12, dataBuf12, 128);
+   else
+      // Use dataBuf12A for FIR output, 64, 32, or 16 points
+      arm_fir_f32(&GaussLPFInst, dataBuf12, dataBuf12A, nSamplesPerUpdate);
 
-   // INTERPOLATE -   Interpolate here to support higher sample rates,
-   // while using the same spectral LPF.  To this point we have 128, 32
-   // or 16 "active" data points for 12, 48, or 96ksps.
-   //
-   // 0  1  2  3  4  5  6  7  8  9   i
-   // 0  0  0  0  1  1  1  1  2  2   i/4
-   // t  0  0  0  t  0  0  0  t  0   i==4*(i/4)
-   //
-   if(nSample > 1)      // Only needs interpolation if >1
+   // For SR_12KSPS there is no interpolation
+
+   /* INTERPOLATE -   Interpolate here to support higher sample rates,
+   while using the same spectral LPF.  To this point we have 64, 32
+   or 16 "active" data points for 24, 48, or 96ksps, in dataBuf12A[].
+   */
+   if(sampleRate == SR_24KSPS)
       {
-      for(i=0; i<128; i++)
-         {
-         if( i==(nSample*(1/nSample)) )
-            modulateCW[i]= keyData[i/nSample];
-         else
-            modulateCW[i] = 0.0f;
-         }
-      arm_fir_f32(&interpolateLPFInst, modulateCW, keyData, 128);
+      for(int kk=0; kk<64; kk++)   dataBuf12A[kk] *= 2.0f;
+      arm_fir_interpolate_f32 (&interp12_24Inst, dataBuf12A, dataBuf24, 64);
+      }
+   else if(sampleRate == SR_48KSPS)
+      {
+      for(int kk=0; kk<32; kk++)   dataBuf12A[kk] *= 4.0f;
+      arm_fir_interpolate_f32 (&interp12_24Inst, dataBuf12A, dataBuf24, 32);
+      arm_fir_interpolate_f32 (&interp24_48Inst, dataBuf24,  dataBuf48, 64);
+      }
+   else if(sampleRate == SR_96KSPS)
+      {
+      for(int kk=0; kk<16; kk++)  dataBuf12A[kk] *= 8.0f;
+      arm_fir_interpolate_f32 (&interp12_24Inst, dataBuf12A, dataBuf24, 16);
+      arm_fir_interpolate_f32 (&interp24_48Inst, dataBuf24,  dataBuf48, 32);
+      arm_fir_interpolate_f32 (&interp48_96Inst, dataBuf48,  dataBuf96, 64);
       }
 
-   // Interpolation is done, now amplitude modulate CW onto a sine wave.
-   for (i=0; i < 128; i++)
+   // Interpolation is complete, now amplitude modulate CW onto a sine wave.
+   for (i=0; i < 128; i++)   // Always 128 modulation signals
       {
+      float32_t vOut;
+      if(sampleRate == SR_12KSPS)
+         vOut = dataBuf12[i];
+      else if(sampleRate == SR_24KSPS)
+         vOut = dataBuf24[i];
+      else if(sampleRate == SR_48KSPS)
+         vOut = dataBuf48[i];
+      else if(sampleRate == SR_96KSPS)
+         vOut = dataBuf96[i];
+
       phaseS += phaseIncrement;
       if (phaseS > 512.0f)  phaseS -= 512.0f;
       index = (uint16_t) phaseS;
@@ -200,8 +230,11 @@ void radioCWModulator_F32::update(void)  {
       // Read two nearest values of input value from the sine table
       a = sinTable512_f32[index];
       b = sinTable512_f32[index+1];
-      blockOut->data[i] = magnitude*keyData[i]*(a+(b-a)*deltaPhase);
+      blockOut->data[i] = magnitude*vOut*(a+(b-a)*deltaPhase); 
       }
    AudioStream_F32::transmit(blockOut);
    AudioStream_F32::release (blockOut);
-   }
+   }   // End update()
+
+
+
