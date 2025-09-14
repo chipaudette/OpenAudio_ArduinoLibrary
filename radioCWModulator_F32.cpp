@@ -15,12 +15,9 @@ void radioCWModulator_F32::update(void)  {
    if(!enableXmit)
       return;
 
-   float32_t circTemp[64];  // Storage for data from Gaussian
-   uint16_t tempIndex;
    uint16_t index, i;
    float32_t a, b;
    audio_block_f32_t *blockOut;
-   int32_t circIndexSave24;
    blockOut = AudioStream_F32::allocate_f32();   // Output block
    if (!blockOut)  return;
 
@@ -193,17 +190,20 @@ void radioCWModulator_F32::update(void)  {
    */
    if(sampleRate == SR_24KSPS)
       {
+      // ToDo:  Re-scale coefficients of FIR x2.0 to eliminate next statement
       for(int kk=0; kk<64; kk++)   dataBuf12A[kk] *= 2.0f;
       arm_fir_interpolate_f32 (&interp12_24Inst, dataBuf12A, dataBuf24, 64);
       }
    else if(sampleRate == SR_48KSPS)
       {
+      // ToDo:  Re-scale coefficients of FIR x2.0 to eliminate next statement
       for(int kk=0; kk<32; kk++)   dataBuf12A[kk] *= 4.0f;
       arm_fir_interpolate_f32 (&interp12_24Inst, dataBuf12A, dataBuf24, 32);
       arm_fir_interpolate_f32 (&interp24_48Inst, dataBuf24,  dataBuf48, 64);
       }
    else if(sampleRate == SR_96KSPS)
       {
+      // ToDo:  Re-scale coefficients of FIR x2.0 to eliminate next statement
       for(int kk=0; kk<16; kk++)  dataBuf12A[kk] *= 8.0f;
       arm_fir_interpolate_f32 (&interp12_24Inst, dataBuf12A, dataBuf24, 16);
       arm_fir_interpolate_f32 (&interp24_48Inst, dataBuf24,  dataBuf48, 32);
@@ -213,7 +213,7 @@ void radioCWModulator_F32::update(void)  {
    // Interpolation is complete, now amplitude modulate CW onto a sine wave.
    for (i=0; i < 128; i++)   // Always 128 modulation signals
       {
-      float32_t vOut;
+      float32_t vOut = 0.0;
       if(sampleRate == SR_12KSPS)
          vOut = dataBuf12[i];
       else if(sampleRate == SR_24KSPS)

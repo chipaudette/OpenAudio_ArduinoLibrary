@@ -45,8 +45,13 @@
 // 22 to 25 ksps.  setSampleRate_Hz() changed to bool (true if successful, false
 // if unsupported rate.
 
-// *** 15 SEPT 2025  VERSION USING FULL FIR FILTERS (multiplying by zeros) ***
-
+/* *** 15 SEPT 2025  VERSION USING FULL FIR FILTERS (multiplying by zeros) ***
+   Processor time per update():
+      12 ksps Sample rate  81 uSec   0.76% of processor
+      24 ksps              59 uSec   1.1%
+      48 ksps              48 uSec   1.8%
+      96 ksks              41 uSec   3.1%
+ */
 /* ToDo:  Revise to polyphase interpolation to improve execution time.
    See Richard G. Lyons,  "Understanding Digital Signal Processing,"
    Third Edition, Prentice-Hall 2011, Section 10.12.2 Half-Band
@@ -59,6 +64,8 @@
    filter coefficient is zero, except for the center one that is
    always 0.5. The zero-product multiply-and-accumulates are not done by
    omitting them from the coefficient array.
+
+   Comment: The processor useage is so small, this change is not of value.  RSL
  */
 
 #ifndef radioCWModulator_F32_h_
@@ -115,7 +122,7 @@ public:
          dataBuf12[ii] = 0.0f;
       for(int ii=0; ii<128; ii++)
          {
-         dataBuf12[ii]     = 0.0f;
+         dataBuf12[ii] = 0.0f;
          dataBuf24[ii] = 0.0f;    // Buffer for 12 to 24 ksps interp
          dataBuf48[ii] = 0.0f;
          dataBuf96[ii] = 0.0f;
@@ -167,7 +174,7 @@ public:
       {
       uint16_t space = getBufferSpace();
       uint16_t size = strlen(_pStr);
-      if(space < size)  return  false;
+      if(space <= size)  return  false;  // Fixed twice - thanks defragster!
       for(int kk=0; kk<(int)strlen(_pStr); kk++)
          sendCW( (uint16_t)*(_pStr+kk) );
       return true;
