@@ -25,6 +25,7 @@
   limitations under the License.
 
      ***  NODES FOR OPENAUDIO_ARDUINOLIBRARY   1 March 2021  RSL  ***
+     Updated many times, but still valid for 28 Oct 2025.
 -->
 <head>
 <title>Audio System Design Tool for Open Audio F32 Library for Teensy</title>
@@ -399,7 +400,7 @@ span.mainfunction {color: #993300; font-weight: bolder}
         {"type":"IFFT_Overlapped_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"blockwiseIFFT","inputs":"NaN","output":"0","category":"analyze-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"NaN"}},
         {"type":"AudioInputI2S_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"audioInI2S","inputs":"0","output":"0","category":"input-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
         {"type":"AudioOutputI2S_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"audioOutI2S","inputs":"2","output":"0","category":"output-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"0"}},
-
+        {"type":"AudioOutputI2SQuad_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"audioOutI2SQuad","inputs":"4","output":"0","category":"output-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"0"}},
 	    {"type":"AudioInputSPDIF3_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"spdif3","inputs":0,"outputs":2,"category":"input-function","color":"#E6E0F8","icon":"arrow-in.png"}},
 		{"type":"AsyncAudioInputSPDIF3_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"spdif_async","inputs":0,"outputs":2,"category":"input-function","color":"#E6E0F8","icon":"arrow-in.png"}},
         {"type":"AudioInputUSB_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"audioInUSB","inputs":"0","output":"0","category":"input-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
@@ -2325,17 +2326,7 @@ look ahead delay, as well.</p>
     <p>Nearly all the examples use this object.  Here are some of the highlights:</p>
     <p class=exam>File &gt; Examples &gt; Audio &gt; HardwareTesting &gt; PassThroughStereo
     </p>
-    <p class=exam>File &gt; Examples &gt; Audio &gt; SamplePlayer
-    </p>
-    <p class=exam>File &gt; Examples &gt; Audio &gt; Recorder
-    </p>
-    <p class=exam>File &gt; Examples &gt; Audio &gt; WavFilePlayer
-    </p>
-    <p class=exam>File &gt; Examples &gt; Audio &gt; Effects &gt; Chorus
-    </p>
-    <p class=exam>File &gt; Examples &gt; Audio &gt; Synthesis &gt; PlaySynthMusic
-    </p>
-    -->
+-->
     <h3>Notes</h3>
     <p>Only one I2S input and one I2S output object may be used.  Master
     and slave modes may not be mixed (both must be of the same type).</p>
@@ -2352,6 +2343,70 @@ look ahead delay, as well.</p>
     </div>
 </script>
 
+<script type="text/x-red" data-help-name="AudioOutputI2SQuad_F32">
+    <h3>Summary</h3>
+    <div class=tooltipinfo>
+    <p>Transmits quad (4) channel floating point 32-bit audio, using I2S master mode.</p>
+    <p>Transmit to the various I2S Codec boards, such as a pair of
+    <a href="http://www.pjrc.com/store/teensy3_audio.html" target="_blank">Teensy Audio Board</a>
+    or a single
+    <a href="https://www.janbob.com/electron/Codec/Codec1808_5102.htm" target="_blank">PCM1808 and PCM5102 Audio Board.</a>.
+    </div>
+    <p>Many thanks to Greg Raven for figuring this out.</p>
+    <h3>Teensy Boards Supported</h3>
+	<ul>
+	<li>Teensy 4.0
+	<li>Teensy 4.1
+	</ul>
+<h3>Audio Connections</h3>
+	<table class=doc align=center cellpadding=3>
+		<tr class=top><th>Port</th><th>Purpose</th></tr>
+		<tr class=odd><td align=center>In 0</td><td>Channel #1</td></tr>
+		<tr class=odd><td align=center>In 1</td><td>Channel #2</td></tr>
+		<tr class=odd><td align=center>In 2</td><td>Channel #3</td></tr>
+		<tr class=odd><td align=center>In 3</td><td>Channel #4</td></tr>
+	</table>
+    <h3>Constructor</h3>
+    <p>Objects of this class can be created using the typical, minimal constructor using no arguments.
+    Or, to control the sample rate and block size, the constructor can be passed an AudioSettings_F32
+    object that has been configured with your desired settings.</p>
+    <h3>Functions</h3>
+    <p class=func><span class=keyword>setGain</span>(<strong>float </strong>Gain);</p>
+    <p class=desc>Sets the output gain of all four channels. Values are unconstrained, but
+    normally range from 0.0 to 1.0 (default 1.0).  A setting of exactly 1.0 results in
+    no scaling. </p>
+    <h3>Hardware</h3>
+    <p>A control Codec object, such as a pair of SGTL5000 must be included.</p>
+    <p>Audio from
+        master mode I2S may be used in the same project as ADC, DAC (not T4.x) and
+        PWM signals, because all remain in sync to Teensy's timing</p>
+    <p>Information on using two SGTL5000 Audio Adaptor boards can be found
+    <a href="https://forum.pjrc.com/index.php?threads/teensy-4-1-and-4-channel-audio-audioinputi2squad.61123/&p=242054&viewfull=1#post242054"
+       target="_blank">at this Teensy Forum post.</a>
+    Information on the four channel PCM1808/PCM5102 board is at
+    <a href="https://www.janbob.com/electron/Codec/Codec1808_5102.htm" target="_blank">this web site.</a>.
+    <h3>Software Example</h3>
+    <p class=exam>File &gt; Examples &gt; AudioOutputI2SQuad_F32_Example
+    </p>
+
+    <h3>Notes</h3>
+    <p>Only one I2S input and one I2S output object may be used.  Master
+    modes only may be used for the quad output.</p>
+    <p>Being an "_F32" object, audio is passed into this class using F32 memory
+    that was allocated using an AudioMemory_F32() call in your sketch's setup()
+    routine. </p>
+    <p>The input data for this class is the usual 32-bit floating point used throughout the library.
+    The attached CODEC will be sent up to 32 bits of signed integer data, depending on the device.
+    The device can accept a smaller portion of the integers, such as 16 or 24-bits.
+    In all cases, the full scale integer value is represented by +/- 1.0 in floating point
+    language (minus 1 LSB on the plus side).</p>
+</script>
+<script type="text/x-red" data-template-name="AudioOutputI2SQuad_F32">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
 
 <script type="text/x-red" data-help-name="AudioOutputSPDIF3_F32">
 	<h3>Summary</h3>
@@ -4015,8 +4070,11 @@ look ahead delay, as well.</p>
                 (<strong>char*</strong> pStr);</p>
     <p class=desc>This places a string, pointed to by pStr, into the buffer. If successful,
     meaning that the buffer is not full, a <strong>true</strong> is returned.</p>
-
-    <p class=func><span class=keyword>enableTransmit</span>(<strong>bool</strong> en);</p>
+        
+    <p class=func><span class=keyword><strong>uint16_t</strong> getBufferSpace</span>();</p>
+    <p class=desc>Returns the number of empty bytes in the 512 character buffer.</p>
+    
+    <p class=func><span class=keyword>enableTransmit</span>(<strong> bool</strong>en);</p>
     <p class=desc>If en is <strong>true</strong> and the buffer has characters available, CW is sent.
     If en is <strong>false</strong> CW is not sent and characters are left in the buffer.
     This, of course, does not control PTT.  No return value.</p>
@@ -4026,6 +4084,18 @@ look ahead delay, as well.</p>
     the getTransmitEnable() will remain true until the current character is completed.
     Additionally, getTransmitEnable() will go false when all characters in the buffer have
     been fully sent.  This can be useful for control of Transmit/Receive.</p>
+    
+    <p class=func><span class=keyword>enableManualCW</span>(<strong>bool</strong> enCW);</p>
+    <p class=desc> Enables/disables (enCW = true/false) manual keying. Buffer sent keying
+    is disabled.  The Gaussian keying shaping is continued.  Buffers are left untouched
+    when manual CW is enabled.  No return value. </p>
+
+    <p class=func><span class=keyword><strong>bool</strong> getmanualCW</span>();</p>
+    <p class=desc>Returns the manual CW status./p>    
+
+    <p class=func><span class=keyword>manualCWKey</span>(<strong>bool</strong>keyDown);</p>
+    <p class=desc>When keyDown is true, the CW tone output is sent until
+    keyDown is false.  No return value. </p>  
 
     <p class=func><span class=keyword><strong>getBufferSpace</strong></span>();</p>
     <p class=desc>Returns the number of places (of 512) left in the character buffer.</p>
@@ -4036,8 +4106,7 @@ look ahead delay, as well.</p>
 
     <p class=func><span class=keyword>setFrequency</span>(<strong>float32_t</strong> f);</p>
     <p class=desc>Sets the frequency of the CW waveform.  The default is 600 Hz.  Any value up to
-    half of the sample rate can be used.
-    No return value.</p>
+    half of the sample rate can be used.  No return value.</p>
 
     <p class=func><span class=keyword>setCWSpeedWPM</span>(<strong>uint16_t</strong> speed);</p>
     <p class=desc>Sets the speed ofCW sending.  The default is 13 WPM. The speed is the highest of
@@ -4061,7 +4130,7 @@ look ahead delay, as well.</p>
     <p class=desc>Most standard sample rates are supported.  See the Notes below for details. </p>
 
     <h3>Examples</h3>
-<!-- <p class=exam>File &gt; Examples &gt; OpenAudio_ArduinoLibrary &gt; FT8Transmit</p> -->
+    <p class=exam>File &gt; Examples &gt; OpenAudio_ArduinoLibrary &gt; CWSendTest4Rate</p>
 
     <h3>Notes</h3>
 
