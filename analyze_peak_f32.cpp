@@ -64,6 +64,7 @@ void AudioAnalyzePeak_F32::update(void) {
 	min_sample = min;
 	max_sample = max;
 	new_output = true;    // Tell available() that data is available
+	count++;              // Number of blocks involved in peak determination
     AudioStream_F32::release(blockIn);
  }
 
@@ -77,6 +78,7 @@ float AudioAnalyzePeak_F32::read(void)  {
         min = abs(min);
         max = abs(max);
         if (min > max) max = min;
+        count = 0;     // Reset
         return max;
     }
     
@@ -86,5 +88,6 @@ float AudioAnalyzePeak_F32:: readPeakToPeak(void) {
         float32_t min = min_sample;
         float32_t max = max_sample;
         __enable_irq();
+        count = 0;       // Reset
         return (max - min);
     }
