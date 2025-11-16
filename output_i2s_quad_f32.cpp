@@ -36,29 +36,20 @@
 // This version is 4 channel I2S output.  Greg Raven KF5N October, 2025
 
 #include "output_i2s_quad_f32.h"
-#include "output_i2s_f32.h" // Required for 2 channel to be a "friend" so its I2S configuration method can be used.
-#include <arm_math.h>
-#include <utility/imxrt_hw.h> // From Teensy Audio library.  For set_audioClock().
 
 DMAChannel AudioOutputI2SQuad_F32::dma(false);
 DMAMEM __attribute__((aligned(32))) static float32_t i2s_tx_buffer[AUDIO_BLOCK_SAMPLES * 4]; // 4 channels 128 samples each, total = 512.
 
-void AudioOutputI2SQuad_F32::begin(void)
-{
-    bool transferUsing32bit = false;
-    begin(transferUsing32bit);
-}
-
-void AudioOutputI2SQuad_F32::begin(bool transferUsing32bit)
+void AudioOutputI2SQuad_F32::begin()
 {
     // Configure most of the I2S.
-    AudioOutputI2S_F32::config_i2s(transferUsing32bit);
-    // Configure the rest of the I2S unique to quad output.
-    I2S1_RCSR |= I2S_RCSR_RE | I2S_RCSR_BCE;
-    I2S1_TCSR = I2S_TCSR_TE | I2S_TCSR_BCE | I2S_TCSR_FRDE;
-    I2S1_TCR3 = I2S_TCR3_TCE_2CH;
+    AudioOutputI2SQuad_F32::config_i2s(sample_rate_Hz);
+
+    // Configure the I2S output pins.
     CORE_PIN7_CONFIG = 3;  // Teensy pin 7 is 1st and 2nd channels of I2S (Audio Adapter on Teensy 4.1).
     CORE_PIN32_CONFIG = 3; // Teensy pin 32 is 3rd and 4th channels of I2S.
+
+    // Zero the transmit buffer.
     memset(i2s_tx_buffer, 0, sizeof(i2s_tx_buffer));
 
     // Configure the DMA channel.
@@ -81,6 +72,11 @@ void AudioOutputI2SQuad_F32::begin(bool transferUsing32bit)
     update_responsibility = update_setup();
     dma.enable();
     enabled = 1; // What is this?
+
+    // Configure the rest of the I2S unique to quad output.
+    I2S1_RCSR |= I2S_RCSR_RE | I2S_RCSR_BCE;
+    I2S1_TCSR = I2S_TCSR_TE | I2S_TCSR_BCE | I2S_TCSR_FRDE;
+    I2S1_TCR3 = I2S_TCR3_TCE_2CH;
 }
 
 // Interrupt service routine called twice per update by the DMA.
@@ -280,12 +276,7 @@ void AudioOutputI2SQuad_F32::update(void)
 }
 
 // Configure the I2S peripheral.  This is most, but not all, of the configuration.  The rest is done by begin().
-// Note that the version of this method can be called from the dual channel object via "friend".
-void AudioOutputI2SQuad_F32::config_i2s(void) { config_i2s(false, AudioOutputI2SQuad_F32::sample_rate_Hz); }
-void AudioOutputI2SQuad_F32::config_i2s(bool transferUsing32bit) { config_i2s(transferUsing32bit, AudioOutputI2SQuad_F32::sample_rate_Hz); }
-void AudioOutputI2SQuad_F32::config_i2s(float fs_Hz) { config_i2s(false, fs_Hz); }
-
-void AudioOutputI2SQuad_F32::config_i2s(bool transferUsing32bit, float fs_Hz)
+void AudioOutputI2SQuad_F32::config_i2s(int fs_Hz)
 {
     CCM_CCGR5 |= CCM_CCGR5_SAI1(CCM_CCGR_ON);
 

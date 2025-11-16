@@ -39,9 +39,9 @@
 #define output_i2s_quad_f32_h_
 
 #include <Arduino.h>
-#include <arm_math.h>
 #include "AudioStream_F32.h"
 #include "DMAChannel.h"
+#include <utility/imxrt_hw.h> // From Teensy Audio library.  For set_audioClock().
 
 class AudioOutputI2SQuad_F32 : public AudioStream_F32
 {
@@ -65,14 +65,11 @@ public:
 	{
 		outputScale = _oscale;
 	}
-	virtual void update(void);
-	void begin(void);
-	void begin(bool);
-	void scale_f32_to_i32(float32_t *p_f32, int len);
 
 protected:
 	AudioOutputI2SQuad_F32(int dummy) : AudioStream_F32(4, inputQueueArray) {} // to be used only inside AudioOutputI2Sslave !!
 
+	void begin();
 	inline static audio_block_f32_t *block_left_1st = nullptr;
 	inline static audio_block_f32_t *block_right_1st = nullptr;
 	inline static audio_block_f32_t *block_left_2nd = nullptr;
@@ -80,14 +77,13 @@ protected:
 	inline static bool update_responsibility = false;
 	static DMAChannel dma;
 	static void isr(void);
+	virtual void update(void);
 
 private:
-	static void config_i2s(void);
-	static void config_i2s(bool);
-	static void config_i2s(float);
-	static void config_i2s(bool, float);
+	static void config_i2s(int fs_Hz);
+	void scale_f32_to_i32(float32_t *p_f32, int len);
 	audio_block_f32_t *inputQueueArray[4];
-	inline static float sample_rate_Hz = AUDIO_SAMPLE_RATE;
+	inline static int sample_rate_Hz = AUDIO_SAMPLE_RATE;
 	inline static int audio_block_samples = AUDIO_BLOCK_SAMPLES;
 	inline static int half_block_length = AUDIO_BLOCK_SAMPLES / 2;
 	inline static int half_buffer_length = AUDIO_BLOCK_SAMPLES * 2;
@@ -96,6 +92,7 @@ private:
 	float outputScale = 1.0f; // Quick volume control
 };
 
+// Quad slave not implemented.  Greg Raven KF5N November 2025
 class AudioOutputI2SQuadslave_F32 : public AudioOutputI2SQuad_F32
 {
 public:
