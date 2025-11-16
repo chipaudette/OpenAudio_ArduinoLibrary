@@ -1,5 +1,5 @@
 // Demonstration of AudioOutputI2SQuad_F32 four channel I2S output object.
-// Greg Raven KF5N October 2025.
+// Greg Raven KF5N November 2025.
 // The first left and right channels are output on pin 7, which drives the
 // Teensy Audio Adapter (Teensy 4.1).  The second left and right channels are output on pin 32 (Teensy 4.1).
 
@@ -8,7 +8,7 @@
 #include <OpenAudio_ArduinoLibrary.h>
 #include <AudioStream_F32.h>
 
-const float sample_rate_Hz = 48000.0;
+const int sample_rate_Hz = 48000;
 const int audio_block_samples = 128;   // Always 128
 
 AudioControlSGTL5000 sgtl5000_1;
@@ -30,13 +30,14 @@ void setup() {
     Serial.print(CrashReport);
   }
 
+/* DMA debug code.
   uint32_t* dmaErrors;
   dmaErrors = (uint32_t*)(0x400E8000 + 0x4);
   Serial.printf("DMA errors = %u\n", *dmaErrors);
+  */
 
   sgtl5000_1.enable();
   sgtl5000_1.setAddress(LOW);
-  AudioMemory(10);
   AudioMemory_F32(10);
   sgtl5000_1.volume(0.8);  // Set headphone volume.
   sgtl5000_1.unmuteHeadphone();
