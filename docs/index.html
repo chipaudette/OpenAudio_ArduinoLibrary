@@ -690,16 +690,14 @@ See Compressor and Compressor2 for complete, ready to use classes.</p>
     </div>
 </script>
 
-
-
 <div>
 <script type="text/x-red" data-help-name="AudioFilterFIRGeneral_F32">
 <!-- ============   AudioFilterFIRGeneral_F32    ========= -->
     <h3>Summary</h3>
     <div class=tooltipinfo>
     <p>Uses flat-delay FIR filtering to generate Low Pass, High Pass,
-    Band Pas and Band Reject Filters, do the filtering and compute the
-    response.</p>
+    Band Pass and Band Reject Filters. This class performs the FIR filtering.
+    It also can compute the frequency response of the FIR.</p>
     </div>
     <h3>Boards Supported</h3>
     <ul>
@@ -735,7 +733,7 @@ See Compressor and Compressor2 for complete, ready to use classes.</p>
     </p>
 
     <p class=func><span class=keyword>getResponse</span>(<strong>uint16_t</strong> nFreq, <strong>float</strong> *rdb);</p>
-    <p class=desc>Calculates the response of the equalizer in dB at nFreq equally spaced
+    <p class=desc>Calculates the response of the filter in dB at nFreq equally spaced
     frequencies.  rdb is a pointer to an array of nFreq floats where the response can be put.</p>
 
     <h3>Examples</h3>
@@ -769,12 +767,10 @@ See Compressor and Compressor2 for complete, ready to use classes.</p>
     used because of the latency it creates.  Note that if constant delay is needed, the FIR
     implementation does this with minimum latency.</p>
 
-    <p>AudioFilterFIR_F32 in this OpenAudio_ArduinoLibrary handles 32-bit floating point
-    data and a maximum of 200 taps.  This class requires the INO to provide the working
+    <p>This class requires the INO to provide the working
     space and thereby puts no limit on the number of FIR taps (coefficients) being used.
     The processor does run out of time, and that limits Teensy 3.6 to about 6000 taps
-    and Teensy 4.x to about 6000.  As a starting spot for huge FIR filters, one might use
-    1/2 or 1/3 of those numbers.</p>
+    and Teensy 4.x to many times that.</p>
 
     <p>It is practical to switch filter coefficient arrays on-the-fly.
     See the LoadCoeffs() function.  This class is initialized to a 4 coefficient
@@ -4091,14 +4087,11 @@ look ahead delay, as well.</p>
     when manual CW is enabled.  No return value. </p>
 
     <p class=func><span class=keyword><strong>bool</strong> getmanualCW</span>();</p>
-    <p class=desc>Returns the manual CW status./p>    
+    <p class=desc>Returns the manual CW status.</p>    
 
     <p class=func><span class=keyword>manualCWKey</span>(<strong>bool</strong>keyDown);</p>
     <p class=desc>When keyDown is true, the CW tone output is sent until
-    keyDown is false.  No return value. </p>  
-
-    <p class=func><span class=keyword><strong>getBufferSpace</strong></span>();</p>
-    <p class=desc>Returns the number of places (of 512) left in the character buffer.</p>
+    keyDown is false.  No return value.</p>  
 
     <p class=func><span class=keyword>amplitude</span>(<strong>float32_t</strong> a);</p>
     <p class=desc>Sets a,  the zero-to-peak amplitude of the transmit signal.  The default is 1.0.
@@ -5589,10 +5582,16 @@ isBothThreshold
     </table>
     <h3>Functions</h3>
     <p class=func><span class=keyword>available</span>();</p>
-    <p class=desc>Returns true each time new peak data is available.
+    <p class=desc>Returns true each time new peak data is available.</p>
+ 
+    <p class=func><span class=keyword>getCount</span>();</p>
+    <p class=desc>Returns the number of blocks that have been included in the peak
+    data that is currently available.  Each block is many measurements, typically 128.
     </p>
+    
     <p class=func><span class=keyword>read</span>();</p>
-    <p class=desc>Read the highest peak amplitude value since the last read.
+    <p class=desc>Read the highest peak amplitude value since the last read. Calling
+    this function also starts a new peak analysis, and can be used for that.
     </p>
     <p class=func><span class=keyword>readPeakToPeak</span>();</p>
     <p class=desc>Read the highest peak-to-peak amplitude since the last read.
@@ -5632,6 +5631,13 @@ isBothThreshold
     <p class=func><span class=keyword>available</span>();</p>
     <p class=desc>Returns true if new RMS data is available.
     </p>
+     
+    <p class=func><span class=keyword>getCount</span>();</p>
+    <p class=desc>Returns the number of blocks that have been averaged in the rms
+    data that is currently available.  Each block is many measurements, typically 128.
+    </p>
+    
+    
     <p class=func><span class=keyword>read</span>();</p>
     <p class=desc>Read the new RMS value.
 
