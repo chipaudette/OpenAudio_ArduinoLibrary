@@ -67,6 +67,7 @@ public:
         tailindex = 0;
         maxblocks = 0;
         memset(queue, 0, sizeof(queue));
+        setSampleRate_Hz(AUDIO_SAMPLE_RATE_EXACT);
     }
     AudioEffectDelay_OA_F32(const AudioSettings_F32 &settings) :
         AudioStream_F32(1,inputQueueArray) {
