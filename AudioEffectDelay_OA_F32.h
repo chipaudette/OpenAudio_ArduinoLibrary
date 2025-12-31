@@ -56,13 +56,13 @@
   #define DELAY_QUEUE_SIZE_OA  (6144 / AUDIO_BLOCK_SIZE_F32)
 #endif
 
-template<int channels=8>
-class AudioEffectDelay_OA_F32 : public AudioStream_F32
+template<int channels>
+class AudioEffectDelay_OA_n_F32 : public AudioStream_F32
 {
 //GUI: inputs:1, outputs:1  //this line used for automatic generation of GUI node
 //GUI: shortName:delay
 public:
-    AudioEffectDelay_OA_F32() : AudioStream_F32(1, inputQueueArray) {
+    AudioEffectDelay_OA_n_F32() : AudioStream_F32(1, inputQueueArray) {
         activemask = 0;
         headindex = 0;
         tailindex = 0;
@@ -70,7 +70,7 @@ public:
         memset(queue, 0, sizeof(queue));
         setSampleRate_Hz(AUDIO_SAMPLE_RATE_EXACT);
     }
-    AudioEffectDelay_OA_F32(const AudioSettings_F32 &settings) :
+    AudioEffectDelay_OA_n_F32(const AudioSettings_F32 &settings) :
         AudioStream_F32(1,inputQueueArray) {
             activemask = 0;
             headindex = 0;
@@ -347,5 +347,7 @@ private:
 
     unsigned long last_received_block_id = 0;
 };
+
+using AudioEffectDelay_OA_F32=AudioEffectDelay_OA_n_F32<8>;
 
 #endif
