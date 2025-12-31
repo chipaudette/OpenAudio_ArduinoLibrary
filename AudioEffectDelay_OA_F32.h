@@ -67,6 +67,7 @@ public:
         tailindex = 0;
         maxblocks = 0;
         memset(queue, 0, sizeof(queue));
+        setSampleRate_Hz(AUDIO_SAMPLE_RATE_EXACT);
     }
     AudioEffectDelay_OA_F32(const AudioSettings_F32 &settings) :
         AudioStream_F32(1,inputQueueArray) {
@@ -141,7 +142,7 @@ private:
 //#endif
     audio_block_f32_t *queue[DELAY_QUEUE_SIZE_OA];
     audio_block_f32_t *inputQueueArray[1];
-    float sampleRate_Hz = AUDIO_SAMPLE_RATE_EXACT; //default.  from AudioStream.h??
+    float sampleRate_Hz;
     //int audio_block_len_samples = AUDIO_BLOCK_SAMPLES;
     void receiveIncomingData(void);
     void discardUnneededBlocksFromQueue(void);
