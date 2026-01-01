@@ -41,26 +41,26 @@
 // Are these too big???   I think the same as I16---half as much?  <<<<<<<<<<<<<<<<
 #if defined(__IMXRT1062__)
   // 4.00 second maximum on Teensy 4.0
-  #define DELAY_QUEUE_SIZE_OA  (176512 / AUDIO_BLOCK_SAMPLES)
+  #define DELAY_MAX_MILLIS 4000
 #elif defined(__MK66FX1M0__)
   // 2.41 second maximum on Teensy 3.6
-  #define DELAY_QUEUE_SIZE_OA  (106496 / AUDIO_BLOCK_SIZE_F32)
+  #define DELAY_MAX_MILLIS 2410
 #elif defined(__MK64FX512__)
   // 1.67 second maximum on Teensy 3.5
-  #define DELAY_QUEUE_SIZE_OA  (73728 / AUDIO_BLOCK_SIZE_F32)
+  #define DELAY_MAX_MILLIS 1670
 #elif defined(__MK20DX256__)
   // 0.45 second maximum on Teensy 3.1 & 3.2
-  #define DELAY_QUEUE_SIZE_OA  (19826 / AUDIO_BLOCK_SIZE_F32)
+  #define DELAY_MAX_MILLIS 450
 #else
   // 0.14 second maximum on Teensy 3.0
-  #define DELAY_QUEUE_SIZE_OA  (6144 / AUDIO_BLOCK_SIZE_F32)
+  #define DELAY_MAX_MILLIS 140
 #endif
 
-template<int channels>
+static constexpr int DELAY_QUEUE_SIZE_OA_MAX = ((DELAY_MAX_MILLIS * AUDIO_SAMPLE_RATE) / (AUDIO_BLOCK_SIZE_F32*1000));
+
+template<int channels=8, int DELAY_QUEUE_SIZE_OA=DELAY_QUEUE_SIZE_OA_MAX>
 class AudioEffectDelay_OA_n_F32 : public AudioStream_F32
 {
-//GUI: inputs:1, outputs:1  //this line used for automatic generation of GUI node
-//GUI: shortName:delay
 public:
     AudioEffectDelay_OA_n_F32() : AudioStream_F32(1, inputQueueArray) {
         activemask = 0;
@@ -349,5 +349,7 @@ private:
 };
 
 using AudioEffectDelay_OA_F32=AudioEffectDelay_OA_n_F32<8>;
+//GUI: inputs:1, outputs:1  //this line used for automatic generation of GUI node
+//GUI: shortName:delay
 
 #endif
