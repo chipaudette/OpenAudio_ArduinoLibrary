@@ -273,8 +273,10 @@ void AudioInputI2Sslave_F32::begin(void)
 {
 	dma.begin(true); // Allocate the DMA channel first
 
-	AudioOutputI2Sslave_F32::config_i2s();
+	//block_left_1st = NULL;
+	//block_right_1st = NULL;
 
+	AudioOutputI2Sslave_F32::config_i2s();
 #if defined(KINETISK)
 	CORE_PIN13_CONFIG = PORT_PCR_MUX(4); // pin 13, PTC5, I2S0_RXD0
 
