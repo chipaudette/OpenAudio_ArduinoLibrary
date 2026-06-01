@@ -78,10 +78,17 @@ public:
         return count > 0;
     }
 
+    // Returns the number of 128 sample blocks included in rms calculation.
+    uint32_t getCount(void) {
+        return count;
+    }
+
     void showError(uint16_t e) {  // 0/1 Disables/Enables printing of update() errors
         errorPrint = e;
     }
 
+    // Returns the square root of average power over count blocks of 128 power samples.
+    // Also clears the power accumulator and can be used for this.
     float read(void);
 
     virtual void update(void);
@@ -93,7 +100,7 @@ private:
     // whereas float range for positive numbers is 2^23 =~ 1E7 so double is easily justified for accuracy. 
     // The timing 7 microseconds per 128, includes using double for accum, so the price is reasonable.
     double accum = 0.0;
-       uint32_t count = 0;
+    uint32_t count = 0;
 
     // Control error printing in update().  Should never be enabled
     // until all audio objects have been initialized.

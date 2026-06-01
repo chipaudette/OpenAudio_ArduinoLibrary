@@ -9,6 +9,7 @@
  * License: MIT License. Use at your own risk.
   *
  * Revised per synth_sine_f32.h.  7 Feb 2022 Bob.
+ * Revised to properly apply begin() and end().  11 May 2025  Bob
  */
 #include "synth_sine_f32.h"
 #include "utility/dspinst.h"
@@ -19,6 +20,9 @@ void AudioSynthWaveformSine_F32::update(void) {
     audio_block_f32_t *blockS;
     uint16_t index, i;
     float32_t a, b;
+
+    if(!enabled)
+        return;
 
     blockS = AudioStream_F32::allocate_f32();   // Output blocks
     if (!blockS)  return;

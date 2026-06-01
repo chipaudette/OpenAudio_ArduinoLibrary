@@ -81,6 +81,11 @@ public:
         errorPrint = e;
     }
 
+    // Returns the number blocks included in peak calculation.
+    uint32_t getCount(void) {
+        return count;
+    }
+
     virtual void update(void);
     float32_t read(void);
     float32_t readPeakToPeak(void);
@@ -92,7 +97,8 @@ private:
     volatile bool just_read = true;
     float32_t min_sample;
     float32_t max_sample;
-
+    uint32_t count = 0;
+    
     // Control error printing in update().  Should never be enabled
     // until all audio objects have been initialized.
     // Only used as 0 or 1 now, but 16 bits are available.
