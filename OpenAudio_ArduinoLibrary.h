@@ -29,6 +29,7 @@
 #include "AudioSettings_F32.h"
 #include "AudioSpectralDenoise_F32.h"
 #include "input_i2s_f32.h"
+#include "input_i2s_quad_f32.h"
 #include "input_spdif3_f32.h"
 #include "async_input_spdif3_F32.h"
 #include "output_i2s_f32.h"
