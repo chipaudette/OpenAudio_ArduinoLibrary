@@ -12,8 +12,8 @@ const int sample_rate_Hz = 48000;
 const int audio_block_samples = 128;   // Always 128
 
 AudioControlSGTL5000 sgtl5000_1;
-#if 1
 AudioSettings_F32 audio_settings(sample_rate_Hz, audio_block_samples);
+#if 0
 AudioSynthWaveformSine_F32 tone0(audio_settings), tone1(audio_settings), tone2(audio_settings), tone3(audio_settings);
 
 AudioOutputI2SQuad_F32 i2s_out(audio_settings);
@@ -23,24 +23,33 @@ AudioConnection_F32 connect1(tone1, 0, i2s_out, 1);
 AudioConnection_F32 connect2(tone2, 0, i2s_out, 2);
 AudioConnection_F32 connect3(tone3, 0, i2s_out, 3);
 #else
-AudioInputI2SQuad_F32 i2s_in();
+AudioAnalyzePeak_F32        peak0L(audio_settings);
+AudioAnalyzePeak_F32        peak1R(audio_settings);
+AudioAnalyzePeak_F32        peak2L(audio_settings);
+AudioAnalyzePeak_F32        peak3R(audio_settings);
+AudioInputI2SQuad_F32 i2s_in(audio_settings);
 AudioOutputI2SQuad_F32 i2s_out(audio_settings);
 
 #ifdef MIXUP
-AudioConnection          patchCord1(i2s_in, 0, i2s_out, 2);
-AudioConnection          patchCord2(i2s_in, 1, i2s_out, 3);
-AudioConnection          patchCord3(i2s_in, 2, i2s_out, 0);
-AudioConnection          patchCord4(i2s_in, 3, i2s_out, 1);
+AudioConnection_F32          patchCord1(i2s_in, 0, i2s_out, 2);
+AudioConnection_F32          patchCord2(i2s_in, 1, i2s_out, 3);
+AudioConnection_F32          patchCord3(i2s_in, 2, i2s_out, 0);
+AudioConnection_F32          patchCord4(i2s_in, 3, i2s_out, 1);
 #else // loopback
-AudioConnection          patchCord1(i2s_in, 0, i2s_out, 0);
-AudioConnection          patchCord2(i2s_in, 1, i2s_out, 1);
-AudioConnection          patchCord3(i2s_in, 2, i2s_out, 2);
-AudioConnection          patchCord4(i2s_in, 3, i2s_out, 3);
+AudioConnection_F32          connect0(i2s_in,   0, peak0L,  0);
+AudioConnection_F32          connect1(i2s_in,   1, peak1R,  0);
+AudioConnection_F32          connect2(i2s_in,   2, peak2L,  0);
+AudioConnection_F32          connect3(i2s_in,   3, peak3R,  0);
+
+//AudioConnection_F32          patchCord1(i2s_in, 0, i2s_out, 0);
+//AudioConnection_F32          patchCord2(i2s_in, 1, i2s_out, 1);
+//AudioConnection_F32          patchCord3(i2s_in, 2, i2s_out, 2);
+//AudioConnection_F32          patchCord4(i2s_in, 3, i2s_out, 3);
 	
 #endif
 #endif
-const int myInput = AUDIO_INPUT_LINEIN;
-//const int myInput = AUDIO_INPUT_MIC;
+//const int myInput = AUDIO_INPUT_LINEIN;
+const int myInput = AUDIO_INPUT_MIC;
 
 void setup() {
 
@@ -78,8 +87,9 @@ const int MUTE = 38;          // Mute Audio, HIGH = "On" Audio PA, LOW = Mute Au
   sgtl5000_2.enable();
   sgtl5000_2.inputSelect(myInput);
   sgtl5000_2.volume(0.5);
-  #endif
+ #endif
   sgtl5000_1.unmuteHeadphone();
+#if 0
   Serial.printf("Please listen for tones!\n");
   tone0.amplitude(0.1);
   tone0.frequency(261.63);
@@ -93,16 +103,17 @@ const int MUTE = 38;          // Mute Audio, HIGH = "On" Audio PA, LOW = Mute Au
   tone1.begin();
   tone2.begin();
   tone3.begin();
-   Serial.printf("UNMUTE\n");
- 
+#endif
+  Serial.printf("UNMUTE\n");
   digitalWrite(MUTE, UNMUTEAUDIO);  // Keep audio junk out of the speakers/headphones until configuration is complete.
 
 }
 
 void loop() {
 
-  delay(5000);
+#if 0
   Serial.printf("All Off\n");
+  delay(5000);
   
   // After 5 seconds, turn off all tones.
   tone0.end();
@@ -129,4 +140,17 @@ void loop() {
   // After 2 seconds, turn on tone3.
   Serial.printf("Tone 3 - PCM5102 Right - On\n");
   tone3.begin();
+#else
+  Serial.printf("PassThrough Running Now using mic not line in!\n");
+  Serial.print("Max float memory = ");
+  Serial.println(AudioStream_F32::f32_memory_used_max);
+  if(peak0L.available())  Serial.print(peak0L.read(), 6);
+  Serial.print(" <-0L   1R-> ");
+  if(peak1R.available())  Serial.println(peak1R.read(), 6);
+  if(peak2L.available())  Serial.print(peak2L.read(), 6);
+  Serial.print(" <-2L   3R-> ");
+  if(peak3R.available())  Serial.println(peak3R.read(), 6);
+  delay(1000);
+
+#endif
 }
