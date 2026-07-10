@@ -12,14 +12,35 @@ const int sample_rate_Hz = 48000;
 const int audio_block_samples = 128;   // Always 128
 
 AudioControlSGTL5000 sgtl5000_1;
+#if 1
 AudioSettings_F32 audio_settings(sample_rate_Hz, audio_block_samples);
 AudioSynthWaveformSine_F32 tone0(audio_settings), tone1(audio_settings), tone2(audio_settings), tone3(audio_settings);
+
 AudioOutputI2SQuad_F32 i2s_out(audio_settings);
 
 AudioConnection_F32 connect0(tone0, 0, i2s_out, 0);
 AudioConnection_F32 connect1(tone1, 0, i2s_out, 1);
 AudioConnection_F32 connect2(tone2, 0, i2s_out, 2);
 AudioConnection_F32 connect3(tone3, 0, i2s_out, 3);
+#else
+AudioInputI2SQuad_F32 i2s_in();
+AudioOutputI2SQuad_F32 i2s_out(audio_settings);
+
+#ifdef MIXUP
+AudioConnection          patchCord1(i2s_in, 0, i2s_out, 2);
+AudioConnection          patchCord2(i2s_in, 1, i2s_out, 3);
+AudioConnection          patchCord3(i2s_in, 2, i2s_out, 0);
+AudioConnection          patchCord4(i2s_in, 3, i2s_out, 1);
+#else // loopback
+AudioConnection          patchCord1(i2s_in, 0, i2s_out, 0);
+AudioConnection          patchCord2(i2s_in, 1, i2s_out, 1);
+AudioConnection          patchCord3(i2s_in, 2, i2s_out, 2);
+AudioConnection          patchCord4(i2s_in, 3, i2s_out, 3);
+	
+#endif
+#endif
+const int myInput = AUDIO_INPUT_LINEIN;
+//const int myInput = AUDIO_INPUT_MIC;
 
 void setup() {
 
@@ -42,11 +63,22 @@ const int MUTE = 38;          // Mute Audio, HIGH = "On" Audio PA, LOW = Mute Au
   pinMode(MUTE, OUTPUT);
   digitalWrite(MUTE, MUTEAUDIO);  // Keep audio junk out of the speakers/headphones until configuration is complete.
   Serial.printf("MUTE\n");
+  // Audio connections require memory to work.  For more
+  // detailed information, see the MemoryAndCpuUsage example
+  AudioMemory_F32(20);
 
-  sgtl5000_1.enable();
+  // Enable the first audio shield, select input, and enable output
   sgtl5000_1.setAddress(LOW);
-  AudioMemory_F32(10);
+  sgtl5000_1.enable();
+  sgtl5000_1.inputSelect(myInput);
   sgtl5000_1.volume(0.8);  // Set headphone volume.
+#if 0
+  // Enable the second audio shield, select input, and enable output
+  sgtl5000_2.setAddress(HIGH);
+  sgtl5000_2.enable();
+  sgtl5000_2.inputSelect(myInput);
+  sgtl5000_2.volume(0.5);
+  #endif
   sgtl5000_1.unmuteHeadphone();
   Serial.printf("Please listen for tones!\n");
   tone0.amplitude(0.1);
