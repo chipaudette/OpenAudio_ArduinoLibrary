@@ -29,6 +29,8 @@
  /*
  *  Extended by Terrance Robertson, May 2025
  *  Converted to F32
+ *  Changed By Julia Stephenson, July 2026
+ *  from 16Bit to 32Bit Transfers from I2S 
  */
 
 #ifndef _input_i2s_quad_f32_h_
@@ -52,8 +54,6 @@ public:
 	}
 
 	virtual void update(void);
-	static void scale_i16_to_f32( float32_t *p_i16, float32_t *p_f32, int len) ;
-	static void scale_i24_to_f32( float32_t *p_i24, float32_t *p_f32, int len) ;
 	static void scale_i32_to_f32( float32_t *p_i32, float32_t *p_f32, int len);
 	void begin(void);
 protected:

@@ -29,6 +29,8 @@
  /*
  *  Extended by Terrance Robertson, May 2025
  *  Converted to F32
+ *  Changed By Julia Stephenson, July 2026
+ *  from 16Bit to 32Bit Transfers from I2S 
  */
 
 #include <Arduino.h>
@@ -117,14 +119,6 @@ void AudioInputI2SQuad_F32::isr(void) {
 	}
 }
 
-#define I16_TO_F32_NORM_FACTOR (3.051850947599719e-05)  //which is 1/32767
-void AudioInputI2SQuad_F32::scale_i16_to_f32( float32_t *p_i16, float32_t *p_f32, int len) {
-	for (int i=0; i<len; i++) { *p_f32++ = ((*p_i16++) * I16_TO_F32_NORM_FACTOR); }
-}
-#define I24_TO_F32_NORM_FACTOR (1.192093037616377e-07)   //which is 1/(2^23 - 1)
-void AudioInputI2SQuad_F32::scale_i24_to_f32( float32_t *p_i24, float32_t *p_f32, int len) {
-	for (int i=0; i<len; i++) { *p_f32++ = ((*p_i24++) * I24_TO_F32_NORM_FACTOR); }
-}
 #define I32_TO_F32_NORM_FACTOR (4.656612875245797e-10)   //which is 1/(2^31 - 1)
 void AudioInputI2SQuad_F32::scale_i32_to_f32( float32_t *p_i32, float32_t *p_f32, int len) {
 	for (int i=0; i<len; i++) { *p_f32++ = ((*p_i32++) * I32_TO_F32_NORM_FACTOR); }
@@ -172,29 +166,13 @@ void AudioInputI2SQuad_F32::update(void) {
 		block_ch4 = new4;
 		block_offset = 0;
 		__enable_irq();
-	  // Application will have to scale 16bit inputs? As we don't know here what is coming in.
-#if 0 // JMS Change pass 24bit value through as that is a sensible maximum 
-      // the mantissa is 24 bits including sign so we will only lose 1 bit???
-	  //scale the float values so that the maximum possible audio values span -1.0 to + 1.0
-	  scale_i16_to_f32(out1->data, out1->data, AUDIO_BLOCK_SAMPLES);
-	  scale_i16_to_f32(out2->data, out2->data, AUDIO_BLOCK_SAMPLES);
-	  scale_i16_to_f32(out3->data, out3->data, AUDIO_BLOCK_SAMPLES);
-	  scale_i16_to_f32(out4->data, out4->data, AUDIO_BLOCK_SAMPLES);
-#else
-#if 1
+
 	  //scale the float values so that the maximum possible audio values span -1.0 to + 1.0
 	  scale_i32_to_f32(out1->data, out1->data, AUDIO_BLOCK_SAMPLES);
 	  scale_i32_to_f32(out2->data, out2->data, AUDIO_BLOCK_SAMPLES);
 	  scale_i32_to_f32(out3->data, out3->data, AUDIO_BLOCK_SAMPLES);
 	  scale_i32_to_f32(out4->data, out4->data, AUDIO_BLOCK_SAMPLES);
-#else
-	  //scale the float values so that the maximum possible audio values span -1.0 to + 1.0
-	  scale_i24_to_f32(out1->data, out1->data, AUDIO_BLOCK_SAMPLES);
-	  scale_i24_to_f32(out2->data, out2->data, AUDIO_BLOCK_SAMPLES);
-	  scale_i24_to_f32(out3->data, out3->data, AUDIO_BLOCK_SAMPLES);
-	  scale_i24_to_f32(out4->data, out4->data, AUDIO_BLOCK_SAMPLES);
-#endif	
-#endif	
+
     // then transmit the DMA's former blocks
 		AudioStream_F32::transmit(out1, 0);
 		AudioStream_F32::release(out1);
