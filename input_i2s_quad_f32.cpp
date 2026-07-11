@@ -36,12 +36,12 @@
 #include "output_i2s_quad_f32.h"
 #include "output_i2s_f32.h"
 
-DMAMEM __attribute__((aligned(32))) static uint32_t i2s_rx_buffer[AUDIO_BLOCK_SAMPLES*2];
+DMAMEM __attribute__((aligned(32))) static uint32_t i2s_rx_buffer[AUDIO_BLOCK_SAMPLES*4];// 4 channels 128 samples each, total = 512.
 audio_block_f32_t * AudioInputI2SQuad_F32::block_ch1 = NULL;
 audio_block_f32_t * AudioInputI2SQuad_F32::block_ch2 = NULL;
 audio_block_f32_t * AudioInputI2SQuad_F32::block_ch3 = NULL;
 audio_block_f32_t * AudioInputI2SQuad_F32::block_ch4 = NULL;
-uint16_t AudioInputI2SQuad_F32::block_offset = 0;
+uint32_t AudioInputI2SQuad_F32::block_offset = 0;
 bool AudioInputI2SQuad_F32::update_responsibility = false;
 DMAChannel AudioInputI2SQuad_F32::dma(false);
 
@@ -54,17 +54,17 @@ void AudioInputI2SQuad_F32::begin(void) {
 	AudioOutputI2S_F32::config_i2s();
   CORE_PIN8_CONFIG = 3;
   CORE_PIN6_CONFIG = 3;
-  IOMUXC_SAI1_RX_DATA0_SELECT_INPUT = 2; // GPIO_B1_00_ALT3, pg 873
-  IOMUXC_SAI1_RX_DATA1_SELECT_INPUT = 1; // GPIO_B0_10_ALT3, pg 873
-	dma.TCD->SADDR = (void *)((uint32_t)&I2S1_RDR0 + 2);
+  IOMUXC_SAI1_RX_DATA0_SELECT_INPUT = 2; // GPIO_B1_00_ALT3, pg 873 // Teensy Pin 8 
+  IOMUXC_SAI1_RX_DATA1_SELECT_INPUT = 1; // GPIO_B0_10_ALT3, pg 873 // Teensy Pin 6
+	dma.TCD->SADDR = (void *)((uint32_t)&I2S1_RDR0);
 	dma.TCD->SOFF = 4;
-	dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
+	dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(2) | DMA_TCD_ATTR_DSIZE(2);
 	dma.TCD->NBYTES_MLOFFYES = DMA_TCD_NBYTES_SMLOE |
 		DMA_TCD_NBYTES_MLOFFYES_MLOFF(-8) |
-		DMA_TCD_NBYTES_MLOFFYES_NBYTES(4);
+		DMA_TCD_NBYTES_MLOFFYES_NBYTES(8);
 	dma.TCD->SLAST = -8;
 	dma.TCD->DADDR = i2s_rx_buffer;
-	dma.TCD->DOFF = 2;
+	dma.TCD->DOFF = 4;
 	dma.TCD->CITER_ELINKNO = AUDIO_BLOCK_SAMPLES * 2;
 	dma.TCD->DLASTSGA = -sizeof(i2s_rx_buffer);
 	dma.TCD->BITER_ELINKNO = AUDIO_BLOCK_SAMPLES * 2;
@@ -82,7 +82,7 @@ void AudioInputI2SQuad_F32::begin(void) {
 
 void AudioInputI2SQuad_F32::isr(void) {
 	uint32_t daddr, offset;
-	const int16_t *src;
+	const int32_t *src;
 	float32_t *dest1, *dest2, *dest3, *dest4;
 
 	daddr = (uint32_t)(dma.TCD->DADDR);
@@ -91,12 +91,12 @@ void AudioInputI2SQuad_F32::isr(void) {
 	if(daddr < (uint32_t)i2s_rx_buffer + sizeof(i2s_rx_buffer) / 2) {
 		// DMA is receiving to the first half of the buffer
 		// need to remove data from the second half
-		src = (int16_t *)&i2s_rx_buffer[AUDIO_BLOCK_SAMPLES];
+		src = (int32_t *)&i2s_rx_buffer[AUDIO_BLOCK_SAMPLES * 2];
 		if(update_responsibility) update_all();
 	} else {
 		// DMA is receiving to the second half of the buffer
 		// need to remove data from the first half
-		src = (int16_t *)&i2s_rx_buffer[0];
+		src = (int32_t *)&i2s_rx_buffer[0];
 	}
 	if(block_ch1) {
 		offset = block_offset;
@@ -172,13 +172,29 @@ void AudioInputI2SQuad_F32::update(void) {
 		block_ch4 = new4;
 		block_offset = 0;
 		__enable_irq();
-
+	  // Application will have to scale 16bit inputs? As we don't know here what is coming in.
+#if 0 // JMS Change pass 24bit value through as that is a sensible maximum 
+      // the mantissa is 24 bits including sign so we will only lose 1 bit???
 	  //scale the float values so that the maximum possible audio values span -1.0 to + 1.0
 	  scale_i16_to_f32(out1->data, out1->data, AUDIO_BLOCK_SAMPLES);
 	  scale_i16_to_f32(out2->data, out2->data, AUDIO_BLOCK_SAMPLES);
 	  scale_i16_to_f32(out3->data, out3->data, AUDIO_BLOCK_SAMPLES);
 	  scale_i16_to_f32(out4->data, out4->data, AUDIO_BLOCK_SAMPLES);
-
+#else
+#if 1
+	  //scale the float values so that the maximum possible audio values span -1.0 to + 1.0
+	  scale_i32_to_f32(out1->data, out1->data, AUDIO_BLOCK_SAMPLES);
+	  scale_i32_to_f32(out2->data, out2->data, AUDIO_BLOCK_SAMPLES);
+	  scale_i32_to_f32(out3->data, out3->data, AUDIO_BLOCK_SAMPLES);
+	  scale_i32_to_f32(out4->data, out4->data, AUDIO_BLOCK_SAMPLES);
+#else
+	  //scale the float values so that the maximum possible audio values span -1.0 to + 1.0
+	  scale_i24_to_f32(out1->data, out1->data, AUDIO_BLOCK_SAMPLES);
+	  scale_i24_to_f32(out2->data, out2->data, AUDIO_BLOCK_SAMPLES);
+	  scale_i24_to_f32(out3->data, out3->data, AUDIO_BLOCK_SAMPLES);
+	  scale_i24_to_f32(out4->data, out4->data, AUDIO_BLOCK_SAMPLES);
+#endif	
+#endif	
     // then transmit the DMA's former blocks
 		AudioStream_F32::transmit(out1, 0);
 		AudioStream_F32::release(out1);

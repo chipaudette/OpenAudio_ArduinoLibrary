@@ -59,11 +59,11 @@ void setup() {
     Serial.print(CrashReport);
   }
 
-/* DMA debug code.
+// DMA debug code.
   uint32_t* dmaErrors;
   dmaErrors = (uint32_t*)(0x400E8000 + 0x4);
   Serial.printf("DMA errors = %u\n", *dmaErrors);
-  */
+//
 #define UNMUTEAUDIO LOW
 #define MUTEAUDIO   HIGH  
 const int MUTE = 38;          // Mute Audio, HIGH = "On" Audio PA, LOW = Mute Audio PA off.  This may be reversed depending on PA.
@@ -73,7 +73,7 @@ const int MUTE = 38;          // Mute Audio, HIGH = "On" Audio PA, LOW = Mute Au
   Serial.printf("MUTE\n");
   // Audio connections require memory to work.  For more
   // detailed information, see the MemoryAndCpuUsage example
-  AudioMemory_F32(20);
+  AudioMemory_F32(100);
 
   // Enable the first audio shield, select input, and enable output
   sgtl5000_1.setAddress(LOW);
@@ -142,6 +142,7 @@ void loop() {
 #else
   Serial.printf("Now using mic not line in!\n");
   Serial.printf("PassThrough Running Now with audiosettings!\n");
+  Serial.printf("Mic settings will need scakubg as now 24 Bit\n");
  
   Serial.print("Max float memory = ");
   Serial.println(AudioStream_F32::f32_memory_used_max);
@@ -152,6 +153,11 @@ void loop() {
   Serial.print(" <-2L   3R-> ");
   if(peak3R.available())  Serial.println(peak3R.read(), 6);
   delay(1000);
+// DMA debug code.
+  uint32_t* dmaErrors;
+  dmaErrors = (uint32_t*)(0x400E8000 + 0x4);
+  Serial.printf("DMA errors = %x\n", *dmaErrors);
+//
 
 #endif
 }
