@@ -29,7 +29,6 @@ AudioAnalyzePeak_F32        peak2L(audio_settings);
 AudioAnalyzePeak_F32        peak3R(audio_settings);
 AudioInputI2SQuad_F32 i2s_in(audio_settings);
 AudioOutputI2SQuad_F32 i2s_out(audio_settings);
-
 #ifdef MIXUP
 AudioConnection_F32          patchCord1(i2s_in, 0, i2s_out, 2);
 AudioConnection_F32          patchCord2(i2s_in, 1, i2s_out, 3);
@@ -41,10 +40,10 @@ AudioConnection_F32          connect1(i2s_in,   1, peak1R,  0);
 AudioConnection_F32          connect2(i2s_in,   2, peak2L,  0);
 AudioConnection_F32          connect3(i2s_in,   3, peak3R,  0);
 
-//AudioConnection_F32          patchCord1(i2s_in, 0, i2s_out, 0);
-//AudioConnection_F32          patchCord2(i2s_in, 1, i2s_out, 1);
-//AudioConnection_F32          patchCord3(i2s_in, 2, i2s_out, 2);
-//AudioConnection_F32          patchCord4(i2s_in, 3, i2s_out, 3);
+AudioConnection_F32          patchCord1(i2s_in, 0, i2s_out, 0);
+AudioConnection_F32          patchCord2(i2s_in, 1, i2s_out, 1);
+AudioConnection_F32          patchCord3(i2s_in, 2, i2s_out, 2);
+AudioConnection_F32          patchCord4(i2s_in, 3, i2s_out, 3);
 	
 #endif
 #endif
@@ -141,7 +140,9 @@ void loop() {
   Serial.printf("Tone 3 - PCM5102 Right - On\n");
   tone3.begin();
 #else
-  Serial.printf("PassThrough Running Now using mic not line in!\n");
+  Serial.printf("Now using mic not line in!\n");
+  Serial.printf("PassThrough Running Now with audiosettings!\n");
+ 
   Serial.print("Max float memory = ");
   Serial.println(AudioStream_F32::f32_memory_used_max);
   if(peak0L.available())  Serial.print(peak0L.read(), 6);
