@@ -23,8 +23,8 @@ AudioAnalyzePeak_F32        peak0L(audio_settings);
 AudioAnalyzePeak_F32        peak1R(audio_settings);
 AudioAnalyzePeak_F32        peak2L(audio_settings);
 AudioAnalyzePeak_F32        peak3R(audio_settings);
-AudioInputI2SQuad_F32 i2s_in(audio_settings);
-AudioOutputI2SQuad_F32 i2s_out(audio_settings);
+AudioInputI2SQuad_F32       i2s_in(audio_settings);
+AudioOutputI2SQuad_F32      i2s_out(audio_settings);
 
 AudioConnection_F32          connect0(i2s_in,   0, peak0L,  0);
 AudioConnection_F32          connect1(i2s_in,   1, peak1R,  0);
