@@ -56,6 +56,7 @@ void setup() {
   sgtl5000_1.setAddress(LOW);
   sgtl5000_1.enable();
   sgtl5000_1.inputSelect(myInput);
+  sgtl5000_1.micGain(0);
   sgtl5000_1.volume(0.8);  // Set headphone volume.
   sgtl5000_1.unmuteHeadphone();
 #if 0
@@ -63,6 +64,7 @@ void setup() {
   sgtl5000_2.setAddress(HIGH);
   sgtl5000_2.enable();
   sgtl5000_2.inputSelect(myInput);
+  sgtl5000_2.micGain(0);
   sgtl5000_2.volume(0.8);
   sgtl5000_2.unmuteHeadphone();
  #else

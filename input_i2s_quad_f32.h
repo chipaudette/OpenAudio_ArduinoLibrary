@@ -36,8 +36,6 @@
 #ifndef _input_i2s_quad_f32_h_
 #define _input_i2s_quad_f32_h_
 
-//#define __IMXRT1062__
-
 #include <Arduino.h>
 #include <arm_math.h>
 #include <AudioStream_F32.h>
@@ -45,8 +43,11 @@
 
 class AudioInputI2SQuad_F32 : public AudioStream_F32
 {
+//GUI: inputs:0, outputs:4  //this line used for automatic generation of GUI node
 public:
+    //uses default AUDIO_SAMPLE_RATE and BLOCK_SIZE_SAMPLES from AudioStream.h:
 	AudioInputI2SQuad_F32(void) : AudioStream_F32(0, NULL) { begin(); }
+	// Allow variable sample rate and block size:
 	AudioInputI2SQuad_F32(const AudioSettings_F32 &settings) : AudioStream_F32(0, NULL) {
 		sample_rate_Hz = settings.sample_rate_Hz;
 		audio_block_samples = settings.audio_block_samples;
