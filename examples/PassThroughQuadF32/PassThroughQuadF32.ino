@@ -1,7 +1,11 @@
 // Demonstration of AudioOutputI2SQuad_F32 four channel I2S output object.
 // Greg Raven KF5N November 2025.
 // The first left and right channels are output on pin 7, which drives the
-// Teensy Audio Adapter (Teensy 4.1).  The second left and right channels are output on pin 32 (Teensy 4.1).
+// Teensy Audio Adapter (Teensy 4.1).  The second left and right channels
+// are output on pin 32 (for Teensy 4.1).
+// Hardware can be double Audio Adaptors or specific T41 radio ADC/DAC RSL July 26
+
+#define USE_T41_RADIO 0
 
 #include <Arduino.h>
 #include <Audio.h>
@@ -9,14 +13,15 @@
 #include <AudioStream_F32.h>
 #include <utility/imxrt_hw.h> 
 
-// T3.x supported sample rates: 2000, 8000, 11025, 16000, 22050, 24000, 32000, 44100, 44117, 48000,
-//                             88200, 88235 (44117*2), 95680, 96000, 176400, 176470, 192000
 // T4.x supports any sample rate the codec will handle.
 
 const int sample_rate_Hz = 192000;
 const int audio_block_samples = 128;   // Always 128
 
 AudioControlSGTL5000 sgtl5000_1;
+#if !USE_T41_RADIO
+AudioControlSGTL5000 sgtl5000_2;  // RSL
+#endif
 AudioSettings_F32 audio_settings(sample_rate_Hz, audio_block_samples);
 
 AudioAnalyzePeak_F32        peak0L(audio_settings);
@@ -35,9 +40,13 @@ AudioConnection_F32          patchCord1(i2s_in, 0, i2s_out, 0);
 AudioConnection_F32          patchCord2(i2s_in, 1, i2s_out, 1);
 AudioConnection_F32          patchCord3(i2s_in, 2, i2s_out, 2);
 AudioConnection_F32          patchCord4(i2s_in, 3, i2s_out, 3);
-// Select Which Input from Teensy Audio Adaptor	
-//const int myInput = AUDIO_INPUT_LINEIN;
+
+// Select Which Input from Teensy Audio Adaptor	(JMS)
+#if !USE_T41_RADIO
+const int myInput = AUDIO_INPUT_LINEIN;
+#else
 const int myInput = AUDIO_INPUT_MIC;
+#endif
 
 void setup() {
 
@@ -59,7 +68,8 @@ void setup() {
   sgtl5000_1.micGain(0);
   sgtl5000_1.volume(0.8);  // Set headphone volume.
   sgtl5000_1.unmuteHeadphone();
-#if 0
+// #if 1  to use double audio shield.  0 to use T41 Radio hardware
+#if !USE_T41_RADIO
   // Enable the second audio shield, select input, and enable output
   sgtl5000_2.setAddress(HIGH);
   sgtl5000_2.enable();
@@ -67,23 +77,19 @@ void setup() {
   sgtl5000_2.micGain(0);
   sgtl5000_2.volume(0.8);
   sgtl5000_2.unmuteHeadphone();
- #else
-	 // Specific code for T41-EP ADC PCM1808/ DAC PCM5102
+#else
+// Specific code for T41-EP ADC PCM1808 / DAC PCM5102
 #define UNMUTEAUDIO LOW
 #define MUTEAUDIO   HIGH  
   const int MUTE = 38;          // Mute Audio, HIGH = "On" Audio PA, LOW = Mute Audio PA off.  This may be reversed depending on PA.
-
   pinMode(MUTE, OUTPUT);
   Serial.printf("UNMUTE\n");
   digitalWrite(MUTE, UNMUTEAUDIO);  // Keep audio junk out of the speakers/headphones until configuration is complete.
-
- #endif
-   setI2SFreq(sample_rate_Hz);
-
+#endif
+  setI2SFreq(sample_rate_Hz);
 }
 
 void loop() {
- 
   Serial.printf("PassThrough Running Now\n");
   Serial.printf("Sample Rate = %d\n",sample_rate_Hz);
 
@@ -101,13 +107,12 @@ void loop() {
   Serial.print(" <-2L   3R-> ");
   if(peak3R.available())  Serial.println(peak3R.read(), 6);
   delay(1000);
-// DMA debug code.
+  // DMA debug code.
   uint32_t* dmaErrors;
   dmaErrors = (uint32_t*)(0x400E8000 + 0x4);
   Serial.printf("DMA errors = %x\n", *dmaErrors);
-//
-
 }
+
 // Frank B's routine for setting I2S clocks. *** FOR T4.x ONLY ***
 void setI2SFreq(int freq1)    // Thank ypu, Frank B.
    {
