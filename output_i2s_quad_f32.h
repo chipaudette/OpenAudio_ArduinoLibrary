@@ -67,7 +67,7 @@ public:
 	}
 
 protected:
-	AudioOutputI2SQuad_F32(int dummy) : AudioStream_F32(4, inputQueueArray) {} // to be used only inside AudioOutputI2Sslave !!
+	AudioOutputI2SQuad_F32(int dummy) : AudioStream_F32(4, inputQueueArray) {} // to be used only inside AudioOutputI2SQuadslave !!
 
 	void begin();
 	inline static audio_block_f32_t *block_left_1st = nullptr;
@@ -98,7 +98,7 @@ class AudioOutputI2SQuadslave_F32 : public AudioOutputI2SQuad_F32
 public:
 	AudioOutputI2SQuadslave_F32(void) : AudioOutputI2SQuad_F32(0) { begin(); };
 	void begin(void);
-	friend class AudioInputI2Sslave_F32;
+	friend class AudioInputI2Ssink_F32;
 	friend void dma_ch0_isr(void);
 
 protected:

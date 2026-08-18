@@ -192,11 +192,42 @@ void AudioInputI2S_F32::scale_i32_to_f32( float32_t *p_i32, float32_t *p_f32, in
 	for (int i=0; i<len; i++) { *p_f32++ = ((*p_i32++) * I32_TO_F32_NORM_FACTOR); }
 }
 
+int AudioInputI2S_F32::word_width = 32;
+
+// The DMA fills the float buffer with the raw 32-bit FIFO words CONVERTED to
+// float values (the ISR does "*dest_f32++ = (float32_t)*src++").  With FBT =
+// (word_width-1) the received sample is right-justified in the low bits of the
+// FIFO word and ZERO-extended above, so the stored float equals a 32-bit
+// unsigned-with-positive-bias form of the sample.  These functions recover the
+// signed integer sample (sign-extending the short-frame width, which restores
+// two's complement for negative samples) and scale it to the [-1.0, +1.0]
+// range.  16/24-bit samples fit exactly in the float32 mantissa.
+void AudioInputI2S_F32::unpack_i16_to_f32( float32_t *p_raw, float32_t *p_f32, int len) {
+	for (int i=0; i<len; i++) {
+		int32_t s = (int32_t)(*p_raw++);
+		s = (s << 16) >> 16;   // sign-extend bit 15 (RX FIFO is zero-extended)
+		*p_f32++ = ((float)s * I16_TO_F32_NORM_FACTOR);
+	}
+}
+void AudioInputI2S_F32::unpack_i24_to_f32( float32_t *p_raw, float32_t *p_f32, int len) {
+	for (int i=0; i<len; i++) {
+		int32_t s = (int32_t)(*p_raw++);
+		s = (s << 8) >> 8;   // sign-extend bit 23 (RX FIFO is zero-extended)
+		*p_f32++ = ((float)s * I24_TO_F32_NORM_FACTOR);
+	}
+}
+
  void AudioInputI2S_F32::update_1chan(int chan, audio_block_f32_t *&out_f32) {
 	 if (!out_f32) return;
 
 	//scale the float values so that the maximum possible audio values span -1.0 to + 1.0
-	scale_i32_to_f32(out_f32->data, out_f32->data, audio_block_samples);
+	if (word_width == 16) {
+		unpack_i16_to_f32(out_f32->data, out_f32->data, audio_block_samples);
+	} else if (word_width == 24) {
+		unpack_i24_to_f32(out_f32->data, out_f32->data, audio_block_samples);
+	} else {
+		scale_i32_to_f32(out_f32->data, out_f32->data, audio_block_samples);
+	}
 	//scale_i16_to_f32(out_f32->data, out_f32->data, audio_block_samples);
 
 	//prepare to transmit by setting the update_counter (which helps tell if data is skipped or out-of-order)
@@ -269,14 +300,14 @@ void AudioInputI2S_F32::update(void)
 /******************************************************************/
 
 
-void AudioInputI2Sslave_F32::begin(void)
+void AudioInputI2Ssink_F32::begin(void)
 {
 	dma.begin(true); // Allocate the DMA channel first
 
 	//block_left_1st = NULL;
 	//block_right_1st = NULL;
 
-	AudioOutputI2Sslave_F32::config_i2s();
+	AudioOutputI2Ssink_F32::config_i2s();
 #if defined(KINETISK)
 	CORE_PIN13_CONFIG = PORT_PCR_MUX(4); // pin 13, PTC5, I2S0_RXD0
 
@@ -298,6 +329,31 @@ void AudioInputI2Sslave_F32::begin(void)
 
 	I2S0_RCSR |= I2S_RCSR_RE | I2S_RCSR_BCE | I2S_RCSR_FRDE | I2S_RCSR_FR;
 	I2S0_TCSR |= I2S_TCSR_TE | I2S_TCSR_BCE; // TX clock enable, because sync'd to TX
+	dma.attachInterrupt(isr);
+#elif defined(__IMXRT1062__)
+	CORE_PIN8_CONFIG  = 3;  //1:RX_DATA0
+	IOMUXC_SAI1_RX_DATA0_SELECT_INPUT = 2;
+
+	dma.TCD->SADDR = (void *)((uint32_t)&I2S1_RDR0 + 0);
+	dma.TCD->SOFF = 0;
+	dma.TCD->ATTR = DMA_TCD_ATTR_SSIZE(2) | DMA_TCD_ATTR_DSIZE(2);
+	dma.TCD->NBYTES_MLNO = 4;
+	dma.TCD->SLAST = 0;
+	dma.TCD->DADDR = i2s_rx_buffer;
+	dma.TCD->DOFF = 4;
+	dma.TCD->CITER_ELINKNO = I2S_BUFFER_TO_USE_BYTES / 4;
+	dma.TCD->DLASTSGA = -I2S_BUFFER_TO_USE_BYTES;
+	dma.TCD->BITER_ELINKNO = I2S_BUFFER_TO_USE_BYTES / 4;
+	dma.TCD->CSR = DMA_TCD_CSR_INTHALF | DMA_TCD_CSR_INTMAJOR;
+	dma.triggerAtHardwareEvent(DMAMUX_SOURCE_SAI1_RX);
+
+	// enable only the receiver.  Do NOT write I2S1_TCSR here: the SAI
+	// transmitter shares the SAI1_TCSR and enabling TE from an input sink
+	// latches TX FIFO underrun (FEF) when the TX FIFO is empty, which blocks
+	// SAI1_TX DMA requests.
+	I2S1_RCSR = I2S_RCSR_RE | I2S_RCSR_BCE | I2S_RCSR_FRDE | I2S_RCSR_FR;
+	update_responsibility = update_setup();
+	dma.enable();
 	dma.attachInterrupt(isr);
 #endif
 }

@@ -32,6 +32,8 @@ IDE Tools>USB Type and set the radio button to "Audio."  This should then compil
 Also, using this class requires some amount of I16 audio memory, such as a line in the top of
 the INO, "AudioMemory(10);"
 
+On Teensy 4.x this library also provides multi-channel USB Audio 2.0, ported and expanded from [teensy-4-usbAudio](https://github.com/alex6679/teensy-4-usbAudio). Channel count, sample rate, and bit depth are configurable in Arduino IDE via the Tools menu. This requires a patched Teensy core - see Installation below and `docs/MULTICHANNEL_USB_AUDIO.md`.
+
 2 - This library generally supports changing sample rates within the range of the Codec hardware
 being used. See Examples/PassthroughF32/PassthroughF32.ino.  In addition, be aware that classes that
 need speed scaling such as waveform generators and filters must be modified
@@ -52,6 +54,14 @@ Restart your Arduino IDE and you should now see this libraries example sketches 
 After installing this library into your Arduino->Libraries direction, you can have access to any of these capabilities simply by including the following command in your Arduino sketch: `#include <OpenAudio_ArduinoLibrary.h>`.
 
 As an alternative to the ZIP download, you can use git to maintain a local copy of the library.  This has the advantage of easy updating.  See GitHub and git documentation on how to do this.
+
+**Teensy 4.x multi-channel USB audio** requires a patched Teensy core (multi-channel `usb_desc.h`/`usb_audio.*` files plus the USB Audio Channels menu).  From the library root, run:
+
+```powershell
+.\scripts\setup.ps1
+```
+
+The script detects your Teensyduino installation, backs up the original core files to `backups/`, applies the patches, installs the library into `Documents\Arduino\libraries\`, and validates the result.  Restore the originals anytime with `.\scripts\restore_teensy_audio.ps1`.  See `docs/MULTICHANNEL_USB_AUDIO.md` for details.
 
 Dependencies
 ------------

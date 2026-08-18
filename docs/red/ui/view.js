@@ -991,6 +991,43 @@ RED.view = (function() {
 		resetMouseVars();
 	}
 
+	function checkRequirements(d) {
+		//Add requirements
+		d.requirementError = false;
+		d.conflicts = new Array();
+		d.requirements = new Array();
+		requirements.forEach(function(r) {
+			if (r.type == d.type) d.requirements.push(r);
+		});
+
+		//check for conflicts with other nodes:
+		d.requirements.forEach(function(r) {
+			RED.nodes.eachNode(function (n2) {
+				if (n2 != d && n2.requirements != null ) {
+					n2.requirements.forEach(function(r2) {
+						if (r["resource"] == r2["resource"]) {
+							if (r["shareable"] == false ) {
+								var msg = "Conflict: shareable '"+r["resource"]+"'  "+d.name+" and "+n2.name;
+								console.log(msg);
+								msg = n2.name + " uses " + r["resource"] + ", too";
+								d.conflicts.push(msg);
+								d.requirementError = true;
+							}
+							//else
+							if (r["setting"] != r2["setting"]) {
+								var msg = "Conflict: "+ d.name + " setting['"+r["setting"]+"'] and "+n2.name+" setting['"+r2["setting"]+"']";
+								console.log(msg);
+								msg = n2.name + " has different settings: " + r["setting"] + " ./. " + r2["setting"];
+								d.conflicts.push(msg);
+								d.requirementError = true;
+							}
+						}
+					});
+				}
+			});
+		});		
+	}
+
 	function redraw() {
 		vis.attr("transform","scale("+scaleFactor+")");
 		outer.attr("width", space_width*scaleFactor).attr("height", space_height*scaleFactor);
@@ -1221,10 +1258,13 @@ RED.view = (function() {
 					//node.append("path").attr("class","node_error").attr("d","M 3,-3 l 10,0 l -5,-8 z");
 					//node.append("image").attr("class","node_error hidden").attr("xlink:href","icons/node-error.png").attr("x",0).attr("y",-6).attr("width",10).attr("height",9);
 					//node.append("image").attr("class","node_changed hidden").attr("xlink:href","icons/node-changed.png").attr("x",12).attr("y",-6).attr("width",10).attr("height",10);
+					checkRequirements(d);
+					node.append("image").attr("class","node_reqerror hidden").attr("xlink:href","icons/error.png").attr("x",0).attr("y",-12).attr("width",20).attr("height",20);
 			});
 
 			node.each(function(d,i) {
-					if (d.dirty) {
+					checkRequirements(d);
+					if (d.dirty || d.requirementError != undefined) {
 						//if (d.x < -50) deleteSelection();  // Delete nodes if dragged back to palette
 						if (d.resize) {
 							//var l = d._def.label;
@@ -1300,6 +1340,10 @@ RED.view = (function() {
 						thisNode.selectAll(".node_error")
 							.attr("x",function(d){return d.w-10-(d.changed?13:0)})
 							.classed("hidden",function(d) { return d.valid; });
+
+						thisNode.selectAll(".node_reqerror")
+							.classed("hidden",function(d) { return !d.requirementError; })
+							.on("click",function(d) { RED.notify('Conflicts:<ul><li>'+d.conflicts.join('</li><li>')+'</li></ul>');d3.event.preventDefault(); });
 
 						thisNode.selectAll(".port_input").each(function(d,i) {
 							var port = d3.select(this);

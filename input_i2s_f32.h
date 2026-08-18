@@ -41,6 +41,7 @@
 #include <arm_math.h>
 #include "AudioStream_F32.h"
 // #include "AudioStream.h"   // included AudioStream_F32.h > Audio.h > AudioStream.h
+#include "output_i2s_f32.h"  // for AudioOutputI2S_F32::setExpectedWordWidth (shared SAI1 config)
 #include "DMAChannel.h"
 
 class AudioInputI2S_F32 : public AudioStream_F32
@@ -53,11 +54,32 @@ public:
 		audio_block_samples = settings.audio_block_samples;
 		begin();
 	}
+	// Force the I2S slot word width (16/24/32 bits) on the shared SAI1
+	// transmitter/receiver.  0 (the default) means 32-bit master slots or
+	// sink auto-detection from the external clock's BCLK/FS ratio.
+	AudioInputI2S_F32(int word_width) : AudioStream_F32(0, NULL) {
+		AudioOutputI2S_F32::setExpectedWordWidth(word_width);
+		begin();
+	}
+	AudioInputI2S_F32(const AudioSettings_F32 &settings, int word_width) : AudioStream_F32(0, NULL) {
+		sample_rate_Hz = settings.sample_rate_Hz;
+		audio_block_samples = settings.audio_block_samples;
+		AudioOutputI2S_F32::setExpectedWordWidth(word_width);
+		begin();
+	}
 
 	virtual void update(void);
 	static void scale_i16_to_f32( float32_t *p_i16, float32_t *p_f32, int len) ;
 	static void scale_i24_to_f32( float32_t *p_i24, float32_t *p_f32, int len) ;
 	static void scale_i32_to_f32( float32_t *p_i32, float32_t *p_f32, int len);
+	// Unpack right-justified 16/24-bit samples from raw 32-bit FIFO words
+	// (used when the sink receiver is configured for short frames).
+	static void unpack_i16_to_f32( float32_t *p_raw, float32_t *p_f32, int len) ;
+	static void unpack_i24_to_f32( float32_t *p_raw, float32_t *p_f32, int len) ;
+	// In sink mode the slot word width is auto-detected from the external
+	// clock's BCLK/FS ratio (16/24/32-bit).
+	static void setWordWidth(int w) { word_width = w; }
+	static int getDetectedWordWidth(void) { return word_width; }
 	void begin(void);
 	void begin(bool);
 	// void sub_begin_i32(void);  // These 2 are prototypes without functions  RSL May 22
@@ -66,26 +88,39 @@ public:
 	void clear_isOutOfMemory(void) { flag_out_of_memory = 0; }
 	//friend class AudioOutputI2S_F32;
 protected:
-	AudioInputI2S_F32(int dummy): AudioStream_F32(0, NULL) {} // to be used only inside AudioInputI2Sslave !!
+	AudioInputI2S_F32(bool sinkMode, int word_width) : AudioStream_F32(0, NULL)
+	{
+		AudioOutputI2S_F32::setExpectedWordWidth(word_width);
+	} // to be used only inside AudioInputI2Ssink !!
 	static bool update_responsibility;
 	static DMAChannel dma;
 	static void isr_32(void);
 	static void isr(void);
 	virtual void update_1chan(int, audio_block_f32_t *&);
+protected:
+	static float sample_rate_Hz;
+	static int audio_block_samples;
+	static int word_width;            // detected slot word width in bits (16/24/32)
 private:
 	static audio_block_f32_t *block_left_f32;
 	static audio_block_f32_t *block_right_f32;
-	static float sample_rate_Hz;
-	static int audio_block_samples;
 	static uint16_t block_offset;
 	static int flag_out_of_memory;
 	static unsigned long update_counter;
 };
 
-class AudioInputI2Sslave_F32 : public AudioInputI2S_F32
+// I2S "sink": receives audio on SAI1 (data in = pin 8) but does NOT generate the
+// bit clock or frame sync.  BCLK (pin 21) and FS (pin 20) must be driven by an
+// external clock source.  The slot word width (16/24/32-bit) is auto-detected
+// from the external clock's BCLK/FS ratio at startup (via the shared
+// AudioOutputI2Ssink_F32::config_i2s), or forced with the constructor.  On
+// Teensy 4.x this uses full 32-bit data in each slot; the SAI receiver is the
+// only block enabled (no TCSR write), matching the proven F32 input pattern.
+class AudioInputI2Ssink_F32 : public AudioInputI2S_F32
 {
 public:
-	AudioInputI2Sslave_F32(void) : AudioInputI2S_F32(0) { begin(); }
+	AudioInputI2Ssink_F32(void) : AudioInputI2S_F32(true, 0) { begin(); }
+	AudioInputI2Ssink_F32(int word_width) : AudioInputI2S_F32(true, word_width) { begin(); }
 	void begin(void);
 	friend void dma_ch1_isr(void);
 };

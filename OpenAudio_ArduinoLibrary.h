@@ -35,6 +35,10 @@
 #include "output_i2s_f32.h"
 #include "output_i2s_quad_f32.h"
 #include "output_spdif3_f32.h"
+#include "input_tdm8_f32.h"
+#include "input_tdm16_f32.h"
+#include "output_tdm8_f32.h"
+#include "output_tdm16_f32.h"
 #include "play_queue_f32.h"
 #include "record_queue_f32.h"
 #include "synth_pinknoise_f32.h"
@@ -76,4 +80,5 @@
 #include "radioNoiseBlanker_F32.h"
 #include "synth_sin_cos_f32.h"
 #include "UART_F32.h"
-// #include "USB_Audio_F32.h" Include this separately if needed. Then in IDE Tools>USB Type>Audio
+// #include "USB_Audio_F32.h"  // Uncomment for USB Audio (Tools > USB Type > Audio or MIDI+Audio+Serial).
+//                            // Requires patched Teensy core. Run scripts/setup.ps1 first.

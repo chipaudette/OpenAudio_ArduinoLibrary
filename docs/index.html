@@ -347,6 +347,52 @@ span.mainfunction {color: #993300; font-weight: bolder}
  TODO: add "parameters" fields, to replace the form html stuff
 -->
 
+<script  type="text/x-red" data-container-name="InputOutputCompatibilityMetadata">
+	{"requirements":[
+		{"type":"AudioInputI2S_F32",        "resource":"I2S Device",    "shareable":true,  "setting":"I2S Master"},
+		{"type":"AudioInputI2S_F32",        "resource":"Sample Rate",   "shareable":true,  "setting":"Teensy Control"},
+		{"type":"AudioInputI2S_F32",        "resource":"IN1 Pin",       "shareable":false},
+		{"type":"AudioOutputI2S_F32",       "resource":"I2S Device",    "shareable":true,  "setting":"I2S Master"},
+		{"type":"AudioOutputI2S_F32",       "resource":"Sample Rate",   "shareable":true,  "setting":"Teensy Control"},
+		{"type":"AudioOutputI2S_F32",       "resource":"OUT1A Pin",     "shareable":false},
+		{"type":"AudioInputI2Ssink_F32",    "resource":"I2S Device",    "shareable":true,  "setting":"I2S Sink"},
+		{"type":"AudioInputI2Ssink_F32",    "resource":"Sample Rate",   "shareable":true,  "setting":"External Control"},
+		{"type":"AudioInputI2Ssink_F32",    "resource":"IN1 Pin",       "shareable":false},
+		{"type":"AudioOutputI2Ssink_F32",   "resource":"I2S Device",    "shareable":true,  "setting":"I2S Sink"},
+		{"type":"AudioOutputI2Ssink_F32",   "resource":"Sample Rate",   "shareable":true,  "setting":"External Control"},
+		{"type":"AudioOutputI2Ssink_F32",   "resource":"OUT1A Pin",     "shareable":false},
+		{"type":"AudioOutputI2SQuad_F32",   "resource":"I2S Device",    "shareable":true,  "setting":"I2S Master"},
+		{"type":"AudioOutputI2SQuad_F32",   "resource":"Sample Rate",   "shareable":true,  "setting":"Teensy Control"},
+		{"type":"AudioOutputI2SQuad_F32",   "resource":"OUT1A Pin",     "shareable":false},
+		{"type":"AudioInputI2SQuad_F32",    "resource":"I2S Device",    "shareable":true,  "setting":"I2S Master"},
+		{"type":"AudioInputI2SQuad_F32",    "resource":"Sample Rate",   "shareable":true,  "setting":"Teensy Control"},
+		{"type":"AudioInputI2SQuad_F32",    "resource":"IN1 Pin",       "shareable":false},
+		{"type":"AudioInputTDM8_F32",       "resource":"I2S Device",    "shareable":true,  "setting":"TDM8 Protocol"},
+		{"type":"AudioInputTDM8_F32",       "resource":"Sample Rate",   "shareable":true,  "setting":"Teensy Control"},
+		{"type":"AudioInputTDM8_F32",       "resource":"IN1 Pin",       "shareable":false},
+		{"type":"AudioOutputTDM8_F32",      "resource":"I2S Device",    "shareable":true,  "setting":"TDM8 Protocol"},
+		{"type":"AudioOutputTDM8_F32",      "resource":"Sample Rate",   "shareable":true,  "setting":"Teensy Control"},
+		{"type":"AudioOutputTDM8_F32",      "resource":"OUT1A Pin",     "shareable":false},
+		{"type":"AudioInputTDM16_F32",      "resource":"I2S Device",    "shareable":true,  "setting":"TDM16 Protocol"},
+		{"type":"AudioInputTDM16_F32",      "resource":"Sample Rate",   "shareable":true,  "setting":"Teensy Control"},
+		{"type":"AudioInputTDM16_F32",      "resource":"IN1 Pin",       "shareable":false},
+		{"type":"AudioOutputTDM16_F32",     "resource":"I2S Device",    "shareable":true,  "setting":"TDM16 Protocol"},
+		{"type":"AudioOutputTDM16_F32",     "resource":"Sample Rate",   "shareable":true,  "setting":"Teensy Control"},
+		{"type":"AudioOutputTDM16_F32",     "resource":"OUT1A Pin",     "shareable":false},
+		{"type":"AudioInputSPDIF3_F32",     "resource":"SPDIF Device",  "shareable":true,  "setting":"SPDIF Protocol"},
+		{"type":"AudioInputSPDIF3_F32",     "resource":"Sample Rate",   "shareable":true,  "setting":"SPDIF Control"},
+		{"type":"AudioInputSPDIF3_F32",     "resource":"SPDIFIN Pin",   "shareable":false},
+		{"type":"AsyncAudioInputSPDIF3_F32","resource":"SPDIF Device",  "shareable":true,  "setting":"SPDIF Protocol"},
+		{"type":"AsyncAudioInputSPDIF3_F32","resource":"Sample Rate",   "shareable":true,  "setting":"Teensy Control"},
+		{"type":"AsyncAudioInputSPDIF3_F32","resource":"SPDIFIN Pin",   "shareable":false},
+		{"type":"AudioOutputSPDIF3_F32",    "resource":"SPDIF Device",  "shareable":true,  "setting":"SPDIF Protocol"},
+		{"type":"AudioOutputSPDIF3_F32",    "resource":"Sample Rate",   "shareable":true,  "setting":"Teensy Control"},
+		{"type":"AudioOutputSPDIF3_F32",    "resource":"SPDIFOUT Pin",  "shareable":false},
+		{"type":"AudioInputUSB_F32",        "resource":"USB Rx Endpoint","shareable":false},
+		{"type":"AudioOutputUSB_F32",       "resource":"USB Tx Endpoint","shareable":false}
+	]}
+</script>
+
 <script  type="text/x-red" data-container-name="NodeDefinitions">
     {"nodes":[
         {"type":"AudioAnalyzePhase_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"phaseDet","inputs":"1","output":"0","category":"analyze-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
@@ -400,11 +446,18 @@ span.mainfunction {color: #993300; font-weight: bolder}
         {"type":"IFFT_Overlapped_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"blockwiseIFFT","inputs":"NaN","output":"0","category":"analyze-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"NaN"}},
         {"type":"AudioInputI2S_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"audioInI2S","inputs":"0","output":"0","category":"input-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
         {"type":"AudioOutputI2S_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"audioOutI2S","inputs":"2","output":"0","category":"output-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"0"}},
+        {"type":"AudioInputI2Ssink_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"audioInI2Ssink","inputs":"0","output":"0","category":"input-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
+        {"type":"AudioInputI2SQuad_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"audioInI2SQuad","inputs":"0","output":"0","category":"input-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"4"}},
+        {"type":"AudioOutputI2Ssink_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"audioOutI2Ssink","inputs":"2","output":"0","category":"output-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"0"}},
         {"type":"AudioOutputI2SQuad_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"audioOutI2SQuad","inputs":"4","output":"0","category":"output-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"0"}},
+        {"type":"AudioInputTDM8_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"audioInTDM8","inputs":"0","output":"0","category":"input-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"8"}},
+        {"type":"AudioOutputTDM8_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"audioOutTDM8","inputs":"8","output":"0","category":"output-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"0"}},
+        {"type":"AudioInputTDM16_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"audioInTDM16","inputs":"0","output":"0","category":"input-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"16"}},
+        {"type":"AudioOutputTDM16_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"audioOutTDM16","inputs":"16","output":"0","category":"output-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"0"}},
 	    {"type":"AudioInputSPDIF3_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"spdif3","inputs":0,"outputs":2,"category":"input-function","color":"#E6E0F8","icon":"arrow-in.png"}},
 		{"type":"AsyncAudioInputSPDIF3_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"spdif_async","inputs":0,"outputs":2,"category":"input-function","color":"#E6E0F8","icon":"arrow-in.png"}},
-        {"type":"AudioInputUSB_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"audioInUSB","inputs":"0","output":"0","category":"input-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"2"}},
-        {"type":"AudioOutputUSB_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"audioOutUSB","inputs":"2","output":"0","category":"output-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"0"}},
+        {"type":"AudioInputUSB_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"audioInUSB","inputs":"0","output":"0","category":"input-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"16"}},
+        {"type":"AudioOutputUSB_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"audioOutUSB","inputs":"16","output":"0","category":"output-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"0"}},
 	    {"type":"AudioOutputSPDIF3_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"spdif3Out","inputs":2,"outputs":0,"category":"output-function","color":"#E6E0F8","icon":"arrow-in.png"}},
         {"type":"AudioPlayQueue_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"playQueue","inputs":"0","output":"0","category":"play-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"1"}},
         {"type":"AudioRecordQueue_F32","data":{"defaults":{"name":{"value":"new"}},"shortName":"recordQueue","inputs":"1","output":"0","category":"record-function","color":"#E6E0F8","icon":"arrow-in.png","outputs":"0"}},
@@ -690,14 +743,16 @@ See Compressor and Compressor2 for complete, ready to use classes.</p>
     </div>
 </script>
 
+
+
 <div>
 <script type="text/x-red" data-help-name="AudioFilterFIRGeneral_F32">
 <!-- ============   AudioFilterFIRGeneral_F32    ========= -->
     <h3>Summary</h3>
     <div class=tooltipinfo>
     <p>Uses flat-delay FIR filtering to generate Low Pass, High Pass,
-    Band Pass and Band Reject Filters. This class performs the FIR filtering.
-    It also can compute the frequency response of the FIR.</p>
+    Band Pas and Band Reject Filters, do the filtering and compute the
+    response.</p>
     </div>
     <h3>Boards Supported</h3>
     <ul>
@@ -733,7 +788,7 @@ See Compressor and Compressor2 for complete, ready to use classes.</p>
     </p>
 
     <p class=func><span class=keyword>getResponse</span>(<strong>uint16_t</strong> nFreq, <strong>float</strong> *rdb);</p>
-    <p class=desc>Calculates the response of the filter in dB at nFreq equally spaced
+    <p class=desc>Calculates the response of the equalizer in dB at nFreq equally spaced
     frequencies.  rdb is a pointer to an array of nFreq floats where the response can be put.</p>
 
     <h3>Examples</h3>
@@ -767,10 +822,12 @@ See Compressor and Compressor2 for complete, ready to use classes.</p>
     used because of the latency it creates.  Note that if constant delay is needed, the FIR
     implementation does this with minimum latency.</p>
 
-    <p>This class requires the INO to provide the working
+    <p>AudioFilterFIR_F32 in this OpenAudio_ArduinoLibrary handles 32-bit floating point
+    data and a maximum of 200 taps.  This class requires the INO to provide the working
     space and thereby puts no limit on the number of FIR taps (coefficients) being used.
     The processor does run out of time, and that limits Teensy 3.6 to about 6000 taps
-    and Teensy 4.x to many times that.</p>
+    and Teensy 4.x to about 6000.  As a starting spot for huge FIR filters, one might use
+    1/2 or 1/3 of those numbers.</p>
 
     <p>It is practical to switch filter coefficient arrays on-the-fly.
     See the LoadCoeffs() function.  This class is initialized to a 4 coefficient
@@ -2124,6 +2181,14 @@ look ahead delay, as well.</p>
     <p>Objects of this class can be created using the typical, minimal constructor using no arguments.
     Or, to control the sample rate and block size, the constructor can be passed an AudioSettings_F32
     object that has been configured with your desired settings.</p>
+    <p>To force a 16, 24, or 32-bit I2S slot word width, pass the width as the
+    first constructor argument: <span class=func><span class=keyword>AudioInputI2S_F32</span>(<strong>16</strong>)</span>
+    or <span class=func><span class=keyword>AudioInputI2S_F32</span>(<strong>AudioSettings_F32</strong> settings, <strong>24</strong>)</span>.
+    In master mode the SAI generates a short frame matching the width: 16-bit uses
+    a 32 x fs bit clock, 24-bit uses a 48 x fs bit clock (192 x fs MCLK), and 32-bit
+    (the default) uses the standard 64 x fs bit clock.  Teensy 4.x only for 16/24-bit;
+    Teensy 3.x always uses 32-bit slots.  An externally-clocked "sink" on another
+    Teensy auto-detects the same width from the BCLK/FS ratio.</p>
     <h3>Functions</h3>
     <p>This object has no functions to call from the Arduino sketch.  It
         simply streams data from the I2S hardware to its 2 output ports.</p>
@@ -2149,10 +2214,133 @@ look ahead delay, as well.</p>
     and slave modes may not be mixed (both must be of the same type).</p>
     <p>As of May 2022, the I2S input and output objects can handle 24 or 32-bit
     data transfer, if that is supported by the audio hardware device.
-    No class functions are needed.  It is "automagic".</p>
+    The slot word width can be selected (16/24/32 bits) with the constructor
+    argument described above; the default is 32-bit slots.</p>
 
 </script>
 <script type="text/x-red" data-template-name="AudioInputI2S_F32">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+<script type="text/x-red" data-help-name="AudioInputI2SQuad_F32">
+    <h3>Summary</h3>
+    <div class=tooltipinfo>
+    <p>Receive float32 quad (4) channel audio from two
+    <a href="http://www.pjrc.com/store/teensy3_audio.html" target="_blank">Teensy Audio Boards</a>
+    or another pair of I2S devices, using I2S master mode.</p>
+    <p align=center><img src="img/audioshield_quad_in.jpg"></p>
+    </div>
+    <h3>Teensy Boards Supported</h3>
+    <ul>
+    <li>Teensy 4.0
+    <li>Teensy 4.1
+    </ul>
+    <h3>Audio Connections</h3>
+    <table class=doc align=center cellpadding=3>
+        <tr class=top><th>Port</th><th>Purpose</th></tr>
+        <tr class=odd><td align=center>Out 0</td><td>Channel #1</td></tr>
+        <tr class=odd><td align=center>Out 1</td><td>Channel #2</td></tr>
+        <tr class=odd><td align=center>Out 2</td><td>Channel #3</td></tr>
+        <tr class=odd><td align=center>Out 3</td><td>Channel #4</td></tr>
+    </table>
+    <h3>Constructor</h3>
+    <p>Objects of this class can be created using the typical, minimal constructor using no arguments.
+    Or, to control the sample rate and block size, the constructor can be passed an AudioSettings_F32
+    object that has been configured with your desired settings.</p>
+    <h3>Functions</h3>
+    <p>This object has no functions to call from the Arduino sketch.  It
+        simply streams data from the I2S hardware to its 4 output ports.</p>
+    <h3>Hardware</h3>
+    <p>See this Sparkfun blog for <a href="https://www.sparkfun.com/news/2055" target="_blank">how
+        to connect two audio adaptors for 4 channel audio</a>.</p>
+    <p>For Teensy 4 and Rev D audio shields, see
+        <a href="https://forum.pjrc.com/threads/61123?p=242054&viewfull=1#post242054">this forum thread</a>.</p>
+    <p>The I2S signals are used in "master" mode, where Teensy creates
+        all 3 clock signals and controls all data timing.</p>
+    <table class=doc align=center cellpadding=3>
+        <tr class=top><th>Pin</th><th>Signal</th><th>Direction</th></tr>
+        <tr class=odd><td align=center>21</td><td>BCLK</td><td>Output</td></tr>
+        <tr class=odd><td align=center>23</td><td>MCLK</td><td>Output</td></tr>
+        <tr class=odd><td align=center>20</td><td>LRCLK</td><td>Output</td></tr>
+        <tr class=odd><td align=center>8</td><td>RX</td><td>Input</td></tr>
+        <tr class=odd><td align=center>6</td><td>RX</td><td>Input</td></tr>
+    </table>
+    <p>Audio from
+        master mode I2S may be used in the same project as ADC, DAC and
+        PWM signals, because all remain in sync to Teensy's timing</p>
+    <h3>Examples</h3>
+    <p class=exam>File &gt; Examples &gt; PassThroughQuadF32
+    </p>
+    <h3>Notes</h3>
+    <p>Only one I2S input and one I2S output object may be used.  Master
+    modes only may be used for the quad input.</p>
+    <p>Normally, this object is used with two Audio Shields, which
+        are controlled separately by a pair of "sgtl5000" objects.</p>
+    <p>Being an "_F32" object, audio is passed out of this class using F32 memory
+    that was allocated using an AudioMemory_F32() call in your sketch's setup()
+    routine.</p>
+    <p>The attached CODEC provides up to 32 bits of signed integer data, depending on the device.
+    The device can provide a smaller portion of the integers, such as 16 or 24-bits.
+    In all cases, the full scale integer value is represented by +/- 1.0 in floating point
+    language (minus 1 LSB on the plus side).</p>
+</script>
+<script type="text/x-red" data-template-name="AudioInputI2SQuad_F32">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+<script type="text/x-red" data-help-name="AudioInputI2Ssink_F32">
+    <h3>Summary</h3>
+    <div class=tooltipinfo>
+    <p>Receive float32 stereo audio from an external I2S device in "sink"
+        mode, where the bit clock (BCLK) and frame sync (FS) are generated
+        by an external clock source and Teensy only consumes data.</p>
+    </div>
+    <h3>Teensy Boards Supported</h3>
+    <ul>
+    <li>Teensy 4.0
+    <li>Teensy 4.1
+    </ul>
+    <h3>Audio Connections</h3>
+    <table class=doc align=center cellpadding=3>
+        <tr class=top><th>Port</th><th>Purpose</th></tr>
+        <tr class=odd><td align=center>Out 0</td><td>Left Channel</td></tr>
+        <tr class=odd><td align=center>Out 1</td><td>Right Channel</td></tr>
+    </table>
+    <h3>Constructor</h3>
+    <p>Objects of this class can be created using the typical, minimal constructor using no arguments.
+    Or, to control the sample rate and block size, the constructor can be passed an AudioSettings_F32
+    object that has been configured with your desired settings.</p>
+    <p>The slot word width (16/24/32 bits) is auto-detected from the external
+    clock's BCLK/FS ratio at startup: 32/48/64 x fs BCLK is expected for 16/24/32-bit
+    slots per frame.  To force a width instead of auto-detecting, pass it as the
+    first constructor argument: <span class=func><span class=keyword>AudioInputI2Ssink_F32</span>(<strong>24</strong>)</span>.
+    A "master" Teensy created with the matching width produces the correct short
+    frame (e.g. <span class=func><span class=keyword>AudioOutputI2S_F32</span>(<strong>16</strong>)</span>
+    for a 32 x fs bit clock).</p>
+    <h3>Functions</h3>
+    <p>This object has no functions to call from the Arduino sketch.  It
+        simply streams data from the I2S hardware to its 2 output ports.</p>
+    <h3>Hardware</h3>
+    <p>The I2S signals are used in "sink" mode, where an external device
+        (such as a second Teensy) drives the clock signals and controls all
+        data timing.  BCLK and FS must be active before this object is enabled.</p>
+    <table class=doc align=center cellpadding=3>
+        <tr class=top><th>Pin</th><th>Signal</th><th>Direction</th></tr>
+        <tr class=odd><td align=center>21</td><td>BCLK</td><td>Input</td></tr>
+        <tr class=odd><td align=center>20</td><td>FS</td><td>Input</td></tr>
+        <tr class=odd><td align=center>8</td><td>RX</td><td>Input</td></tr>
+    </table>
+    <p>MCLK is not used in sink mode.  The bit clock rate is measured at startup
+        to detect the slot width (64 x fs for 32-bit slots by default).</p>
+    <h3>Notes</h3>
+    <p>Only one I2S input and one I2S output object may be used.  Master
+    and sink modes may not be mixed (both must be of the same type).</p>
+</script>
+<script type="text/x-red" data-template-name="AudioInputI2Ssink_F32">
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
@@ -2307,6 +2495,14 @@ look ahead delay, as well.</p>
     <p>Objects of this class can be created using the typical, minimal constructor using no arguments.
     Or, to control the sample rate and block size, the constructor can be passed an AudioSettings_F32
     object that has been configured with your desired settings.</p>
+    <p>To force a 16, 24, or 32-bit I2S slot word width, pass the width as the
+    first constructor argument: <span class=func><span class=keyword>AudioOutputI2S_F32</span>(<strong>16</strong>)</span>
+    or <span class=func><span class=keyword>AudioOutputI2S_F32</span>(<strong>AudioSettings_F32</strong> settings, <strong>24</strong>)</span>.
+    In master mode the SAI generates a short frame matching the width: 16-bit uses
+    a 32 x fs bit clock, 24-bit uses a 48 x fs bit clock (192 x fs MCLK), and 32-bit
+    (the default) uses the standard 64 x fs bit clock.  Teensy 4.x only for 16/24-bit;
+    Teensy 3.x always uses 32-bit slots.  Use the matching width on an externally-clocked
+    "sink" Teensy (which auto-detects the width from the BCLK/FS ratio).</p>
     <h3>Functions</h3>
     <p class=func><span class=keyword>setGain</span>(<strong>float </strong>Gain);</p>
     <p class=desc>Sets the output gain of both left and right channels. Values are unconstrained, but
@@ -2333,6 +2529,63 @@ look ahead delay, as well.</p>
     to allocate the Int16 memory.</p>
 </script>
 <script type="text/x-red" data-template-name="AudioOutputI2S_F32">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+<script type="text/x-red" data-help-name="AudioOutputI2Ssink_F32">
+    <h3>Summary</h3>
+    <div class=tooltipinfo>
+    <p>Transmit float32 stereo audio to an external I2S device in "sink"
+        mode, where the bit clock (BCLK) and frame sync (FS) are generated
+        by an external clock source and Teensy only provides the data.</p>
+    </div>
+    <h3>Teensy Boards Supported</h3>
+    <ul>
+    <li>Teensy 4.0
+    <li>Teensy 4.1
+    </ul>
+    <h3>Audio Connections</h3>
+    <table class=doc align=center cellpadding=3>
+        <tr class=top><th>Port</th><th>Purpose</th></tr>
+        <tr class=odd><td align=center>In 0</td><td>Left Channel</td></tr>
+        <tr class=odd><td align=center>In 1</td><td>Right Channel</td></tr>
+    </table>
+    <h3>Constructor</h3>
+    <p>Objects of this class can be created using the typical, minimal constructor using no arguments.
+    Or, to control the sample rate and block size, the constructor can be passed an AudioSettings_F32
+    object that has been configured with your desired settings.</p>
+    <p>The slot word width (16/24/32 bits) is auto-detected from the external
+    clock's BCLK/FS ratio at startup: 32/48/64 x fs BCLK is expected for 16/24/32-bit
+    slots per frame.  To force a width instead of auto-detecting, pass it as the
+    first constructor argument: <span class=func><span class=keyword>AudioOutputI2Ssink_F32</span>(<strong>24</strong>)</span>.
+    A "master" Teensy created with the matching width produces the correct short
+    frame (e.g. <span class=func><span class=keyword>AudioOutputI2S_F32</span>(<strong>16</strong>)</span>
+    for a 32 x fs bit clock).</p>
+    <h3>Functions</h3>
+    <p>This object has no functions to call from the Arduino sketch.  It
+        simply streams data from its 2 input ports to the I2S hardware.</p>
+    <h3>Hardware</h3>
+    <p>The I2S signals are used in "sink" mode, where an external device
+        (such as a second Teensy) drives the clock signals and controls all
+        data timing.  BCLK and FS must be active before this object is enabled.</p>
+    <table class=doc align=center cellpadding=3>
+        <tr class=top><th>Pin</th><th>Signal</th><th>Direction</th></tr>
+        <tr class=odd><td align=center>21</td><td>BCLK</td><td>Input</td></tr>
+        <tr class=odd><td align=center>20</td><td>FS</td><td>Input</td></tr>
+        <tr class=odd><td align=center>7</td><td>TX</td><td>Output</td></tr>
+    </table>
+    <p>MCLK is not used in sink mode.  The bit clock rate is measured at startup
+        to detect the slot width (64 x fs for 32-bit slots by default).</p>
+    <h3>Examples</h3>
+    <p class=exam>File &gt; Examples &gt; AudioOutputI2Ssink_F32_Example
+    </p>
+    <h3>Notes</h3>
+    <p>Only one I2S input and one I2S output object may be used.  Master
+    and sink modes may not be mixed (both must be of the same type).</p>
+</script>
+<script type="text/x-red" data-template-name="AudioOutputI2Ssink_F32">
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
@@ -2398,6 +2651,246 @@ look ahead delay, as well.</p>
     language (minus 1 LSB on the plus side).</p>
 </script>
 <script type="text/x-red" data-template-name="AudioOutputI2SQuad_F32">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+<script type="text/x-red" data-help-name="AudioInputTDM8_F32">
+    <h3>Summary</h3>
+    <div class=tooltipinfo>
+    <p>Receive 8 channel float32 audio via TDM, using the SAI1 bus with
+        32-bit slots (256 bit clocks per frame).</p>
+    </div>
+    <h3>Teensy Boards Supported</h3>
+    <ul>
+    <li>Teensy 4.0
+    <li>Teensy 4.1
+    </ul>
+    <h3>Audio Connections</h3>
+    <table class=doc align=center cellpadding=3>
+        <tr class=top><th>Port</th><th>Purpose</th></tr>
+        <tr class=odd><td align=center>Out 0</td><td>Channel #1</td></tr>
+        <tr class=odd><td align=center>Out 1</td><td>Channel #2</td></tr>
+        <tr class=odd><td align=center>Out 2</td><td>Channel #3</td></tr>
+        <tr class=odd><td align=center>Out 3</td><td>Channel #4</td></tr>
+        <tr class=odd><td align=center>Out 4</td><td>Channel #5</td></tr>
+        <tr class=odd><td align=center>Out 5</td><td>Channel #6</td></tr>
+        <tr class=odd><td align=center>Out 6</td><td>Channel #7</td></tr>
+        <tr class=odd><td align=center>Out 7</td><td>Channel #8</td></tr>
+    </table>
+    <h3>Constructor</h3>
+    <p>Objects of this class can be created using the typical, minimal constructor using no arguments.
+    Or, to control the sample rate and block size, the constructor can be passed an AudioSettings_F32
+    object that has been configured with your desired settings.</p>
+    <h3>Functions</h3>
+    <p>This object has no functions to call from the Arduino sketch.  It
+        simply streams data from the TDM hardware to its output ports.</p>
+    <h3>Hardware</h3>
+    <table class=doc align=center cellpadding=3>
+        <tr class=top><th>Pin</th><th>Signal</th><th>Direction</th></tr>
+        <tr class=odd><td align=center>21</td><td>BCLK</td><td>Output</td></tr>
+        <tr class=odd><td align=center>20</td><td>SYNC</td><td>Output</td></tr>
+        <tr class=odd><td align=center>23</td><td>MCLK</td><td>Output</td></tr>
+        <tr class=odd><td align=center>8</td><td>RX</td><td>Input</td></tr>
+    </table>
+    <h3>Examples</h3>
+    <p class=exam>File &gt; Examples &gt; AudioUSB2TDM
+    </p>
+    <h3>Notes</h3>
+    <p>TDM uses 256 bit clocks per frame.  With a maximum BCLK of 25 MHz,
+        this limits the practical sample rate to 96 kHz.</p>
+    <p>TDM shares the SAI1 bus with I2S, so it cannot be used together with
+        the I2S input/output objects.</p>
+    <p>Being an "_F32" object, audio is passed out of this class using F32 memory
+    that was allocated using an AudioMemory_F32() call in your sketch's setup()
+    routine.</p>
+</script>
+<script type="text/x-red" data-template-name="AudioInputTDM8_F32">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+<script type="text/x-red" data-help-name="AudioOutputTDM8_F32">
+    <h3>Summary</h3>
+    <div class=tooltipinfo>
+    <p>Transmit 8 channel float32 audio via TDM, using the SAI1 bus with
+        32-bit slots (256 bit clocks per frame).</p>
+    </div>
+    <h3>Teensy Boards Supported</h3>
+    <ul>
+    <li>Teensy 4.0
+    <li>Teensy 4.1
+    </ul>
+    <h3>Audio Connections</h3>
+    <table class=doc align=center cellpadding=3>
+        <tr class=top><th>Port</th><th>Purpose</th></tr>
+        <tr class=odd><td align=center>In 0</td><td>Channel #1</td></tr>
+        <tr class=odd><td align=center>In 1</td><td>Channel #2</td></tr>
+        <tr class=odd><td align=center>In 2</td><td>Channel #3</td></tr>
+        <tr class=odd><td align=center>In 3</td><td>Channel #4</td></tr>
+        <tr class=odd><td align=center>In 4</td><td>Channel #5</td></tr>
+        <tr class=odd><td align=center>In 5</td><td>Channel #6</td></tr>
+        <tr class=odd><td align=center>In 6</td><td>Channel #7</td></tr>
+        <tr class=odd><td align=center>In 7</td><td>Channel #8</td></tr>
+    </table>
+    <h3>Constructor</h3>
+    <p>Objects of this class can be created using the typical, minimal constructor using no arguments.
+    Or, to control the sample rate and block size, the constructor can be passed an AudioSettings_F32
+    object that has been configured with your desired settings.</p>
+    <h3>Functions</h3>
+    <p>This object has no functions to call from the Arduino sketch.  It
+        simply streams data from its input ports to the TDM hardware.</p>
+    <h3>Hardware</h3>
+    <table class=doc align=center cellpadding=3>
+        <tr class=top><th>Pin</th><th>Signal</th><th>Direction</th></tr>
+        <tr class=odd><td align=center>21</td><td>BCLK</td><td>Output</td></tr>
+        <tr class=odd><td align=center>20</td><td>SYNC</td><td>Output</td></tr>
+        <tr class=odd><td align=center>23</td><td>MCLK</td><td>Output</td></tr>
+        <tr class=odd><td align=center>7</td><td>TX</td><td>Output</td></tr>
+    </table>
+    <h3>Examples</h3>
+    <p class=exam>File &gt; Examples &gt; AudioUSB2TDM
+    </p>
+    <h3>Notes</h3>
+    <p>TDM uses 256 bit clocks per frame.  With a maximum BCLK of 25 MHz,
+        this limits the practical sample rate to 96 kHz.</p>
+    <p>TDM shares the SAI1 bus with I2S, so it cannot be used together with
+        the I2S input/output objects.</p>
+    <p>Being an "_F32" object, audio is passed into this class using F32 memory
+    that was allocated using an AudioMemory_F32() call in your sketch's setup()
+    routine.</p>
+</script>
+<script type="text/x-red" data-template-name="AudioOutputTDM8_F32">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+<script type="text/x-red" data-help-name="AudioInputTDM16_F32">
+    <h3>Summary</h3>
+    <div class=tooltipinfo>
+    <p>Receive 16 channel float32 audio via TDM, using the SAI1 bus with
+        32-bit slots (512 bit clocks per frame).</p>
+    </div>
+    <h3>Teensy Boards Supported</h3>
+    <ul>
+    <li>Teensy 4.0
+    <li>Teensy 4.1
+    </ul>
+    <h3>Audio Connections</h3>
+    <table class=doc align=center cellpadding=3>
+        <tr class=top><th>Port</th><th>Purpose</th></tr>
+        <tr class=odd><td align=center>Out 0</td><td>Channel #1</td></tr>
+        <tr class=odd><td align=center>Out 1</td><td>Channel #2</td></tr>
+        <tr class=odd><td align=center>Out 2</td><td>Channel #3</td></tr>
+        <tr class=odd><td align=center>Out 3</td><td>Channel #4</td></tr>
+        <tr class=odd><td align=center>Out 4</td><td>Channel #5</td></tr>
+        <tr class=odd><td align=center>Out 5</td><td>Channel #6</td></tr>
+        <tr class=odd><td align=center>Out 6</td><td>Channel #7</td></tr>
+        <tr class=odd><td align=center>Out 7</td><td>Channel #8</td></tr>
+        <tr class=odd><td align=center>Out 8</td><td>Channel #9</td></tr>
+        <tr class=odd><td align=center>Out 9</td><td>Channel #10</td></tr>
+        <tr class=odd><td align=center>Out 10</td><td>Channel #11</td></tr>
+        <tr class=odd><td align=center>Out 11</td><td>Channel #12</td></tr>
+        <tr class=odd><td align=center>Out 12</td><td>Channel #13</td></tr>
+        <tr class=odd><td align=center>Out 13</td><td>Channel #14</td></tr>
+        <tr class=odd><td align=center>Out 14</td><td>Channel #15</td></tr>
+        <tr class=odd><td align=center>Out 15</td><td>Channel #16</td></tr>
+    </table>
+    <h3>Constructor</h3>
+    <p>Objects of this class can be created using the typical, minimal constructor using no arguments.
+    Or, to control the sample rate and block size, the constructor can be passed an AudioSettings_F32
+    object that has been configured with your desired settings.</p>
+    <h3>Functions</h3>
+    <p>This object has no functions to call from the Arduino sketch.  It
+        simply streams data from the TDM hardware to its output ports.</p>
+    <h3>Hardware</h3>
+    <table class=doc align=center cellpadding=3>
+        <tr class=top><th>Pin</th><th>Signal</th><th>Direction</th></tr>
+        <tr class=odd><td align=center>21</td><td>BCLK</td><td>Output</td></tr>
+        <tr class=odd><td align=center>20</td><td>SYNC</td><td>Output</td></tr>
+        <tr class=odd><td align=center>23</td><td>MCLK</td><td>Output</td></tr>
+        <tr class=odd><td align=center>8</td><td>RX</td><td>Input</td></tr>
+    </table>
+    <h3>Examples</h3>
+    <p class=exam>File &gt; Examples &gt; AudioUSB2TDM
+    </p>
+    <h3>Notes</h3>
+    <p>TDM uses 512 bit clocks per frame.  With a maximum BCLK of 25 MHz,
+        this limits the practical sample rate to 48 kHz.</p>
+    <p>TDM shares the SAI1 bus with I2S, so it cannot be used together with
+        the I2S input/output objects.</p>
+    <p>Being an "_F32" object, audio is passed out of this class using F32 memory
+    that was allocated using an AudioMemory_F32() call in your sketch's setup()
+    routine.</p>
+</script>
+<script type="text/x-red" data-template-name="AudioInputTDM16_F32">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+<script type="text/x-red" data-help-name="AudioOutputTDM16_F32">
+    <h3>Summary</h3>
+    <div class=tooltipinfo>
+    <p>Transmit 16 channel float32 audio via TDM, using the SAI1 bus with
+        32-bit slots (512 bit clocks per frame).</p>
+    </div>
+    <h3>Teensy Boards Supported</h3>
+    <ul>
+    <li>Teensy 4.0
+    <li>Teensy 4.1
+    </ul>
+    <h3>Audio Connections</h3>
+    <table class=doc align=center cellpadding=3>
+        <tr class=top><th>Port</th><th>Purpose</th></tr>
+        <tr class=odd><td align=center>In 0</td><td>Channel #1</td></tr>
+        <tr class=odd><td align=center>In 1</td><td>Channel #2</td></tr>
+        <tr class=odd><td align=center>In 2</td><td>Channel #3</td></tr>
+        <tr class=odd><td align=center>In 3</td><td>Channel #4</td></tr>
+        <tr class=odd><td align=center>In 4</td><td>Channel #5</td></tr>
+        <tr class=odd><td align=center>In 5</td><td>Channel #6</td></tr>
+        <tr class=odd><td align=center>In 6</td><td>Channel #7</td></tr>
+        <tr class=odd><td align=center>In 7</td><td>Channel #8</td></tr>
+        <tr class=odd><td align=center>In 8</td><td>Channel #9</td></tr>
+        <tr class=odd><td align=center>In 9</td><td>Channel #10</td></tr>
+        <tr class=odd><td align=center>In 10</td><td>Channel #11</td></tr>
+        <tr class=odd><td align=center>In 11</td><td>Channel #12</td></tr>
+        <tr class=odd><td align=center>In 12</td><td>Channel #13</td></tr>
+        <tr class=odd><td align=center>In 13</td><td>Channel #14</td></tr>
+        <tr class=odd><td align=center>In 14</td><td>Channel #15</td></tr>
+        <tr class=odd><td align=center>In 15</td><td>Channel #16</td></tr>
+    </table>
+    <h3>Constructor</h3>
+    <p>Objects of this class can be created using the typical, minimal constructor using no arguments.
+    Or, to control the sample rate and block size, the constructor can be passed an AudioSettings_F32
+    object that has been configured with your desired settings.</p>
+    <h3>Functions</h3>
+    <p>This object has no functions to call from the Arduino sketch.  It
+        simply streams data from its input ports to the TDM hardware.</p>
+    <h3>Hardware</h3>
+    <table class=doc align=center cellpadding=3>
+        <tr class=top><th>Pin</th><th>Signal</th><th>Direction</th></tr>
+        <tr class=odd><td align=center>21</td><td>BCLK</td><td>Output</td></tr>
+        <tr class=odd><td align=center>20</td><td>SYNC</td><td>Output</td></tr>
+        <tr class=odd><td align=center>23</td><td>MCLK</td><td>Output</td></tr>
+        <tr class=odd><td align=center>7</td><td>TX</td><td>Output</td></tr>
+    </table>
+    <h3>Examples</h3>
+    <p class=exam>File &gt; Examples &gt; AudioUSB2TDM
+    </p>
+    <h3>Notes</h3>
+    <p>TDM uses 512 bit clocks per frame.  With a maximum BCLK of 25 MHz,
+        this limits the practical sample rate to 48 kHz.</p>
+    <p>TDM shares the SAI1 bus with I2S, so it cannot be used together with
+        the I2S input/output objects.</p>
+    <p>Being an "_F32" object, audio is passed into this class using F32 memory
+    that was allocated using an AudioMemory_F32() call in your sketch's setup()
+    routine.</p>
+</script>
+<script type="text/x-red" data-template-name="AudioOutputTDM16_F32">
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
@@ -2556,19 +3049,37 @@ look ahead delay, as well.</p>
 <script type="text/x-red" data-help-name="AudioInputUSB_F32">
     <h3>Summary</h3>
     <div class=tooltipinfo>
-    <p>Receive stereo audio from a PC or Mac.  Teensy appears as a USB
+    <p>Receive up to 16 channels of audio from a PC or Mac.  Teensy appears as a USB
         sound device.</p>
     <p align=center><img src="img/usbtype_audio_in.png"></p>
     </div>
     <h3>Audio Connections</h3>
     <table class=doc align=center cellpadding=3>
         <tr class=top><th>Port</th><th>Purpose</th></tr>
-        <tr class=odd><td align=center>Out 0</td><td>Left Channel</td></tr>
-        <tr class=odd><td align=center>Out 1</td><td>Right Channel</td></tr>
+        <tr class=odd><td align=center>Out 0</td><td>Channel 1</td></tr>
+        <tr class=odd><td align=center>Out 1</td><td>Channel 2</td></tr>
+        <tr class=odd><td align=center>Out 2</td><td>Channel 3</td></tr>
+        <tr class=odd><td align=center>Out 3</td><td>Channel 4</td></tr>
+        <tr class=odd><td align=center>Out 4</td><td>Channel 5</td></tr>
+        <tr class=odd><td align=center>Out 5</td><td>Channel 6</td></tr>
+        <tr class=odd><td align=center>Out 6</td><td>Channel 7</td></tr>
+        <tr class=odd><td align=center>Out 7</td><td>Channel 8</td></tr>
+        <tr class=odd><td align=center>Out 8</td><td>Channel 9</td></tr>
+        <tr class=odd><td align=center>Out 9</td><td>Channel 10</td></tr>
+        <tr class=odd><td align=center>Out 10</td><td>Channel 11</td></tr>
+        <tr class=odd><td align=center>Out 11</td><td>Channel 12</td></tr>
+        <tr class=odd><td align=center>Out 12</td><td>Channel 13</td></tr>
+        <tr class=odd><td align=center>Out 13</td><td>Channel 14</td></tr>
+        <tr class=odd><td align=center>Out 14</td><td>Channel 15</td></tr>
+        <tr class=odd><td align=center>Out 15</td><td>Channel 16</td></tr>
     </table>
     <h3>Functions</h3>
-    <p>This object has no functions to call from the Arduino sketch.  It
-        simply streams data from the USB to its 2 output ports.</p>
+    <p class=func><span class=keyword>volume</span>();</p>
+    <p class=desc>Returns the volume setting requested by the USB host.
+        Range is 0 to 1.0.  To make the PC's volume control work, this
+        setting should be read periodically and used to control the
+        system processing the signal.
+    </p>
     <!--
     <h3>Hardware</h3>
     -->
@@ -2577,8 +3088,11 @@ look ahead delay, as well.</p>
     </p>
     <h3>Notes</h3>
     <p>Arduino's <b>Tools &gt; USB Type</b> menu must be set to <b>Audio</b>.
+        The number of active channels is selected with <b>Tools &gt; USB Audio Channels</b>.
         </p>
     <p align=center><img src="img/usbtype_audio.png"></p>
+    <p>Any ports numbered higher than the USB Audio Channels setting are
+        ignored (they output silence).</p>
     <p>USB input &amp; output does not cause the Teensy Audio Library to
         update.  At least one non-USB input or output object must be
         present for the entire library to update properly.</p>
@@ -2597,19 +3111,33 @@ look ahead delay, as well.</p>
 <script type="text/x-red" data-help-name="AudioOutputUSB_F32">
     <h3>Summary</h3>
     <div class=tooltipinfo>
-    <p>Send stereo audio to a PC or Mac.  Teensy appears as a USB
+    <p>Send up to 16 channels of audio to a PC or Mac.  Teensy appears as a USB
         sound device.</p>
     <p align=center><img src="img/usbtype_audio_out.png"></p>
     </div>
     <h3>Audio Connections</h3>
     <table class=doc align=center cellpadding=3>
         <tr class=top><th>Port</th><th>Purpose</th></tr>
-        <tr class=odd><td align=center>In 0</td><td>Left Channel</td></tr>
-        <tr class=odd><td align=center>In 1</td><td>Right Channel</td></tr>
+        <tr class=odd><td align=center>In 0</td><td>Channel 1</td></tr>
+        <tr class=odd><td align=center>In 1</td><td>Channel 2</td></tr>
+        <tr class=odd><td align=center>In 2</td><td>Channel 3</td></tr>
+        <tr class=odd><td align=center>In 3</td><td>Channel 4</td></tr>
+        <tr class=odd><td align=center>In 4</td><td>Channel 5</td></tr>
+        <tr class=odd><td align=center>In 5</td><td>Channel 6</td></tr>
+        <tr class=odd><td align=center>In 6</td><td>Channel 7</td></tr>
+        <tr class=odd><td align=center>In 7</td><td>Channel 8</td></tr>
+        <tr class=odd><td align=center>In 8</td><td>Channel 9</td></tr>
+        <tr class=odd><td align=center>In 9</td><td>Channel 10</td></tr>
+        <tr class=odd><td align=center>In 10</td><td>Channel 11</td></tr>
+        <tr class=odd><td align=center>In 11</td><td>Channel 12</td></tr>
+        <tr class=odd><td align=center>In 12</td><td>Channel 13</td></tr>
+        <tr class=odd><td align=center>In 13</td><td>Channel 14</td></tr>
+        <tr class=odd><td align=center>In 14</td><td>Channel 15</td></tr>
+        <tr class=odd><td align=center>In 15</td><td>Channel 16</td></tr>
     </table>
     <h3>Functions</h3>
     <p>This object has no functions to call from the Arduino sketch.  It
-        simply streams from it's 2 input ports to the USB.</p>
+        simply streams from its input ports to the USB.</p>
     <!--
     <h3>Hardware</h3>
     -->
@@ -2618,8 +3146,11 @@ look ahead delay, as well.</p>
     </p>
     <h3>Notes</h3>
     <p>Arduino's <b>Tools &gt; USB Type</b> menu must be set to <b>Audio</b>.
+        The number of active channels is selected with <b>Tools &gt; USB Audio Channels</b>.
         </p>
     <p align=center><img src="img/usbtype_audio.png"></p>
+    <p>Any ports numbered higher than the USB Audio Channels setting are
+        ignored (their audio is not sent to the PC).</p>
     <p>USB input &amp; output does not cause the Teensy Audio Library to
         update.  At least one non-USB input or output object must be
         present for the entire library to update properly.</p>
@@ -4070,7 +4601,7 @@ look ahead delay, as well.</p>
     <p class=func><span class=keyword><strong>uint16_t</strong> getBufferSpace</span>();</p>
     <p class=desc>Returns the number of empty bytes in the 512 character buffer.</p>
     
-    <p class=func><span class=keyword>enableTransmit</span>(<strong> bool</strong>en);</p>
+    <p class=func><span class=keyword>enableTransmit</span>(<strong>bool</strong> en);</p>
     <p class=desc>If en is <strong>true</strong> and the buffer has characters available, CW is sent.
     If en is <strong>false</strong> CW is not sent and characters are left in the buffer.
     This, of course, does not control PTT.  No return value.</p>
@@ -4081,17 +4612,20 @@ look ahead delay, as well.</p>
     Additionally, getTransmitEnable() will go false when all characters in the buffer have
     been fully sent.  This can be useful for control of Transmit/Receive.</p>
     
-    <p class=func><span class=keyword>enableManualCW</span>(<strong>bool</strong> enCW);</p>
+    <p class=func><span class=keyword>enableManualCW</span>(<strong>bool</strong>enCW);</p>
     <p class=desc> Enables/disables (enCW = true/false) manual keying. Buffer sent keying
     is disabled.  The Gaussian keying shaping is continued.  Buffers are left untouched
     when manual CW is enabled.  No return value. </p>
 
     <p class=func><span class=keyword><strong>bool</strong> getmanualCW</span>();</p>
-    <p class=desc>Returns the manual CW status.</p>    
+    <p class=desc>Returns the manual CW status./p>    
 
     <p class=func><span class=keyword>manualCWKey</span>(<strong>bool</strong>keyDown);</p>
     <p class=desc>When keyDown is true, the CW tone output is sent until
-    keyDown is false.  No return value.</p>  
+    keyDown is false.  No return value. </p>  
+
+    <p class=func><span class=keyword><strong>getBufferSpace</strong></span>();</p>
+    <p class=desc>Returns the number of places (of 512) left in the character buffer.</p>
 
     <p class=func><span class=keyword>amplitude</span>(<strong>float32_t</strong> a);</p>
     <p class=desc>Sets a,  the zero-to-peak amplitude of the transmit signal.  The default is 1.0.
@@ -4099,7 +4633,8 @@ look ahead delay, as well.</p>
 
     <p class=func><span class=keyword>setFrequency</span>(<strong>float32_t</strong> f);</p>
     <p class=desc>Sets the frequency of the CW waveform.  The default is 600 Hz.  Any value up to
-    half of the sample rate can be used.  No return value.</p>
+    half of the sample rate can be used.
+    No return value.</p>
 
     <p class=func><span class=keyword>setCWSpeedWPM</span>(<strong>uint16_t</strong> speed);</p>
     <p class=desc>Sets the speed ofCW sending.  The default is 13 WPM. The speed is the highest of
@@ -5582,16 +6117,10 @@ isBothThreshold
     </table>
     <h3>Functions</h3>
     <p class=func><span class=keyword>available</span>();</p>
-    <p class=desc>Returns true each time new peak data is available.</p>
- 
-    <p class=func><span class=keyword>getCount</span>();</p>
-    <p class=desc>Returns the number of blocks that have been included in the peak
-    data that is currently available.  Each block is many measurements, typically 128.
+    <p class=desc>Returns true each time new peak data is available.
     </p>
-    
     <p class=func><span class=keyword>read</span>();</p>
-    <p class=desc>Read the highest peak amplitude value since the last read. Calling
-    this function also starts a new peak analysis, and can be used for that.
+    <p class=desc>Read the highest peak amplitude value since the last read.
     </p>
     <p class=func><span class=keyword>readPeakToPeak</span>();</p>
     <p class=desc>Read the highest peak-to-peak amplitude since the last read.
@@ -5631,13 +6160,6 @@ isBothThreshold
     <p class=func><span class=keyword>available</span>();</p>
     <p class=desc>Returns true if new RMS data is available.
     </p>
-     
-    <p class=func><span class=keyword>getCount</span>();</p>
-    <p class=desc>Returns the number of blocks that have been averaged in the rms
-    data that is currently available.  Each block is many measurements, typically 128.
-    </p>
-    
-    
     <p class=func><span class=keyword>read</span>();</p>
     <p class=desc>Read the new RMS value.
 

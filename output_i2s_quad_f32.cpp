@@ -140,9 +140,10 @@ void AudioOutputI2SQuad_F32::isr(void)
     //  Only the left input has something connected.
     else if (block_left_1st)
     {
-        for (int i = 0, j = 0; i < 64 && j < 256; i = i + 1, j = j + 4)
+        for (int i = 0, j = 0; i < half_block_length && j < half_buffer_length; i = i + 1, j = j + 4)
         {
             dest[j] = block_left_1st->data[i + offset];
+            dest[j + 2] = 0; //silence the right slot
         }
     }
     // Only the right input has something connected.
@@ -150,6 +151,7 @@ void AudioOutputI2SQuad_F32::isr(void)
     {
         for (int i = 0, j = 0; i < half_block_length && j < half_buffer_length; i = i + 1, j = j + 4)
         {
+            dest[j] = 0; //silence the left slot
             dest[j + 2] = block_right_1st->data[i + offset];
         }
     }
@@ -171,6 +173,7 @@ void AudioOutputI2SQuad_F32::isr(void)
         for (int i = 0, j = 0; i < half_block_length && j < half_buffer_length; i = i + 1, j = j + 4)
         {
             dest[j + 1] = block_left_2nd->data[i + offset];
+            dest[j + 3] = 0; //silence the right slot
         }
     }
     // Only the right input has something connected.
@@ -178,6 +181,7 @@ void AudioOutputI2SQuad_F32::isr(void)
     {
         for (int i = 0, j = 0; i < half_block_length && j < half_buffer_length; i = i + 1, j = j + 4)
         {
+            dest[j + 1] = 0; //silence the left slot
             dest[j + 3] = block_right_2nd->data[i + offset];
         }
     }
@@ -332,7 +336,7 @@ void AudioOutputI2SQuad_F32::config_i2s(int fs_Hz)
     I2S1_RCR5 = I2S_RCR5_WNW((32 - 1)) | I2S_RCR5_W0W((32 - 1)) | I2S_RCR5_FBT((32 - 1));
 }
 
-// From Chip: The I2SSlave functionality has NOT been extended to
+// From Chip: The I2Ssink functionality has NOT been extended to
 // allow for different block sizes or sample rates (2020-10-31)
 // Quad slave object not working yet!  Greg Raven KF5N
 

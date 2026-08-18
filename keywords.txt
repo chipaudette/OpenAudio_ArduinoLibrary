@@ -202,6 +202,12 @@ setFilterCoeff_Matlab	KEYWORD2
 
 AudioInputI2S_F32	KEYWORD1
 
+AudioInputI2SQuad_F32	KEYWORD1
+scale_i32_to_f32	KEYWORD2
+begin	KEYWORD2
+
+AudioInputI2Ssink_F32	KEYWORD1
+
 AudioLMSDenoiseNotch_F32 KEYWORD1
 initializeLMS		KEYWORD2
 enable	KEYWORD2
@@ -239,6 +245,11 @@ scale_f32_to_i16	KEYWORD2
 scale_f32_to_i24	KEYWORD2
 scale_f32_to_i32	KEYWORD2
 setI2SFreq_T3	KEYWORD2
+
+AudioOutputI2SQuad_F32	KEYWORD1
+setGain	KEYWORD2
+
+AudioOutputI2Ssink_F32	KEYWORD1
 
 AudioPlayQueue_F32	KEYWORD1
 play	KEYWORD2
@@ -382,18 +393,6 @@ setUART	KEYWORD2
 getNDataBuffer	KEYWORD2
 setInputOffset	KEYWORD2
 
-AudioInputUSB_F32	KEYWORD1
-makeConnections	KEYWORD2
-
-AudioOutputUSB_F32	KEYWORD1
-
-analyze_CTCSS_F32	KEYWORD1
-initCTCSS	KEYWORD2
-readTonePower	KEYWORD2
-readRefPower	KEYWORD2
-readTonePresent	KEYWORD2
-thresholds	KEYWORD2
-
 AudioAnalyzeFFT256_IQ_F32	KEYWORD1
 AudioAnalyzeFFT1024_F32	KEYWORD1
 AudioAnalyzeFFT1024_IQ_F32	KEYWORD1
@@ -433,8 +432,12 @@ scale_i32_to_f32	KEYWORD2
 get_isOutOfMemory	KEYWORD2
 clear_isOutOfMemory	KEYWORD2
 
+AudioInputI2Ssink_F32	KEYWORD1
+
 AudioInputSPDIF3_F32	KEYWORD1
 pllLocked	KEYWORD2
+
+AudioOutputSPDIF3_F32	KEYWORD1
 
 mathDSP_F32	KEYWORD1
 acos_f32	KEYWORD2
@@ -521,3 +524,32 @@ onNoteOff	KEYWORD2
 
 AudioSynthNoiseWhite_F32	KEYWORD2
 setDefaultValues	KEYWORD2
+
+AudioInputUSB_F32	KEYWORD1
+begin	KEYWORD2
+volume	KEYWORD2
+getBufferedSamples	KEYWORD2
+getBufferedSamplesSmooth	KEYWORD2
+getRequestedSamplingFrequ	KEYWORD2
+getActualBIntervalUs	KEYWORD2
+getStatus	KEYWORD2
+
+AudioOutputUSB_F32	KEYWORD1
+getStatus	KEYWORD2
+
+AudioInputTDM8_F32	KEYWORD1
+begin	KEYWORD2
+getNumChannels	KEYWORD2
+
+AudioOutputTDM8_F32	KEYWORD1
+begin	KEYWORD2
+getNumChannels	KEYWORD2
+
+AudioInputTDM16_F32	KEYWORD1
+begin	KEYWORD2
+getNumChannels	KEYWORD2
+
+AudioOutputTDM16_F32	KEYWORD1
+begin	KEYWORD2
+getNumChannels	KEYWORD2
+
