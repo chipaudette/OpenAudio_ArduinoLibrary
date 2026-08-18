@@ -64,5 +64,5 @@ float AudioAnalyzeRMS_F32::read(void)  {
     float32_t num = (float32_t)count;
     count = 0;
     __enable_irq();
-    return sqrtf(sum / (num * (float32_t)block_size));
+    return num? sqrtf(sum / (num * (float32_t)block_size)): 0;
 }
