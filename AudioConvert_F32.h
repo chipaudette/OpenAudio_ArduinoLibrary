@@ -141,7 +141,7 @@ class AudioConvert_F32toI16 : public AudioStream_F32 //receive Float and transmi
 
    static void convertAudio_F32toI16(audio_block_f32_t *in, audio_block_t *out, int len) {
       //WEA Method.  Should look at CMSIS arm_float_to_q15 instead: https://www.keil.com/pack/doc/CMSIS/DSP/html/group__float__to__x.html#ga215456e35a18db86882e1d3f0d24e1f2	
-      const float MAX_INT = 32678.0;
+      const float MAX_INT = 32768.0;
       for (int i = 0; i < len; i++) {
         out->data[i] = (int16_t)(max(min( (in->data[i] * MAX_INT), MAX_INT), -MAX_INT));
       }
@@ -196,7 +196,7 @@ class AudioConvert_F32toI16x2 : public AudioStream_F32 //receive Float and trans
 
    static void convertAudio_F32toI16x2(audio_block_f32_t *in, audio_block_t *outH, audio_block_t *outL, int len) {
       //WEA Method.  Should look at CMSIS arm_float_to_q15 instead: https://www.keil.com/pack/doc/CMSIS/DSP/html/group__float__to__x.html#ga215456e35a18db86882e1d3f0d24e1f2	
-      const float MAX_INT = 32678.0f * 65536.0f;
+      const float MAX_INT = 32768.0f * 65536.0f;
       for (int i = 0; i < len; i++) {
         int32_t intValue = (int32_t)(max(min( (in->data[i] * MAX_INT), MAX_INT), -MAX_INT));
         outH->data[i] = (int16_t) ((intValue & 0xFFFF0000)>>16);
