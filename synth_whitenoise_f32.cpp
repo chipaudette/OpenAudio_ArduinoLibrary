@@ -34,92 +34,36 @@
 
 #include "synth_whitenoise_f32.h"
 
-// Park-Miller-Carta Pseudo-Random Number Generator
-// http://www.firstpr.com.au/dsp/rand31/
+// Algorithm from Pure data [noise~] object
+// https://github.com/pure-data/pure-data/blob/master/src/d_osc.c
 
 void AudioSynthNoiseWhite_F32::update(void)
 {
-	audio_block_t *block;
-	audio_block_f32_t *block_f32;
-	uint32_t *p, *end;
-	int32_t n1, n2, gain;
-	uint32_t lo, hi, val1, val2;
-
-	//Serial.println("synth_whitenoise: update()");
-	gain = level;
+	float gain = level;
 	if (gain == 0) {
-		//Serial.println(": Gain = 0, returning.");
 		return;
 	}
-	block = AudioStream::allocate();
-	block_f32 = AudioStream_F32::allocate_f32();
-	if (!block | !block_f32) {
-		//Serial.println(": NULL block. returning.");
-		return;
-	}
-	p = (uint32_t *)(block->data);
-	//end = p + AUDIO_BLOCK_SAMPLES/2;
-	end = p + (block_f32->length)/2;
-	
-	lo = seed;
-	do {
-#if ( defined(KINETISK) ||  defined(__IMXRT1062__) )
-		hi = multiply_16bx16t(16807, lo); // 16807 * (lo >> 16)
-		lo = 16807 * (lo & 0xFFFF);
-		lo += (hi & 0x7FFF) << 16;
-		lo += hi >> 15;
-		lo = (lo & 0x7FFFFFFF) + (lo >> 31);
-		n1 = signed_multiply_32x16b(gain, lo);
-		hi = multiply_16bx16t(16807, lo); // 16807 * (lo >> 16)
-		lo = 16807 * (lo & 0xFFFF);
-		lo += (hi & 0x7FFF) << 16;
-		lo += hi >> 15;
-		lo = (lo & 0x7FFFFFFF) + (lo >> 31);
-		n2 = signed_multiply_32x16b(gain, lo);
-		val1 = pack_16b_16b(n2, n1);
-		hi = multiply_16bx16t(16807, lo); // 16807 * (lo >> 16)
-		lo = 16807 * (lo & 0xFFFF);
-		lo += (hi & 0x7FFF) << 16;
-		lo += hi >> 15;
-		lo = (lo & 0x7FFFFFFF) + (lo >> 31);
-		n1 = signed_multiply_32x16b(gain, lo);
-		hi = multiply_16bx16t(16807, lo); // 16807 * (lo >> 16)
-		lo = 16807 * (lo & 0xFFFF);
-		lo += (hi & 0x7FFF) << 16;
-		lo += hi >> 15;
-		lo = (lo & 0x7FFFFFFF) + (lo >> 31);
-		n2 = signed_multiply_32x16b(gain, lo);
-		val2 = pack_16b_16b(n2, n1);
-		*p++ = val1;
-		*p++ = val2;
-#elif defined(KINETISL)
-		hi = 16807 * (lo >> 16);
-		lo = 16807 * (lo & 0xFFFF);
-		lo += (hi & 0x7FFF) << 16;
-		lo += hi >> 15;
-		lo = (lo & 0x7FFFFFFF) + (lo >> 31);
-		n1 = signed_multiply_32x16b(gain, lo);
-		hi = 16807 * (lo >> 16);
-		lo = 16807 * (lo & 0xFFFF);
-		lo += (hi & 0x7FFF) << 16;
-		lo += hi >> 15;
-		lo = (lo & 0x7FFFFFFF) + (lo >> 31);
-		n2 = signed_multiply_32x16b(gain, lo);
-		val1 = pack_16b_16b(n2, n1);
-		*p++ = val1;
-#endif
-	} while (p < end);
-	seed = lo;
 
-	//convert int16 to f32
-    #define I16_TO_F32_NORM_FACTOR (3.051757812500000E-05)  //which is 1/32768 
-	for (int i=0; i<block_f32->length; i++)
-		 block_f32->data[i] = (float32_t)block->data[i] * I16_TO_F32_NORM_FACTOR;
+	audio_block_f32_t *block = AudioStream_F32::allocate_f32();
+	if (!block) {
+		return;
+	}
 	
-	AudioStream_F32::transmit(block_f32);
-	AudioStream_F32::release(block_f32);
-	AudioStream::release(block);
-	//Serial.println(" Done.");
+	float *p = block->data;
+	
+	uint32_t val = seed;
+
+	gain *= (float)(1.0 / 0x40000000);
+
+	for(int i = 0; i < block->length; ++i) {
+        p[i] = (float)((val & 0x7fffffff) - 0x40000000) * gain;
+        val = val * 435898247 + 382842987;
+ 	}
+
+	seed = val;
+
+	AudioStream_F32::transmit(block);
+	AudioStream_F32::release(block);
 }
 
 uint16_t AudioSynthNoiseWhite_F32::instance_count = 0;
