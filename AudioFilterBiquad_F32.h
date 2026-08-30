@@ -57,7 +57,6 @@ class AudioFilterBiquad_F32 : public AudioStream_F32
   public:
     AudioFilterBiquad_F32(void): AudioStream_F32(1,inputQueueArray) {
         setSampleRate_Hz(AUDIO_SAMPLE_RATE_EXACT);
-        sampleRate_Hz = AUDIO_SAMPLE_RATE_EXACT;   //  <<<<<<<<<<<<<<<<<<<<<<  CHECK IF NEEDED??
         doClassInit();
     }
     AudioFilterBiquad_F32(const AudioSettings_F32 &settings):
@@ -71,7 +70,7 @@ class AudioFilterBiquad_F32 : public AudioStream_F32
            coeff32[ii] = 0.0;
            coeff64[ii] = 0.0;
            }
-        for(int ii=0; ii<4; ii++) {
+        for(int ii=0; ii<IIR_MAX_STAGES; ii++) {
            coeff32[5*ii] = 1.0;  // b0 = 1 for pass through
            coeff64[5*ii] = 1.0;
            }
@@ -83,7 +82,7 @@ class AudioFilterBiquad_F32 : public AudioStream_F32
     // or from direct setCoefficients() need to be added to the double array
     // and also to the float
     void setCoefficients(int iStage, double *cf)  {
-        if (iStage > IIR_MAX_STAGES) {
+        if (iStage >= IIR_MAX_STAGES) {
            if (Serial) {
               Serial.print("AudioFilterBiquad_F32: setCoefficients:");
               Serial.println(" *** MaxStages Error");
@@ -96,7 +95,7 @@ class AudioFilterBiquad_F32 : public AudioStream_F32
            coeff64[ii + 5*iStage] = cf[ii];  // The local collection of double coefficients
            coeff32[ii + 5*iStage] = (float)cf[ii];  // and of floats
            }
-       doBiquad = true;
+       begin();
        }
 
     // ARM DSP Math library filter instance.
@@ -107,6 +106,7 @@ class AudioFilterBiquad_F32 : public AudioStream_F32
         // Initialize BiQuad instance (ARM DSP Math Library)
         //https://www.keil.com/pack/doc/CMSIS/DSP/html/group__BiquadCascadeDF1.html
         arm_biquad_cascade_df1_init_f32(&iir_inst, numStagesUsed, &coeff32[0],  &StateF32[0]);
+        doBiquad = true;
         }
 
     void end(void) {
