@@ -100,8 +100,9 @@ micBiasEnable	KEYWORD2
 micBiasDisable	KEYWORD2
 
 AudioConvert_I16toF32	KEYWORD1
-
 AudioConvert_F32toI16	KEYWORD1
+AudioConvert_I16x2toF32	KEYWORD1
+AudioConvert_F32toI16x2	KEYWORD1
 
 AudioEffectDelay_OA_F32	KEYWORD1
 delay	KEYWORD2
